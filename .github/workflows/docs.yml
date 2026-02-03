@@ -1,0 +1,53 @@
+name: Build and Deploy Docs
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - "docs/**"
+      - "**.md"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+
+      - name: Setup Julia
+        uses: julia-actions/setup-julia@v2
+
+      - name: Build HTML documentation
+        run: julia --project=docs docs/make.jl
+
+      - name: Upload build artefact
+        if: |
+          ((github.event_name == 'push') || (github.event_name == 'workflow_dispatch')) &&
+          ((github.ref == 'refs/heads/main') || (github.ref_type == 'tag'))
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: docs/build
+          name: github-pages
+
+  deploy:
+    runs-on: ubuntu-latest
+    name: (main only) Deploy to GH pages
+    needs: build
+    if: |
+      ((github.event_name == 'push') || (github.event_name == 'workflow_dispatch')) &&
+      ((github.ref == 'refs/heads/main') || (github.ref_type == 'tag'))
+    permissions:
+      pages: write # to deploy to Pages
+      id-token: write # to verify the deployment originates from an appropriate source
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy from artifact
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          artefact_name: github-pages
