@@ -1,10 +1,10 @@
-name = "MyJuliaPackage"
+name = "Q-SPIN"
 uuid = "3f62d152-8970-4ff6-93e2-b431c80450c4"
-authors = ["YOUR NAME HERE"]
+authors = ["Gary Liu"]
 version = "1.0.0-DEV"
 
 [compat]
-julia = "1.10.10"
+julia = "1.6"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
