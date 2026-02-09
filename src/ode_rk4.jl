@@ -1,4 +1,4 @@
-function ode_rk4(u::Float64,dt::Float64,time::Float64)
+function ode_rk4(u::Array{Float64},dt::Float64,time::Float64)
     k1 = eom(u,time);
     k2 = eom(u+0.5*k1*dt,time+0.5*dt); 
     k3 = eom(u+0.5*k2*dt,time+0.5*dt); 
