@@ -6,7 +6,7 @@ Integrating an equation of motion usin the Runge-Kutta 4-th order method
 :param time: time.
 :param eom: the equation of motion of the problem.
 """
-function ode_rk4(u::Array{Float64},dt::Float64,time::Float64,eom::function)   
+function ode_rk4(u::Array{Float64},dt::Float64,time::Float64,eom::Function)
     k1 = eom(u,time);
     k2 = eom(u+0.5*k1*dt,time+0.5*dt); 
     k3 = eom(u+0.5*k2*dt,time+0.5*dt); 

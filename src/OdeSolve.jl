@@ -1,15 +1,14 @@
 module OdeSolve
     using LinearAlgebra
+    using FFTW
     using MAT
     using ParallelStencil
 
-# Setting the EoM problem
-    A = [-2 1;1 -2]
+
 # Loading the eom.jl and rk4 propagator, ode_rk4.jl
-    include("eom.jl")
     include("ode_rk4.jl")
 
-    function evolve1d(ψ0::Vector{Float64},dt::Float64,Dt::Float64,tend::Float64)
+    function evolve1d(ψ0::Vector{Float64},dt::Float64,Dt::Float64,tend::Float64,eom::Function)
         save_number = 1
         step_number = 0
         ΔNt         = Int.(Dt / dt)
@@ -19,7 +18,7 @@ module OdeSolve
         ψall[:,1]   = ψ0
         t           = 0.
         while t < tend
-            ψn = ode_rk4(ψ0,dt,t)
+            ψn = ode_rk4(ψ0,dt,t,eom)
             ψ0 = ψn
             t  += dt
             step_number += 1
