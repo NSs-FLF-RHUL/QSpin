@@ -1,8 +1,12 @@
-using QSpin
 using Plots
+using QSpin
 
 # Setting the EoM problem
-   
+"""
+Setting the equation of motion for the targed problem
+    :param ψ: vairable/vector/array assocaited with the problem.
+    "param time: the time of the problem
+"""
 function eom(ψ::Array{Float64},time::Float64)
     A = [-2 1;1 -2]
     dψdt = A * ψ
