@@ -1,16 +1,26 @@
 name = "QSpin"
 uuid = "3f62d152-8970-4ff6-93e2-b431c80450c4"
-authors = ["Gary Liu"]
 version = "1.0.0-DEV"
+authors = ["Gary Liu"]
+
+[workspace]
+projects = ["docs"]
+
+[deps]
+FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+MAT = "23992714-dd62-5051-b70f-ba57cb901cac"
+ParallelStencil = "94395366-693c-11ea-3b26-d9b7aac5d958"
 
 [compat]
-julia = "1.6"
+FFTW = "1.10.0"
+LinearAlgebra = "1.12.0"
+MAT = "0.11.5"
+ParallelStencil = "0.15.1"
+julia = "1.12.4"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
 test = ["Test"]
-
-[workspace]
-projects = ["docs"]
