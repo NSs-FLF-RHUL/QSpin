@@ -4,8 +4,6 @@ using FFTW
 using MAT
 using ParallelStencil
 
-
-# Loading the rk4 propagator, ode_rk4.jl
 include("ode_rk4.jl")
 
 """
@@ -30,7 +28,7 @@ function evolve_rk4(ψ0::Array{Float64}, dt::Float64, Dt::Float64, t_end::Float6
 
     ψall = zeros(size(ψ0)..., Nt + 1)
     selectdim(ψall, time_dimension_index, 1) .= ψ0
-    tspan = zeros(Nt + 1) # i think these can be preallocated
+    tspan = zeros(Nt + 1)
 
     t = 0.
     ψcurrent = ψ0
