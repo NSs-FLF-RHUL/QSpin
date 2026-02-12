@@ -15,12 +15,13 @@ module OdeSolve
         Nt          = Int(tend / Dt)
         dims        = ndims(ψ0)
         
-        if dims == 1
+        if dims <= 1
+            dims == 1
             println("Effective ", dims,"D problem", " \n")
-            ψall        = zeros(length(ψ0),Nt+1)
+            ψall        = zeros(Nt+1,length(ψ0))
         end
         tspan       = zeros(Nt+1)
-        ψall[:,1]   = ψ0
+        ψall[1,:]   = ψ0
         t           = 0.
         
         while t < tend
@@ -31,7 +32,7 @@ module OdeSolve
             if mod(step_number,ΔNt) == 0
                 println("t=",t, " \n")
                 if dims == 1
-                    ψall[:,save_number+1] = ψ0
+                    ψall[save_number+1,:] = ψ0
                 end
                 tspan[save_number+1] = t
                 save_number += 1
