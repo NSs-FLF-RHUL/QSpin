@@ -7,13 +7,13 @@ Setting the equation of motion for the targed problem
     :param ψ: vairable/vector/array assocaited with the problem.
     "param time: the time of the problem
 """
-function eom(ψ::Array{Float64},time::Float64)
-    A = [-2 1;1 -2]
+function eom(ψ::Array{Float64}, time::Float64)
+    A = [-2 1; 1 -2]
     dψdt = A * ψ
 end
 
 # Running and Plotting
-@time ut, t = QSpin.OdeSolve.evolve_rk4([.1;.2],1e-3,1e-1,1.,eom)
+@time ut, t = QSpin.OdeSolve.evolve_rk4([0.1; 0.2], 1e-3, 1e-1, 1., eom)
 output_plot = plot(t, ut[1, :])
 plot!(output_plot, t, ut[2, :], xlabel="time (A.U.)", ylabel="Rotating Frequency (A.U.)", title="Solving a set of coupled ODEs")
 
