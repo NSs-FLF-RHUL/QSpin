@@ -16,9 +16,9 @@ Next = 1.2e2
 Ω0 = [70.34 - 6.3e-3; 70.34; 70.34]
 
 """
-Setting the equation of motion for the targed problem
+Setting the equation of motion for the target problem
 
-    :param ψ: vairable/vector/array assocaited with the problem.
+    :param ψ: variable/vector/array associated with the problem.
     "param time: the time of the problem
 """
 function eom(ψ::Array{Float64}, time::Float64)
