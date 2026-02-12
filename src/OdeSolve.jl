@@ -38,5 +38,6 @@ module OdeSolve
                 save_number += 1
             end
         end
+        return ψall, tspan
     end
 end
