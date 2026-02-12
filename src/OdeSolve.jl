@@ -14,8 +14,9 @@ module OdeSolve
         ΔNt         = Int(Dt / dt)
         Nt          = Int(tend / Dt)
         dims        = ndims(ψ0)
+        
         if dims == 1
-            print("Effective 1D problem, "\n"")
+            println("Effective ", dims,"D problem", " \n")
             ψall        = zeros(length(ψ0),Nt+1)
         end
         tspan       = zeros(Nt+1)
@@ -29,7 +30,7 @@ module OdeSolve
             step_number += 1
             if mod(step_number,ΔNt) == 0
                 println("t=",t, " \n")
-                if dimes == 1
+                if dims == 1
                     ψall[:,save_number+1] = ψ0
                 end
                 tspan[save_number+1] = t
