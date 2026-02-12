@@ -1,7 +1,7 @@
 # My Package Documentation
 
 ```@docs
-MyJuliaPackage.double
+QSpin.ode_rk4
 ```
 
 ## Building the Documentation
