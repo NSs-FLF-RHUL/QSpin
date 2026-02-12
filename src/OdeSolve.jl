@@ -9,14 +9,16 @@ using ParallelStencil
 include("ode_rk4.jl")
 
 function evolve_rk4(ψ0::Array{Float64}, dt::Float64, Dt::Float64, tend::Float64, eom::Function)
+    # Method convention is to allocate time slices along a new dimension.
+    dims = ndims(ψ0)
+    time_dimension_index = dims + 1
+    println("Field is ", dims, "D dimensional. Time slices will be along dimension ", time_dimension_index, "\n")
+
     ΔNt = Int(Dt / dt)
     Nt = Int(tend / Dt)
-    dims = ndims(ψ0)
 
-    println("Field is ", dims, "D dimensional", " \n")
-
-    ψall = zeros(Nt + 1, size(ψ0)...)
-    selectdim(ψall, 1, 1) .= ψ0
+    ψall = zeros(size(ψ0)..., Nt + 1)
+    selectdim(ψall, time_dimension_index, 1) .= ψ0
     tspan = zeros(Nt + 1) # i think these can be preallocated
 
     t = 0.
@@ -31,7 +33,7 @@ function evolve_rk4(ψ0::Array{Float64}, dt::Float64, Dt::Float64, tend::Float64
 
         if mod(step_number, ΔNt) == 0
             println("t=", t, " \n")
-            selectdim(ψall, 1, save_number + 1) .= ψcurrent
+            selectdim(ψall, time_dimension_index, save_number + 1) .= ψcurrent
             tspan[save_number+1] = t
             save_number += 1
         end
