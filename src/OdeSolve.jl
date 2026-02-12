@@ -23,7 +23,7 @@ Time-evolve an equation of motion using the RK4 Runge-Kutta 4-th order method.
 function evolve_rk4(ψ0::Array{Float64}, dt::Float64, Dt::Float64, t_end::Float64, eom::Function)
     dims = ndims(ψ0)
     time_dimension_index = dims + 1
-    println("Field is ", dims, "D dimensional. Time slices will be along dimension ", time_dimension_index, "\n")
+    println("Field is ", dims, "D dimensional. Time slices will be along dimension ", time_dimension_index, ".")
 
     ΔNt = floor(Int, Dt / dt)
     Nt = floor(Int, t_end / Dt)
@@ -43,7 +43,7 @@ function evolve_rk4(ψ0::Array{Float64}, dt::Float64, Dt::Float64, t_end::Float6
         step_number += 1
 
         if mod(step_number, ΔNt) == 0
-            println("t=", t, " \n")
+            println("t=", t)
             selectdim(ψall, time_dimension_index, save_number + 1) .= ψcurrent
             tspan[save_number+1] = t
             save_number += 1
