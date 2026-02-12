@@ -8,8 +8,19 @@ using ParallelStencil
 # Loading the rk4 propagator, ode_rk4.jl
 include("ode_rk4.jl")
 
+"""
+Time-evolve an equation of motion using the RK4 Runge-Kutta 4-th order method.
+
+:param ψ0: Initial value for the field at time 0.
+:param dt: Timestep interval (used as the integral timestep in RK4).
+:param Dt: Time interval between recorded field values.
+:param t_end: End time for equation evolution.
+:param eom: The equation of motion of the problem.
+:returns ψall: Field values at recorded timestamps.
+    `ψall[.., i]` is the field value at time `tspan[i]`.
+:returns tspan: Timestamps at which field values were recorded.
+"""
 function evolve_rk4(ψ0::Array{Float64}, dt::Float64, Dt::Float64, tend::Float64, eom::Function)
-    # Method convention is to allocate time slices along a new dimension.
     dims = ndims(ψ0)
     time_dimension_index = dims + 1
     println("Field is ", dims, "D dimensional. Time slices will be along dimension ", time_dimension_index, "\n")
