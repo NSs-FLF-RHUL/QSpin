@@ -1,43 +1,53 @@
 module OdeSolve
-    using LinearAlgebra
-    using FFTW
-    using MAT
-    using ParallelStencil
+using LinearAlgebra
+using FFTW
+using MAT
+using ParallelStencil
 
+include("ode_rk4.jl")
 
-# Loading the eom.jl and rk4 propagator, ode_rk4.jl
-    include("ode_rk4.jl")
+"""
+Time-evolve an equation of motion using the RK4 Runge-Kutta 4-th order method.
 
-    function evolve_rk4(ψ0::Array{Float64},dt::Float64,Dt::Float64,tend::Float64,eom::Function)
-        save_number = 1
-        step_number = 0
-        ΔNt         = Int(Dt / dt)
-        Nt          = Int(tend / Dt)
-        dims        = ndims(ψ0)
-        
-        if dims <= 1
-            dims == 1
-            println("Effective ", dims,"D problem", " \n")
-            ψall        = zeros(Nt+1,length(ψ0))
+:param ψ0: Initial value for the field at time 0.
+:param dt: Timestep interval (used as the integral timestep in RK4).
+:param Dt: Time interval between recorded field values.
+:param t_end: End time for equation evolution.
+:param eom: The equation of motion of the problem.
+:returns ψall: Field values at recorded timestamps.
+    `ψall[.., i]` is the field value at time `tspan[i]`.
+:returns tspan: Timestamps at which field values were recorded.
+"""
+function evolve_rk4(ψ0::Array{Float64}, dt::Float64, Dt::Float64, t_end::Float64, eom::Function)
+    dims = ndims(ψ0)
+    time_dimension_index = dims + 1
+    println("Field is ", dims, "D dimensional. Time slices will be along dimension ", time_dimension_index, ".")
+
+    ΔNt = floor(Int, Dt / dt)
+    Nt = floor(Int, t_end / Dt)
+
+    ψall = zeros(size(ψ0)..., Nt + 1)
+    selectdim(ψall, time_dimension_index, 1) .= ψ0
+    tspan = zeros(Nt + 1)
+
+    t = 0.
+    ψcurrent = ψ0
+    save_number = 1
+    step_number = 0
+
+    while t < t_end
+        ψcurrent = ode_rk4(ψcurrent, dt, t, eom)
+        t += dt
+        step_number += 1
+
+        if mod(step_number, ΔNt) == 0
+            println("t=", t)
+            selectdim(ψall, time_dimension_index, save_number + 1) .= ψcurrent
+            tspan[save_number+1] = t
+            save_number += 1
         end
-        tspan       = zeros(Nt+1)
-        ψall[1,:]   = ψ0
-        t           = 0.
-        
-        while t < tend
-            ψn = ode_rk4(ψ0,dt,t,eom)
-            ψ0 = ψn
-            t  += dt
-            step_number += 1
-            if mod(step_number,ΔNt) == 0
-                println("t=",t, " \n")
-                if dims == 1
-                    ψall[save_number+1,:] = ψ0
-                end
-                tspan[save_number+1] = t
-                save_number += 1
-            end
-        end
-        return ψall, tspan
     end
+    return ψall, tspan
+end
+
 end
