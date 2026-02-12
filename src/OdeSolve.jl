@@ -8,7 +8,7 @@ module OdeSolve
 # Loading the eom.jl and rk4 propagator, ode_rk4.jl
     include("ode_rk4.jl")
 
-    function evolve_rk4(ψ0::Vector{Float64},dt::Float64,Dt::Float64,tend::Float64,eom::Function)
+    function evolve_rk4(ψ0::Array{Float64},dt::Float64,Dt::Float64,tend::Float64,eom::Function)
         save_number = 1
         step_number = 0
         ΔNt         = Int(Dt / dt)
