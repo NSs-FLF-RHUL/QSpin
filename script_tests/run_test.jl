@@ -14,5 +14,8 @@ end
 
 # Running and Plotting
 @time ut, t = QSpin.OdeSolve.evolve_rk4([.1;.2],1e-3,1e-1,1.,eom)
-plot(t,ut[1,:])
-plot!(t,ut[2,:],xlabel = "time (A.U.)",ylabel="Rotating Frequency (A.U.)",title="Solving a set of coupled ODE")
+output_plot = plot(t, ut[1, :])
+plot!(output_plot, t, ut[2, :], xlabel="time (A.U.)", ylabel="Rotating Frequency (A.U.)", title="Solving a set of coupled ODEs")
+
+savefig(output_plot, "./outputs/output-plot.png")
+
