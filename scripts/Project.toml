@@ -1,0 +1,10 @@
+
+[deps]
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+QSpin = "3f62d152-8970-4ff6-93e2-b431c80450c4"
+
+[compat]
+Plots = "1.41.5"
+
+[sources]
+QSpin = {path = ".."}
