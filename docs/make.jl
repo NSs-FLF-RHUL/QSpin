@@ -1,3 +1,8 @@
-using Documenter, MyJuliaPackage
+using Documenter, QSpin
 
-makedocs(sitename="MyJuliaPackage Documentation", remotes=nothing, modules=[MyJuliaPackage])
+makedocs(
+    sitename="QSpin Documentation",
+    remotes=nothing,
+    modules=[QSpin],
+    checkdocs=:exports,
+)
