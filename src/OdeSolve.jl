@@ -18,10 +18,22 @@ Time-evolve an equation of motion using the RK4 Runge-Kutta 4-th order method.
     `ψall[.., i]` is the field value at time `tspan[i]`.
 :returns tspan: Timestamps at which field values were recorded.
 """
-function evolve_rk4(ψ0::Array{Float64}, dt::Float64, Dt::Float64, t_end::Float64, eom::Function)
+function evolve_rk4(
+    ψ0::Array{Float64},
+    dt::Float64,
+    Dt::Float64,
+    t_end::Float64,
+    eom::Function,
+)
     dims = ndims(ψ0)
     time_dimension_index = dims + 1
-    println("Field is ", dims, "D dimensional. Time slices will be along dimension ", time_dimension_index, ".")
+    println(
+        "Field is ",
+        dims,
+        "D dimensional. Time slices will be along dimension ",
+        time_dimension_index,
+        ".",
+    )
 
     ΔNt = floor(Int, Dt / dt)
     Nt = floor(Int, t_end / Dt)
@@ -30,7 +42,7 @@ function evolve_rk4(ψ0::Array{Float64}, dt::Float64, Dt::Float64, t_end::Float6
     selectdim(ψall, time_dimension_index, 1) .= ψ0
     tspan = zeros(Nt + 1)
 
-    t = 0.
+    t = 0.0
     ψcurrent = ψ0
     save_number = 1
     step_number = 0
