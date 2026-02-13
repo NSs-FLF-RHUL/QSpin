@@ -19,11 +19,14 @@ jobs:
           path: ~/.cache/pre-commit
           key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
 
-      - uses: julia-actions/setup-julia@v2
+      - name: Setup Julia
+        uses: julia-actions/setup-julia@v2
 
-      - uses: julia-actions/cache@v2
+      - name: Cache Julia depot
+        uses: julia-actions/cache@v2
 
-      - run: julia -e 'import Pkg; Pkg.add("JuliaFormatter")'
+      - name: Install JuliaFormatter.jl
+        run: julia -e 'import Pkg; Pkg.add("JuliaFormatter")'
 
       - name: Set up python
         uses: actions/setup-python@v6
