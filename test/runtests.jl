@@ -11,17 +11,17 @@ using Test
         # A simple "EoM" that doesn't evolve the field (dψdt = 0)
         no_evolution(ψ, time) = zeros(size(ψ))
         # An arbitrary initial field, that we don't expect to evolve
-        initial_field = [1.; 2.]
+        initial_field = [1.0; 2.0]
 
         # Confirm that there is no evolution according to RK4
         @test isapprox(
-            QSpin.OdeSolve.ode_rk4(initial_field, 1., 0., no_evolution),
-            initial_field
+            QSpin.OdeSolve.ode_rk4(initial_field, 1.0, 0.0, no_evolution),
+            initial_field,
         )
         # When there is no evolution, the timestep δt should not matter
         @test isapprox(
-            QSpin.OdeSolve.ode_rk4(initial_field, 1., 0., no_evolution),
-            QSpin.OdeSolve.ode_rk4(initial_field, 10., 0., no_evolution)
+            QSpin.OdeSolve.ode_rk4(initial_field, 1.0, 0.0, no_evolution),
+            QSpin.OdeSolve.ode_rk4(initial_field, 10.0, 0.0, no_evolution),
         )
     end
 end
