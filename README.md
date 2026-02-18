@@ -17,7 +17,6 @@ Gary Liu ([Gary.Liu@rhul.ac.uk](mailto:Gary.Liu@rhul.ac.uk))
 
 QSpin package is an multi-functional PDE solvers for quantum fluid systems. It is specfically designed for solving [Gross-Pitaevskii equation](https://iopscience.iop.org/article/10.3847/1538-4357/adc383), [Ginzburg-Landau model](https://www.mdpi.com/2218-1997/8/4/228), and similar nonlinear Schrödinger equations for their stationary/equilibrium states and dynamics. The former is approached by the steepest descent and imaginary-time propgation methods. The time integration here is using Runge-Kutta methods, and adaptive time step is enable. 
 
-Here we also include an example script for a neutron star glitch simulator, based on a three-component model, [Graber et al. (2018)](http://arxiv.org/abs/1804.02706), and a python version can be accessed at [glitchsim]()
 Here we also include an example script for a neutron star glitch simulator, based on a three-component model, [Graber et al. (2018)](http://arxiv.org/abs/1804.02706), and a python version can be accessed at [glitchsim](https://github.com/NSs-FLF-RHUL/glitchsim.git), which is based on the Jupyter notebook in [glitchraiser](https://github.com/vanessagraber/glitchrises.git).
 
 ## Getting Started
