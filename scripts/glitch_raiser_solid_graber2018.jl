@@ -21,7 +21,7 @@ Itot = 1;
 Icore = 0.05
 
 Ω0 = [70.34; 70.34 - 6.3e-3; 70.34]
-
+Ω0 = [70.34; 0;0]
 """
     eom(ψ::Array{Float64}, time::Float64)
 
@@ -48,7 +48,8 @@ end
 # Running and Plotting
 @time ut, t = QSpin.OdeSolve.evolve_rk4(Ω0, 5e-3, 1e-1, 120.0, eom)
 output_plot = plot(t, ut[1, :])
-plot!(t,ut[2,:])
+plot!(output_plot,t,Ω0[1].-EMbrake*t)
+plot!(output_plot,t,ut[2,:])
 plot!(
     output_plot,
     t,
