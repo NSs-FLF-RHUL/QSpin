@@ -1,5 +1,5 @@
 # This is an example script solve the simple glitch model under solid-body rotation approach
-using Plots
+using Plots, LaTeXStrings
 using QSpin
 
 # Parameter Setup according to V. Graber et al., ApJ 865, 23 (2018)
@@ -13,15 +13,15 @@ Icore = 0.05 * Itot
 Icrust = 0.01599339442028418 * Itot
 Next = 1.2e2
 
-BSF = 1
-Bcore = 0.5
-EMbrake = 10
+BSF = 2.5e-4
+Bcore = 5e-4
+EMbrake = 1e-10
 ISF = 0.95
 Itot = 1;
 Icore = 0.05
 
-Ω0 = [70.34; 70.34 - 6.3e-3; 70.34]
-Ω0 = [70.34; 0;0]
+Ω0 = [70.34; 70.34 + 6.3e-3; 70.34]
+
 """
     eom(ψ::Array{Float64}, time::Float64)
 
@@ -47,16 +47,17 @@ end
 
 # Running and Plotting
 @time ut, t = QSpin.OdeSolve.evolve_rk4(Ω0, 5e-3, 1e-1, 120.0, eom)
-output_plot = plot(t, ut[1, :])
-plot!(output_plot,t,Ω0[1].-EMbrake*t)
-plot!(output_plot,t,ut[2,:])
+output_plot = plot(t, ut[1, :],label=L"$\Omega_\mathrm{crust}$")
+#plot!(output_plot,t,Ω0[1].-EMbrake*t)
+plot!(output_plot,t,ut[2,:],label=L"$\Omega_\mathrm{SF}$")
 plot!(
     output_plot,
     t,
     ut[3, :],
-    xlabel = "time (A.U.)",
-    ylabel = "Rotating Frequency (A.U.)",
-    title = "Solving a set of coupled ODEs",
+    label=L"$\Omega_\mathrm{core}$",
+    xlabel = "time (s)",
+    ylabel = "Rotating Frequency (Hz)",
+    title = "Glitch Raiser Sim.",
 )
 
 savefig(output_plot, "./outputs/output-plot.png")
