@@ -55,4 +55,7 @@ irt = -1im
     save_number = 1
 
     ψ, t = QSpin.OdeSolve.evolve_rk4(ψ0,dt,Dt,tend,hamil)
+    return ψ, t 
 end
+
+ψt, t = gpe2D(1.0)

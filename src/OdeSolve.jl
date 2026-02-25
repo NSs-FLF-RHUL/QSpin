@@ -13,7 +13,7 @@ Integrating an equation of motion usin the Runge-Kutta 4-th order method
 :param eom: the equation of motion of the problem.
 """
 function ode_rk4(
-    u::Array{ComplexF64}, 
+    u::AbstractArray, 
     δt::Float64, 
     time::Float64, 
     eom::Function
@@ -40,7 +40,7 @@ Time-evolve an equation of motion using the RK4 Runge-Kutta 4-th order method.
 :returns tspan: Timestamps at which field values were recorded.
 """
 function evolve_rk4(
-    ψ0::Array{ComplexF64},
+    ψ0::Union{AbstractArray,Array{Float64},Array{ComplexF64}},
     dt::Float64,
     Dt::Float64,
     t_end::Float64,
@@ -58,8 +58,12 @@ function evolve_rk4(
 
     ΔNt = floor(Int, Dt / dt)
     Nt = floor(Int, t_end / Dt)
-
-    ψall :: Array{ComplexF64} = zeros(size(ψ0)..., Nt + 1)
+    if typeof(ψ0) == Matrix{ComplexF64}
+        ψall = zeros(size(ψ0)..., Nt + 1) + im * zeros(size(ψ0)..., Nt + 1)
+    else
+        ψall = zeros(size(ψ0)..., Nt + 1)
+    end
+        
     selectdim(ψall, time_dimension_index, 1) .= ψ0
     tspan = zeros(Nt + 1)
 
