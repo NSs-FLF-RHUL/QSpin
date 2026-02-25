@@ -3,6 +3,7 @@ using FFTW
 using MAT
 using Plots, LaTeXStrings
 
+# Parameter setup for the GPE simulation
 dt_factor = 0.01
 Xmax = 5
 Ymax = 4
@@ -31,20 +32,33 @@ trap = 0.5 * (X.^2 + Y.^2)
 KE = 0.5 * (Kx.^2 * facx^2 + Ky.^2 * facy^2)
 ke_grid = facx^2
 
+"""
+    hamil(ψ::Array{ComplexF64}, time::Float64)
 
+Setting the equation of motion for the target problem
+
+    :param ψ: variable/vector/array associated with the problem. In this example, ψ is a two-dimensional complex field.
+    "param time: the time of the problem
+
+"""
 function hamil(ψ::Array{ComplexF64}, time::Float64)
     ke = ifft(KE.*fft(ψ))
     pot = trap .* ψ
     dψdt = -1im * (ke+pot)
 end
 
+"""
+    gpe2D(tend::Float64)
 
+Setting the equation of motion for the target problem
+
+    "param time: the total running time for the problem
+
+"""
 function gpe2D(tend::Float64)
 
-save_number = 1
-
-irt = -1im
-
+    save_number = 1
+    irt = -1im
 
     t = 0.
     dt = 1e-2
@@ -59,3 +73,4 @@ irt = -1im
 end
 
 ψt, t = gpe2D(1.0)
+println("Fin.")
