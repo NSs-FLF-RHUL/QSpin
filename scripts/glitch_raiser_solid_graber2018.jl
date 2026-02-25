@@ -57,7 +57,7 @@ plot!(
     label=L"$\Omega_\mathrm{core}$",
     xlabel = "time (s)",
     ylabel = "Rotating Frequency (Hz)",
-    title = "Glitch Raiser Sim.",
+    title = "Simple Glitch Raiser Sim.",
 )
 
 savefig(output_plot, "./outputs/output-plot.png")
