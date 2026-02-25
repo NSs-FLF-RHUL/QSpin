@@ -61,8 +61,8 @@ function gpe2D(tend::Float64)
     irt = -1im
 
     t = 0.
-    dt = 1e-2
-    Dt = 0.1
+    dt = 1e-3
+    Dt = 0.5
     ψ0::Array{ComplexF64} = exp.(-((X.-2).^2+Y.^2)/2)
     #tend = 1
     print("tend= ",tend ,"\n")
@@ -72,5 +72,16 @@ function gpe2D(tend::Float64)
     return ψ, t 
 end
 
-ψt, t = gpe2D(1.0)
+ψt, t = gpe2D(2*π)
 println("Fin.")
+
+# Create animation
+anim = @animate for i in 1:length(t)
+    heatmap!(x,y,abs.(ψt[:,:,i]).^2, 
+         title="coherent")
+end
+
+# Save as GIF
+gif(anim, "local_tests/coherent.gif", fps=30)
+# To save as mp4 instead:
+# gif(anim, "sine_wave.mp4", fps=30)
