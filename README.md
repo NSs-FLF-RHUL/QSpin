@@ -10,7 +10,9 @@ The API and features may change suddenly without warning.
 ### Project Team
 
 Vanessa Graber ([vanessa.graber@rhul.ac.uk](mailto:vanessa.graber@rhul.ac.uk)),
-Gary Liu ([Gary.Liu@rhul.ac.uk](mailto:Gary.Liu@rhul.ac.uk))
+Gary Liu ([Gary.Liu@rhul.ac.uk](mailto:Gary.Liu@rhul.ac.uk)),
+Will Graham ([william.graham@ucl.ac.uk](mailto:william.graham@ucl.ac.uk))
+
 <!-- TODO: how do we have an array of collaborators - steal from s2fft -->
 
 ## Description
@@ -20,3 +22,9 @@ QSpin package is an multi-functional PDE solvers for quantum fluid systems. It i
 Here we also include an example script for a neutron star glitch simulator, based on a three-component model, [Graber et al. (2018)](http://arxiv.org/abs/1804.02706), and a python version can be accessed at [glitchsim](https://github.com/NSs-FLF-RHUL/glitchsim.git), which is based on the Jupyter notebook in [glitchraiser](https://github.com/vanessagraber/glitchrises.git).
 
 ## Getting Started
+
+1. Download Juli(https://julialang.org/downloads/) (version 1.12 or later).
+
+2. Downlad QSpin(https://github.com/NSs-FLF-RHUL/QSpin/tree/gl_glitch_raiser_script?tab=readme-ov-file) package.
+
+## Running your first PDE/ODE
