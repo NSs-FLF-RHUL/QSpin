@@ -82,6 +82,6 @@ anim = @animate for i in 1:length(t)
 end
 
 # Save as GIF
-gif(anim, "local_tests/coherent.gif", fps=30)
+gif(anim, "outputs/local_tests/coherent.gif", fps=30)
 # To save as mp4 instead:
 # gif(anim, "sine_wave.mp4", fps=30)
