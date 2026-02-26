@@ -33,3 +33,4 @@ Manifest.toml
 
 /docs/build/
 outputs/**
+local_tests/**
