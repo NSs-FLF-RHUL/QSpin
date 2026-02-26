@@ -26,6 +26,52 @@ function ode_rk4(
     return un
 end
 
+"""
+Propgating Schrodinger-like equation using time splitting method with adaptive time steps.
+
+:param ψ0: The target solution of the equation of motion.
+:param Potential: The form of potential in your Hamiltonian, which can be time and ψ-dependant.
+:param Dt: The saving time span
+:param t_end: End time for equation evolution.
+:param δt_factor: The fraction of upper limit of the time step according to the CFL-like condition.
+
+"""
+
+function evolve_kdk(
+    ψ0::Union{AbstractArray,Array{Float64},Array{ComplexF64}},
+    Potential::Function,
+    Dt::Float64,
+    t_end::Float64,
+    δt_factor::Float64)
+
+    save_number = 1;
+    Nt = floor(Int, Time / Dt) + 1
+    
+    while t <= t_end && save_number < Nt
+        if t == t_end
+            save_number = save_number + 1
+        end
+        Pot     = Potential(ψ0,t)
+        Pot_max = findmax(abs.(Pot[:]))
+        Pot_max = Pot_max[1]
+        δt = time_step_adaptor(tend,t,Pot_max,δt_factor)
+        
+        K  = exp.(irt*δt*KE)
+        W  = exp.(irt*0.5*δt*Pot)
+        
+        ψ0 = W.*ifft(K.*fft(W.*ψ0))
+        t  += δt
+
+        if mod(t,Dt) < eps()
+            println("t=", t)
+            selectdim(ψall, time_dimension_index, save_number + 1) .= ψcurrent
+
+            tspan[save_number+1] = t
+            save_number += 1
+        end
+    end
+    return un
+end
 
 """
 Time-evolve an equation of motion using the RK4 Runge-Kutta 4-th order method.

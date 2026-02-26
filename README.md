@@ -10,7 +10,9 @@ The API and features may change suddenly without warning.
 ### Project Team
 
 Vanessa Graber ([vanessa.graber@rhul.ac.uk](mailto:vanessa.graber@rhul.ac.uk)),
+
 Gary Liu ([Gary.Liu@rhul.ac.uk](mailto:Gary.Liu@rhul.ac.uk)),
+
 Will Graham ([william.graham@ucl.ac.uk](mailto:william.graham@ucl.ac.uk))
 
 <!-- TODO: how do we have an array of collaborators - steal from s2fft -->
