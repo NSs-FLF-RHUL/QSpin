@@ -5,12 +5,12 @@ using MAT
 using ParallelStencil
 
 """
-Integrating an equation of motion usin the Runge-Kutta 4-th order method
+Integrate an equation of motion using the Runge-Kutta 4-th order method.
 
-:param u: the targed solution of the equation of motion.
-:param δt: the Integrating time step.
-:param time: time.
-:param eom: the equation of motion of the problem.
+:param u: The target solution of the equation of motion.
+:param δt: The integrating time step.
+:param time: Current time.
+:param eom: The equation of motion of the problem.
 """
 function ode_rk4(
     u::AbstractArray, 
