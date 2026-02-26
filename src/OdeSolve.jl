@@ -58,12 +58,7 @@ function evolve_rk4(
 
     ΔNt = floor(Int, Dt / dt)
     Nt = floor(Int, t_end / Dt)
-    if typeof(ψ0) == Matrix{ComplexF64}
-        ψall = zeros(size(ψ0)..., Nt + 1) + im * zeros(size(ψ0)..., Nt + 1)
-    else
-        ψall = zeros(size(ψ0)..., Nt + 1)
-    end
-        
+    ψall = zeros(eltype(ψ0), size(ψ0)..., Nt + 1)
     selectdim(ψall, time_dimension_index, 1) .= ψ0
     tspan = zeros(Nt + 1)
 
