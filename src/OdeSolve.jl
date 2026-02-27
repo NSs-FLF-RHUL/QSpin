@@ -27,6 +27,13 @@ function ode_rk4(
 end
 
 """
+    evolve_kdk(
+    ψ0::Union{AbstractArray,Array{Float64},Array{ComplexF64}},
+    Potential::Function,
+    Dt::Float64,
+    t_end::Float64,
+    δt_factor::Float64)
+
 Propgating Schrodinger-like equation using time splitting method with adaptive time steps.
 
 :param ψ0: The target solution of the equation of motion.
@@ -36,7 +43,6 @@ Propgating Schrodinger-like equation using time splitting method with adaptive t
 :param δt_factor: The fraction of upper limit of the time step according to the CFL-like condition.
 
 """
-
 function evolve_kdk(
     ψ0::Union{AbstractArray,Array{Float64},Array{ComplexF64}},
     Potential::Function,
@@ -65,7 +71,6 @@ function evolve_kdk(
         if mod(t,Dt) < eps()
             println("t=", t)
             selectdim(ψall, time_dimension_index, save_number + 1) .= ψcurrent
-
             tspan[save_number+1] = t
             save_number += 1
         end

@@ -47,11 +47,11 @@ end
 
 # Running and Plotting
 @time ut, t = QSpin.OdeSolve.evolve_rk4(Ω0, 5e-3, 1e-1, 120.0, eom)
-output_plot = plot(t, ut[1, :],label=L"$\Omega_\mathrm{crust}$")
-#plot!(output_plot,t,Ω0[1].-EMbrake*t)
-plot!(output_plot,t,ut[2,:],label=L"$\Omega_\mathrm{SF}$")
+
+p1 = plot(t, ut[1, :],label=L"$\Omega_\mathrm{crust}$")
+plot!(p1,t,ut[2,:],label=L"$\Omega_\mathrm{SF}$")
 plot!(
-    output_plot,
+    p1,
     t,
     ut[3, :],
     label=L"$\Omega_\mathrm{core}$",
@@ -59,5 +59,10 @@ plot!(
     ylabel = "Rotating Frequency (Hz)",
     title = "Simple Glitch Raiser Sim.",
 )
+
+p2 = plot(t,ut[1,:].-ut[1,1],xlabel = "time (s)",
+    ylabel = L"$\Delta\Omega_\mathrm{crust}$ (Hz)")
+
+output_plot = plot(p1,p2,layout=(1,2))
 
 savefig(output_plot, "./outputs/output-plot.png")
