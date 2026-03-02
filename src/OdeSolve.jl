@@ -34,7 +34,7 @@ end
     t_end::Float64,
     δt_factor::Float64)
 
-Propgating Schrodinger-like equation using time splitting method with adaptive time steps.
+Propagating Schrodinger-like equation using time splitting method with adaptive time steps.
 
 :param ψ0: The target solution of the equation of motion.
 :param Potential: The form of potential in your Hamiltonian, which can be time and ψ-dependant.
