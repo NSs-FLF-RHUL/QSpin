@@ -27,6 +27,6 @@ Here we also include an example script for a neutron star glitch simulator, base
 
 1. Download [Julia](https://julialang.org/downloads/) (version 1.12 or later).
 
-2. Downlad [QSpin](https://github.com/NSs-FLF-RHUL/QSpin/tree/gl_glitch_raiser_script?tab=readme-ov-file) package.
+2. Downlad [QSpin](https://github.com/NSs-FLF-RHUL/QSpin/tree/gl_glitch_raiser_script?tab=readme-ov-file) package to your local directory.
 
 ## Running your first PDE/ODE
