@@ -71,19 +71,20 @@ function gpe2D(Dt::Float64,tend::Float64)
     return ψ, t 
 end
 
-ψt, t = gpe2D(0.5,10.)
+ψt, t = gpe2D(0.5,20.)
 println("Fin.")
 
 # Create animation
 anim = @animate for i in 1:length(t)
     heatmap!(x,y,abs.(ψt[:,:,i]).^2, 
-         title=string(L"\mathrm{Rotating BEC}, \Omega/\omega=",\Omega,", i\omega\tau=",round(t[i]*10)/10),
+         title=string(L"\mathrm{Rotating BEC}, \Omega=",Ω, L" \omega, i\omega\tau=",round(t[i]*10)/10),
          xlims=(-Xmax, Xmax), 
          ylims=(-Ymax, Ymax),
+         aspect_ratio = 1.,
          clim=(0,50))
 end
 
 # Save as GIF
-gif(anim, "outputs/gpe_imt.gif", fps=30)
+gif(anim, "outputs/gpe_imt.gif", fps=50)
 # To save as mp4 instead:
 # gif(anim, "sine_wave.mp4", fps=30)
