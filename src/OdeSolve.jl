@@ -4,7 +4,29 @@ using FFTW
 using MAT
 using ParallelStencil
 
-include("ode_rk4.jl")
+"""
+Integrate an equation of motion using the Runge-Kutta 4-th order method.
+
+:param u: The target solution of the equation of motion.
+:param δt: The integrating time step.
+:param time: Current time.
+:param eom: The equation of motion of the problem.
+"""
+function ode_rk4(
+    u::AbstractArray, 
+    δt::Float64, 
+    time::Float64, 
+    eom::Function
+)
+    k1 = eom(u, time);
+    k2 = eom(u+0.5*k1*δt, time+0.5*δt);
+    k3 = eom(u+0.5*k2*δt, time+0.5*δt);
+    k4 = eom(u+k3*δt, time+δt);
+    un = u + δt * (k1 + 2 * k2 + 2 * k3 + k4) / 6;
+    return un
+end
+
+
 
 """
 Time-evolve an equation of motion using the RK4 Runge-Kutta 4-th order method.
@@ -19,7 +41,7 @@ Time-evolve an equation of motion using the RK4 Runge-Kutta 4-th order method.
 :returns tspan: Timestamps at which field values were recorded.
 """
 function evolve_rk4(
-    ψ0::Array{Float64},
+    ψ0::Union{AbstractArray,Array{Float64},Array{ComplexF64}},
     dt::Float64,
     Dt::Float64,
     t_end::Float64,
@@ -37,8 +59,8 @@ function evolve_rk4(
 
     ΔNt = floor(Int, Dt / dt)
     Nt = floor(Int, t_end / Dt)
-
-    ψall = zeros(size(ψ0)..., Nt + 1)
+    ψall = zeros(eltype(ψ0), size(ψ0)..., Nt + 1)
+        
     selectdim(ψall, time_dimension_index, 1) .= ψ0
     tspan = zeros(Nt + 1)
 

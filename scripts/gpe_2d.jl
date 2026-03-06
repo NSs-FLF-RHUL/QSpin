@@ -1,17 +1,17 @@
 using QSpin
 using FFTW
-using MAT
+using MAT, Random
 using Plots, LaTeXStrings
 
 # Parameter setup for the GPE simulation
 
 g = 1
 μ = 50
-Ω = 0.5
+Ω = 0.2
 Xmax = 15
 Ymax = 15
-Nx   = 256 
-Ny   = 256
+Nx   = 128
+Ny   = 128
 
 dx   = 2 * Xmax / Nx
 dy   = 2 * Ymax / Ny
@@ -46,34 +46,32 @@ Setting the equation of motion for the target problem
 """
 function hamil(ψ::Array{ComplexF64}, time::Float64)
     ke = ifft(KE.*fft(ψ))
-    pot = trap .* ψ + g .* abs.(ψ).^2 - Ω * im .* (Y .* ifft(im .* Kx.*fft(ψ))-X.*ifft( im .* Ky.*fft(ψ)))
-    dψdt = -1 * (ke+pot.-μ)
+    pot = (trap.-μ) .* ψ + g .* (abs.(ψ).^2).* ψ# - Ω * im .* (Y .* ifft(im .* Kx.*fft(ψ))-X.*ifft( im .* Ky.*fft(ψ)))
+    dψdt = -1 * (ke+pot)
 end
 
 """
     gpe2D(tend::Float64)
 
 Setting the equation of motion for the target problem
-
-    "param time: the total running time for the problem
+    :param Dt: the time span on pulling out results    
+    :param time: the total running time for the problem
 
 """
 function gpe2D(Dt::Float64,tend::Float64)
 
-    save_number = 1
     t = 0.
     dt = 1e-3/2
     
-    ψ0::Array{ComplexF64} = exp.(-((X).^2+Y.^2)/2) .* X.*Y
+    ψ0::Array{ComplexF64} = exp.(-((X).^2+Y.^2)/2) .* X.*Y + randn(ComplexF64, (length(x), length(y)))
     #tend = 1
     print("tend= ",tend ,"\n")
-    save_number = 1
 
     ψ, t = QSpin.OdeSolve.evolve_rk4(ψ0,dt,Dt,tend,hamil)
     return ψ, t 
 end
 
-ψt, t = gpe2D(.1,3.)
+ψt, t = gpe2D(0.5,10.)
 println("Fin.")
 
 # Create animation
@@ -81,7 +79,8 @@ anim = @animate for i in 1:length(t)
     heatmap!(x,y,abs.(ψt[:,:,i]).^2, 
          title=string(L"GPE, i\tau=",round(t[i]*10)/10),
          xlims=(-Xmax, Xmax), 
-         ylims=(-Ymax, Ymax))
+         ylims=(-Ymax, Ymax),
+         clim=(0,50))
 end
 
 # Save as GIF
