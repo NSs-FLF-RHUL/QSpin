@@ -51,7 +51,7 @@ function hamil(ψ::Array{ComplexF64}, time::Float64)
 end
 
 """
-    gpe2D(tend::Float64)
+    gpe2D(Dt::Float64,tend::Float64)
 
 Setting the equation of motion for the target problem
     :param Dt: the time span on pulling out results    
