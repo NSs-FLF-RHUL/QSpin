@@ -41,7 +41,7 @@ ke_grid = facx^2
 Setting the equation of motion for the target problem
 
     :param ψ: variable/vector/array associated with the problem. In this example, ψ is a two-dimensional complex field.
-    "param time: the time of the problem
+    :param time: the time of the problem
 
 """
 function hamil(ψ::Array{ComplexF64}, time::Float64)
