@@ -7,11 +7,11 @@ using Plots, LaTeXStrings
 
 g = 1
 μ = 50
-Ω = 0.2
-Xmax = 15
-Ymax = 15
-Nx   = 128
-Ny   = 128
+Ω = 0.5
+Xmax = 20
+Ymax = 20
+Nx   = 256
+Ny   = 256
 
 dx   = 2 * Xmax / Nx
 dy   = 2 * Ymax / Ny
@@ -46,7 +46,7 @@ Setting the equation of motion for the target problem
 """
 function hamil(ψ::Array{ComplexF64}, time::Float64)
     ke = ifft(KE.*fft(ψ))
-    pot = (trap.-μ) .* ψ + g .* (abs.(ψ).^2).* ψ# - Ω * im .* (Y .* ifft(im .* Kx.*fft(ψ))-X.*ifft( im .* Ky.*fft(ψ)))
+    pot = (trap.-μ) .* ψ + g .* (abs.(ψ).^2).* ψ - Ω * im .* (Y .* ifft(im .* Kx .* facx .*fft(ψ))-X.*ifft( im .* Ky .* facy .*fft(ψ)))
     dψdt = -1 * (ke+pot)
 end
 
@@ -77,7 +77,7 @@ println("Fin.")
 # Create animation
 anim = @animate for i in 1:length(t)
     heatmap!(x,y,abs.(ψt[:,:,i]).^2, 
-         title=string(L"GPE, i\tau=",round(t[i]*10)/10),
+         title=string(L"\mathrm{Rotating BEC}, \Omega/\omega=",\Omega,", i\omega\tau=",round(t[i]*10)/10),
          xlims=(-Xmax, Xmax), 
          ylims=(-Ymax, Ymax),
          clim=(0,50))
