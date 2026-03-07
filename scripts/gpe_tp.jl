@@ -8,8 +8,8 @@ using Plots, LaTeXStrings
 g = 1
 μ = 50
 Ω = 0.5
-Xmax = 20
-Ymax = 20
+Xmax = 20.
+Ymax = 20.
 Nx   = 256
 Ny   = 256
 
@@ -45,20 +45,13 @@ Setting the equation of motion for the target problem
     :param time: the total running time for the problem
 
 """
-function gpe2D(Dt::Float64,tend::Float64)
-
-    t = 0.
-    dt = 1e-3/2
-    
+function gpe2D(dt::Float64,Dt::Float64,tend::Float64)    
     ψ0::Array{ComplexF64} = exp.(-((X).^2+Y.^2)/2) .* X.*Y + randn(ComplexF64, (length(x), length(y)))
-    #tend = 1
-    print("tend= ",tend ,"\n")
-
     ψ, t = QSpin.OdeSolve.evolve_rk4(ψ0,dt,Dt,tend,hamil)
     return ψ, t 
 end
 
-ψt, t = gpe2D(0.5,20.)
+ψt, t = gpe2D(5e-3,0.5,20.)
 println("Fin.")
 
 # Create animation
@@ -72,6 +65,6 @@ anim = @animate for i in 1:length(t)
 end
 
 # Save as GIF
-gif(anim, "outputs/gpe_imt.gif", fps=50)
+#gif(anim, "outputs/gpe_imt.gif", fps=50)
 # To save as mp4 instead:
 # gif(anim, "sine_wave.mp4", fps=30)

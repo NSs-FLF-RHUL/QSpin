@@ -5,11 +5,14 @@ using MAT
 using ParallelStencil
 
 """
-    CartGrid(CompDomain,GridSize)   
+    CartGrid(CompDomain::Array{Float64},GridSize::Array{Int64})
     
-    Setting up Cartesian grid for the problem. The grid is set up in the way that it can be directly used for Fourier spectral method.
+    Setting up uniform Cartesian grids and applicable for Fourier spectral method.
+        
+        :param CompDomain: The half computational domain size. Input as an array for [Lx,Ly,Lz] and up to 3D.
+        :param GridSize: The number of grid points in each dimension, in the form of [Nx,Ny,Nz] and up to 3D.
 """
-function CartGrid(CompDomain,GridSize)
+function CartGrid(CompDomain::Array{Float64},GridSize::Array{Int64})
     dims = length(GridSize)
     if dims <=2
         Nx = GridSize[1]
