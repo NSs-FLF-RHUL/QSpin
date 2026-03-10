@@ -7,7 +7,7 @@ using Plots, LaTeXStrings
 
 g = 1
 μ = 50
-Ω = 0.
+Ω = 0.5
 Xmax = 20.
 Ymax = 20.
 Nx   = 256
@@ -18,7 +18,7 @@ Ny   = 256
     Kx = Kx * facx;
     Ky = Ky * facy;
     trap = 0.5 * (X.^2 + Y.^2)
-    KE_mtx = 0.5 * (Kx.^2 * facx^2 + Ky.^2 * facy^2)
+    KE_mtx = 0.5 * (Kx.^2 + Ky.^2)
 
 """
     potential(trap::Array{Float64}, ψ::Array{ComplexF64})
@@ -47,9 +47,17 @@ irt = -1.
 
 function Hamil(irt::Union{ComplexF64,Float64})
     function hamil(ψ::Array{ComplexF64}, time::Float64)
+   
         keψ  = QSpin.Grids.fft_ke(KE_mtx)(ψ)
         potψ = potential(trap, ψ)
-        Lzψ  = QSpin.Grids.fft_Lzψ(Kx,Ky)(ψ) 
+        Lzψ  = QSpin.Grids.fft_Lzψ(X,Y,Kx,Ky)(ψ) 
+
+#        if sum(isnan.(keψ))>0
+#            println("NaN detected in kinetic energy term at time ", time, ". Check the stability of the simulation and consider reducing the time step.")            
+#        end
+#            if sum(isnan.(Lzψ))>0
+#            println("NaN detected in angular momentum term at time ", time, ". Check the stability of the simulation and consider reducing the time step.")            
+#        end
         return irt .* (keψ + potψ - Ω * Lzψ)
     end
     return hamil
@@ -70,7 +78,7 @@ end
 
 ψ0::Array{ComplexF64} = exp.(-((X).^2+Y.^2)/2) .* X.*Y + randn(ComplexF64, (length(x), length(y)))
 
-ψt, t = gpe2D(ψ0, 5e-3, 0.5, 30.)
+ψt, t = gpe2D(ψ0, 5e-4, 0.5, 25.)
 println("Fin.")
 
 # Create animation

@@ -61,9 +61,9 @@ function fft_ke(KE_mtx::Array{Float64})
     return kinetic_energy
 end
 
-function fft_Lzψ(Kx::Array{Float64}, Ky::Array{Float64})
+function fft_Lzψ(X::Array{Float64},Y::Array{Float64},Kx::Array{Float64}, Ky::Array{Float64})
     function angular_momentum_z(ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}})
-        return ifft(im .* Kx .*fft(ψ)) - ifft(im .* Ky .*fft(ψ))
+        return im .* (Y .* ifft(im .* Kx .*fft(ψ)) - X .* ifft(im .* Ky .*fft(ψ)))
     end
     return angular_momentum_z
 end
