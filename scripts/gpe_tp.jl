@@ -4,7 +4,6 @@ using MAT, Random
 using Plots, LaTeXStrings
 
 # Parameter setup for the GPE simulation
-irt = -1.
 g = 1
 μ = 50
 Ω = 0.75
@@ -12,46 +11,50 @@ Xmax = 22.
 Ymax = 22.
 Nx   = 256
 Ny   = 256
+irt = -1.
+dt = 5e-4
+Dt = .5
+tend = 25.
 
-
+# Grid setup
     x, y, X, Y, kx, ky,Kx, Ky, facx, facy = QSpin.Grids.CartGrid([Xmax, Ymax], [Nx, Ny])
     Kx = Kx * facx;
     Ky = Ky * facy;
     trap = 0.5 * (X.^2 + Y.^2)
     KE_mtx = 0.5 * (Kx.^2 + Ky.^2)
 
+# Setting the equation of motion for the target problem
 """
-    potential(trap::Array{Float64}, ψ::Array{ComplexF64})
+    KE(ψ::Array{ComplexF64}, time::Float64)
     
-    the potential term in the GPE, which includes the external trap and the nonlinear interaction. The chemical potential μ is also included in the potential term for convenience.
+    Creating the function of kinetic energy term.
+
+"""
+function KE(ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}}, time::Float64)
+    return QSpin.Grids.fft_ke(KE_mtx)(ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}}, time::Float64)
+end    
+"""
+    Pot(trap::Array{Float64}, ψ::Array{ComplexF64})
+    
+    the potential term in the Hamiltonian.
+
+    Here we take the GPE in the rotating frame as an example, so the potential term includes the external trap potential, the nonlinear interaction term, and the rotation term.
 
     :param trap: the external trap potential, which is a two-dimensional array in this example.
     :param ψ: the field variable, which is a two-dimensional complex array in this example
 """
-function potential(ψ::Array{ComplexF64},time)
+function Pot(ψ::Array{ComplexF64},time)
     pot = (trap.-μ) .* ψ + g .* (abs.(ψ).^2).* ψ - Ω * QSpin.Grids.fft_Lzψ(X,Y,Kx,Ky)(ψ,time) 
     return pot
 end
 
+Hamil = QSpin.Hamiltonian.hamiltonian(KE,Pot,irt)
 
-function KE(ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}}, time::Float64)
-    return QSpin.Grids.fft_ke(KE_mtx)(ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}}, time::Float64)
-end
-Hamil = QSpin.Hamiltonian.hamiltonian(KE,potential,irt)
-
-dt = 5e-4
-Dt = .5
-tend = 25.
-
+# Initial condition
 ψ0::Array{ComplexF64} = sqrt(50.0).*exp.(-((X).^2+Y.^2)/2) .* X.*Y + 0.01*randn(ComplexF64, (length(x), length(y)))
 
-
-#function gpe2D(ψ0::Union{AbstractArray,Array{Float64},Array{ComplexF64}},dt::Float64,Dt::Float64,tend::Float64)    
-        ψt, t = QSpin.OdeSolve.evolve_rk4(ψ0,dt,Dt,tend,Hamil)
-#    return ψ, t 
-#end
-
-
+# Solving the GPE
+ψt, t = QSpin.OdeSolve.evolve_rk4(ψ0,dt,Dt,tend,Hamil)
 
 println("Fin.")
 
