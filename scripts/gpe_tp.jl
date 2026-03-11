@@ -6,12 +6,12 @@ using Plots, LaTeXStrings
 # Parameter setup for the GPE simulation
 irt = -1.
 g = 1
-μ = 8
+μ = 50
 Ω = 0.75
-Xmax = 12.
-Ymax = 12.
-Nx   = 128
-Ny   = 128
+Xmax = 22.
+Ymax = 22.
+Nx   = 256
+Ny   = 256
 
 
     x, y, X, Y, kx, ky,Kx, Ky, facx, facy = QSpin.Grids.CartGrid([Xmax, Ymax], [Nx, Ny])
@@ -34,16 +34,16 @@ function potential(ψ::Array{ComplexF64},time)
 end
 
 
-function KE(ψ, t)
-  return QSpin.Grids.fft_ke(KE_mtx)(ψ, t)
+function KE(ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}}, time::Float64)
+    return QSpin.Grids.fft_ke(KE_mtx)(ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}}, time::Float64)
 end
 Hamil = QSpin.Hamiltonian.hamiltonian(KE,potential,irt)
 
 dt = 5e-3
 Dt = .5
-tend = 1.
+tend = 25.
 
-ψ0::Array{ComplexF64} = exp.(-((X).^2+Y.^2)/2) .* X.*Y + randn(ComplexF64, (length(x), length(y)))
+ψ0::Array{ComplexF64} = sqrt(50.0).*exp.(-((X).^2+Y.^2)/2) .* X.*Y + 0.01*randn(ComplexF64, (length(x), length(y)))
 
 
 #function gpe2D(ψ0::Union{AbstractArray,Array{Float64},Array{ComplexF64}},dt::Float64,Dt::Float64,tend::Float64)    
