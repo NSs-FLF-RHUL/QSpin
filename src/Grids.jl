@@ -53,13 +53,35 @@ function CartGrid(CompDomain::Array{Float64},GridSize::Array{Int64})
 end 
 
 
+"""
+    fft_ke(KE_mtx::Array{Float64})(ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}})
 
+    Computing the quantum kinetic energy term in Schrodinger-type equations, namely, -∇^2ψ, using the Fourier spectral method.
+
+    :param KE_mtx: the k-square matrix for computing kinetic energy in momentum space, which can be obtained by using the k-matrices in CartGrid function in Grids.jl.
+    :param ψ: the field for computing.
+
+"""
 function fft_ke(KE_mtx::Array{Float64})
     function kinetic_energy(ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}})
         return ifft(KE_mtx.*fft(ψ))
     end
     return kinetic_energy
 end
+
+"""
+    fft_Lzψ(X::Array{Float64},Y::Array{Float64},Kx::Array{Float64}, Ky::Array{Float64})(ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}})
+
+    Computing the quantum angular momentum term, namely, Lz ψ, using the Fourier spectral method.
+    The angular momentum operator along the z-axis is given by Lz = -i (x ∂/∂y - y ∂/∂x).
+
+    :param X: the x-coordinate matrix, which can be obtained by using the x-matrix in CartGrid function in Grids.jl.
+    :param Y: the y-coordinate matrix, which can be obtained by using the y-matrix in CartGrid function in Grids.jl.
+    :param Kx: the kx-coordinate matrix, which can be obtained by using the kx-matrix in CartGrid function in Grids.jl.
+    :param Ky: the ky-coordinate matrix, which can be obtained by using the ky-matrix in CartGrid function in Grids.jl.
+    :param ψ: the field for computing.
+
+"""
 
 function fft_Lzψ(X::Array{Float64},Y::Array{Float64},Kx::Array{Float64}, Ky::Array{Float64})
     function angular_momentum_z(ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}})
