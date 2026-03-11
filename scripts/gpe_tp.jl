@@ -4,14 +4,14 @@ using MAT, Random
 using Plots, LaTeXStrings
 
 # Parameter setup for the GPE simulation
-
+irt = -1.
 g = 1
-μ = 50
-Ω = 0.5
-Xmax = 20.
-Ymax = 20.
-Nx   = 256
-Ny   = 256
+μ = 8
+Ω = 0.75
+Xmax = 12.
+Ymax = 12.
+Nx   = 128
+Ny   = 128
 
 
     x, y, X, Y, kx, ky,Kx, Ky, facx, facy = QSpin.Grids.CartGrid([Xmax, Ymax], [Nx, Ny])
@@ -28,57 +28,31 @@ Ny   = 256
     :param trap: the external trap potential, which is a two-dimensional array in this example.
     :param ψ: the field variable, which is a two-dimensional complex array in this example
 """
-function potential(trap::Array{Float64}, ψ::Array{ComplexF64})
-    pot = (trap.-μ) .* ψ + g .* (abs.(ψ).^2).* ψ
+function potential(ψ::Array{ComplexF64},time)
+    pot = (trap.-μ) .* ψ + g .* (abs.(ψ).^2).* ψ - Ω * QSpin.Grids.fft_Lzψ(X,Y,Kx,Ky)(ψ,time) 
     return pot
 end
 
-"""
-    hamil(ψ::Array{ComplexF64}, time::Float64,irt::ComplexF64)
 
-Setting the equation of motion for the target problem
-
-    :param ψ: variable/vector/array associated with the problem. In this example, ψ is a two-dimensional complex field.
-    :param time: the time of the problem
-    :param irt: propagation factor. -1 for imaginary time evolution, -im for real time evolution, or can be a general complex value for a dissipative evolution, namely, dGPE.
-
-"""
-irt = -1.
-
-function Hamil(irt::Union{ComplexF64,Float64})
-    function hamil(ψ::Array{ComplexF64}, time::Float64)
-   
-        keψ  = QSpin.Grids.fft_ke(KE_mtx)(ψ)
-        potψ = potential(trap, ψ)
-        Lzψ  = QSpin.Grids.fft_Lzψ(X,Y,Kx,Ky)(ψ) 
-
-#        if sum(isnan.(keψ))>0
-#            println("NaN detected in kinetic energy term at time ", time, ". Check the stability of the simulation and consider reducing the time step.")            
-#        end
-#            if sum(isnan.(Lzψ))>0
-#            println("NaN detected in angular momentum term at time ", time, ". Check the stability of the simulation and consider reducing the time step.")            
-#        end
-        return irt .* (keψ + potψ - Ω * Lzψ)
-    end
-    return hamil
+function KE(ψ, t)
+  return QSpin.Grids.fft_ke(KE_mtx)(ψ, t)
 end
+Hamil = QSpin.Hamiltonian.hamiltonian(KE,potential,irt)
 
-"""
-    gpe2D(ψ0::Union{AbstractArray,Array{Float64},Array{ComplexF64}},dt::Float64,Dt::Float64,tend::Float64)
-
-Setting the equation of motion for the target problem
-    :param Dt: the time span on pulling out results    
-    :param time: the total running time for the problem
-
-"""
-function gpe2D(ψ0::Union{AbstractArray,Array{Float64},Array{ComplexF64}},dt::Float64,Dt::Float64,tend::Float64)    
-        ψ, t = QSpin.OdeSolve.evolve_rk4(ψ0,dt,Dt,tend,Hamil(irt))
-    return ψ, t 
-end
+dt = 5e-3
+Dt = .5
+tend = 1.
 
 ψ0::Array{ComplexF64} = exp.(-((X).^2+Y.^2)/2) .* X.*Y + randn(ComplexF64, (length(x), length(y)))
 
-ψt, t = gpe2D(ψ0, 5e-4, 0.5, 25.)
+
+#function gpe2D(ψ0::Union{AbstractArray,Array{Float64},Array{ComplexF64}},dt::Float64,Dt::Float64,tend::Float64)    
+        ψt, t = QSpin.OdeSolve.evolve_rk4(ψ0,dt,Dt,tend,Hamil)
+#    return ψ, t 
+#end
+
+
+
 println("Fin.")
 
 # Create animation
@@ -92,6 +66,6 @@ anim = @animate for i in 1:length(t)
 end
 
 # Save as GIF
-gif(anim, "outputs/gpe_imt.gif", fps=50)
+gif(anim, string("outputs/gpe_imt-Om=", Ω, ".gif"), fps=50)
 # To save as mp4 instead:
 # gif(anim, "sine_wave.mp4", fps=30)
