@@ -39,7 +39,7 @@ function KE(ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}}, time::Flo
 end
 Hamil = QSpin.Hamiltonian.hamiltonian(KE,potential,irt)
 
-dt = 5e-3
+dt = 5e-4
 Dt = .5
 tend = 25.
 
