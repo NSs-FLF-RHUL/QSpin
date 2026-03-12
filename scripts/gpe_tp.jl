@@ -14,7 +14,7 @@ Ny   = 256
 irt = -1.
 dt = 5e-4
 Dt = .5
-tend = 1.
+tend = 25.
 
 # Grid setup
     x, y, X, Y, kx, ky,Kx, Ky, facx, facy = QSpin.Grids.CartGrid([Xmax, Ymax], [Nx, Ny])
@@ -56,3 +56,17 @@ Hamil = QSpin.Hamiltonian.hamiltonian(KE,Pot,irt)
 
 println("Fin.")
 
+# Create animation
+anim = @animate for i in 1:length(t)
+    heatmap!(x,y,abs.(ψt[:,:,i]).^2, 
+         title=string(L"\mathrm{Rotating BEC}, \Omega=",Ω, L" \omega, i\omega\tau=",round(t[i]*10)/10),
+         xlims=(-Xmax, Xmax), 
+         ylims=(-Ymax, Ymax),
+         aspect_ratio = 1.,
+         clim=(0,50))
+end
+
+# Save as GIF
+gif(anim, string("outputs/gpe_imt-Om=", Ω, ".gif"), fps=50)
+# To save as mp4 instead:
+# gif(anim, "sine_wave.mp4", fps=30)
