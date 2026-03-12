@@ -14,12 +14,10 @@ Ny   = 256
 irt = -1.
 dt = 5e-4
 Dt = .5
-tend = 25.
+tend = 1.
 
 # Grid setup
     x, y, X, Y, kx, ky,Kx, Ky, facx, facy = QSpin.Grids.CartGrid([Xmax, Ymax], [Nx, Ny])
-    Kx = Kx * facx;
-    Ky = Ky * facy;
     trap = 0.5 * (X.^2 + Y.^2)
     KE_mtx = 0.5 * (Kx.^2 + Ky.^2)
 
@@ -27,7 +25,7 @@ tend = 25.
 """
     KE(ψ::Array{ComplexF64}, time::Float64)
     
-    Creating the function of kinetic energy term.
+    Creating the function of kinetic energy term in the Hamiltonian.
 
 """
 function KE(ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}}, time::Float64)
@@ -36,7 +34,7 @@ end
 """
     Pot(trap::Array{Float64}, ψ::Array{ComplexF64})
     
-    the potential term in the Hamiltonian.
+    Creating the fucntion of the potential term in the Hamiltonian.
 
     Here we take the GPE in the rotating frame as an example, so the potential term includes the external trap potential, the nonlinear interaction term, and the rotation term.
 
@@ -54,21 +52,7 @@ Hamil = QSpin.Hamiltonian.hamiltonian(KE,Pot,irt)
 ψ0::Array{ComplexF64} = sqrt(50.0).*exp.(-((X).^2+Y.^2)/2) .* X.*Y + 0.01*randn(ComplexF64, (length(x), length(y)))
 
 # Solving the GPE
-ψt, t = QSpin.OdeSolve.evolve_rk4(ψ0,dt,Dt,tend,Hamil)
+@time ψt, t = QSpin.OdeSolve.evolve_rk4(ψ0,dt,Dt,tend,Hamil);
 
 println("Fin.")
 
-# Create animation
-anim = @animate for i in 1:length(t)
-    heatmap!(x,y,abs.(ψt[:,:,i]).^2, 
-         title=string(L"\mathrm{Rotating BEC}, \Omega=",Ω, L" \omega, i\omega\tau=",round(t[i]*10)/10),
-         xlims=(-Xmax, Xmax), 
-         ylims=(-Ymax, Ymax),
-         aspect_ratio = 1.,
-         clim=(0,50))
-end
-
-# Save as GIF
-gif(anim, string("outputs/gpe_imt-Om=", Ω, ".gif"), fps=50)
-# To save as mp4 instead:
-# gif(anim, "sine_wave.mp4", fps=30)
