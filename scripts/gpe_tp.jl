@@ -12,9 +12,9 @@ Ymax = 22.
 Nx   = 256
 Ny   = 256
 irt = -1.
-dt = 5e-4
+dt = 2.5e-4
 Dt = .5
-tend = 1.
+tend = 50.
 
 # Grid setup
     x, y, X, Y, kx, ky,Kx, Ky, facx, facy = QSpin.Grids.CartGrid([Xmax, Ymax], [Nx, Ny])
@@ -52,11 +52,10 @@ function Pot(ψ::Array{ComplexF64},time)
     return pot - ang_mom
 end
 
-
 Hamil = QSpin.Hamiltonian.hamiltonian(KE,Pot,irt)
 
 # Initial condition
-ψ0::Array{ComplexF64} = sqrt(50.0).*exp.(-((X).^2+Y.^2)/2)# .* X.*Y + 0.01*randn(ComplexF64, (length(x), length(y)))
+ψ0::Array{ComplexF64} = sqrt(50.0).*exp.(-((X).^2+Y.^2)/2) .* X.*Y + 0.01*randn(ComplexF64, (length(x), length(y)))
 
 # Solving the GPE
 println("Simulation begins")

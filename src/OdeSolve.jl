@@ -50,7 +50,7 @@ function evolve_rk4(
     dims = ndims(ψ0)
     time_dimension_index = dims + 1
     println(
-        "Field is ",
+        "。  Field is ",
         dims,
         "D dimensional. Time slices will be along dimension ",
         time_dimension_index,
@@ -73,7 +73,10 @@ function evolve_rk4(
         ψcurrent = ode_rk4(ψcurrent, dt, t, eom)
         t += dt
         step_number += 1
-
+        if sum(isnan.(ψcurrent[:]))>0
+            println("NaN detected in the field at time ", t, ". Time Step could be too big.")
+            break
+        end
         if mod(step_number, ΔNt) == 0
             println("t=", t)
             selectdim(ψall, time_dimension_index, save_number + 1) .= ψcurrent
