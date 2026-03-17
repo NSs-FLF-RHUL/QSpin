@@ -16,7 +16,7 @@ ParaIn = Dict(
     "irt" => -1.0,
     "dt" => 2.5e-4,
     "Dt" => 0.5,
-    "tend" => 50.0,
+    "tend" => 1.0,
 )
 
 # Grid setup
@@ -77,18 +77,18 @@ anim = @animate for i = 1:length(t)
         abs.(ψt[:, :, i]) .^ 2,
         title = string(
             L"\mathrm{Rotating BEC}, \Omega=",
-            Ω,
+            ParaIn["Ω"],
             L" \omega, i\omega\tau=",
             round(t[i]*10)/10,
         ),
-        xlims = (-Xmax, Xmax),
-        ylims = (-Ymax, Ymax),
+        xlims = (-ParaIn["Xmax"], ParaIn["Xmax"]),
+        ylims = (-ParaIn["Ymax"], ParaIn["Ymax"]),
         aspect_ratio = 1.0,
         clim = (0, 50),
     )
 end
 
 # Save as GIF
-gif(anim, string("outputs/gpe_imt-Om=", Ω, ".gif"), fps = 50)
+gif(anim, string("outputs/gpe_imt-Om=", ParaIn["Ω"], ".gif"), fps = 50)
 # To save as mp4 instead:
 # gif(anim, "sine_wave.mp4", fps=30)
