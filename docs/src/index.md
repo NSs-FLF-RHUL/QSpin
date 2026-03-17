@@ -44,5 +44,10 @@ You can also tell `pre-commit` to lint all files in the repository at any time u
 pre-commit run -a
 ```
 
+When run, `pre-commit` will (try to) fix the offending files, which you can then `git add` and (re)try the `git commit`.
+If you get `files were modified by this hook` messages, have a look at the changes and commit them if they make sense.
+There are some things that pre-commit can't fix.
+But you'll get some helpful output, and the rule names that are failing, which you can then search and find what it needs you to fix.
+
 **Note:** You will need to be working within the Python environment in which you installed pre-commit in subsequent sessions, if you want `pre-commit` to continue linting.
 If you are making commits and notice that `pre-commit` isn't running, check that you have activated the corresponding environment.
