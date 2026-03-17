@@ -4,20 +4,24 @@ using MAT, Random
 using Plots, LaTeXStrings
 FFTW.set_num_threads(4)
 # Parameter setup for the GPE simulation
-g = 1
-μ = 50
-Ω = 0.75
-Xmax = 22.0
-Ymax = 22.0
-Nx = 256
-Ny = 256
-irt = -1.0
-dt = 2.5e-4
-Dt = 0.5
-tend = 50.0
+
+ParaIn = Dict(
+    "g" => 1.0,
+    "μ" => 50.0,
+    "Ω" => 0.75,
+    "Xmax" => 22.0,
+    "Ymax" => 22.0,
+    "Nx" => 256,
+    "Ny" => 256,
+    "irt" => -1.0,
+    "dt" => 2.5e-4,
+    "Dt" => 0.5,
+    "tend" => 50.0,
+)
 
 # Grid setup
-x, y, X, Y, kx, ky, Kx, Ky, facx, facy = QSpin.Grids.CartGrid([Xmax, Ymax], [Nx, Ny])
+x, y, X, Y, kx, ky, Kx, Ky, facx, facy =
+    QSpin.Grids.CartGrid([ParaIn["Xmax"], ParaIn["Ymax"]], [ParaIn["Nx"], ParaIn["Ny"]])
 trap = 0.5 * (X .^ 2 + Y .^ 2)
 KE_mtx = 0.5 * (Kx .^ 2 + Ky .^ 2)
 
@@ -47,12 +51,12 @@ KE = QSpin.Grids.fft_ke(KE_mtx)
 
 Lz = QSpin.Grids.fft_Lzψ(X, Y, Kx, Ky)
 function Pot(ψ::Array{ComplexF64}, time)
-    pot = (trap .- μ) .* ψ + g .* (abs.(ψ) .^ 2) .* ψ
-    ang_mom = Ω * Lz(ψ, time)
+    pot = (trap .- ParaIn["μ"]) .* ψ + ParaIn["g"] .* (abs.(ψ) .^ 2) .* ψ
+    ang_mom = ParaIn["Ω"] * Lz(ψ, time)
     return pot - ang_mom
 end
 
-Hamil = QSpin.Hamiltonian.hamiltonian(KE, Pot, irt)
+Hamil = QSpin.Hamiltonian.hamiltonian(KE, Pot, ParaIn["irt"])
 
 # Initial condition
 ψ0::Array{ComplexF64} =
@@ -61,7 +65,8 @@ Hamil = QSpin.Hamiltonian.hamiltonian(KE, Pot, irt)
 
 # Solving the GPE
 println("Simulation begins")
-@time ψt, t = QSpin.OdeSolve.evolve_rk4(ψ0, dt, Dt, tend, Hamil);
+@time ψt, t =
+    QSpin.OdeSolve.evolve_rk4(ψ0, ParaIn["dt"], ParaIn["Dt"], ParaIn["tend"], Hamil);
 println("Simulation finishes.")
 
 # Create animation
