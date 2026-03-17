@@ -12,12 +12,7 @@ Integrate an equation of motion using the Runge-Kutta 4-th order method.
 :param time: Current time.
 :param eom: The equation of motion of the problem.
 """
-function ode_rk4(
-    u::AbstractArray, 
-    δt::Float64, 
-    time::Float64, 
-    eom::Function
-)
+function ode_rk4(u::AbstractArray, δt::Float64, time::Float64, eom::Function)
     k1 = eom(u, time);
     k2 = eom(u+0.5*k1*δt, time+0.5*δt);
     k3 = eom(u+0.5*k2*δt, time+0.5*δt);
@@ -60,7 +55,7 @@ function evolve_rk4(
     ΔNt = floor(Int, Dt / dt)
     Nt = floor(Int, t_end / Dt)
     ψall = zeros(eltype(ψ0), size(ψ0)..., Nt + 1)
-        
+
     selectdim(ψall, time_dimension_index, 1) .= ψ0
     tspan = zeros(Nt + 1)
 
@@ -74,7 +69,11 @@ function evolve_rk4(
         t += dt
         step_number += 1
         if sum(isnan.(ψcurrent[:]))>0
-            println("NaN detected in the field at time ", t, ". Time Step could be too big.")
+            println(
+                "NaN detected in the field at time ",
+                t,
+                ". Time Step could be too big.",
+            )
             break
         end
         if mod(step_number, ΔNt) == 0
@@ -88,4 +87,3 @@ function evolve_rk4(
 end
 
 end
-

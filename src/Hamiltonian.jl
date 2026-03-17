@@ -11,16 +11,19 @@ This function returns a function H(ψ,time) that computes the Hamiltonian.
 :param time: the time variable
 
 """
-    function hamiltonian(KineticEnergy,PotentialEnergy,irt)
-        """
-        internal_hamiltonian(ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}},time::Float64)
+function hamiltonian(KineticEnergy, PotentialEnergy, irt)
+    """
+    internal_hamiltonian(ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}},time::Float64)
 
-        Here evalute ψ and time based on the Hamiltonian defined by the input kinetic energy and potential energy functions, as well as the propagation factor irt.
+    Here evalute ψ and time based on the Hamiltonian defined by the input kinetic energy and potential energy functions, as well as the propagation factor irt.
 
-        """
-        function internal_hamiltonian(ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}},time::Float64)
-            return irt .* (KineticEnergy(ψ,time) + PotentialEnergy(ψ,time))
-        end
-        return internal_hamiltonian
+    """
+    function internal_hamiltonian(
+        ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}},
+        time::Float64,
+    )
+        return irt .* (KineticEnergy(ψ, time) + PotentialEnergy(ψ, time))
     end
+    return internal_hamiltonian
+end
 end
