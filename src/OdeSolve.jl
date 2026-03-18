@@ -45,9 +45,9 @@ function evolve_rk4(
     dims = ndims(ψ0)
     time_dimension_index = dims + 1
     println(
-        "。  Field is ",
+        "。  Solving ",
         dims,
-        "D dimensional. Time slices will be along dimension ",
+        "D dimensional EOM. Time slices will be along dimension ",
         time_dimension_index,
         ".",
     )
@@ -64,7 +64,7 @@ function evolve_rk4(
     save_number = 1
     step_number = 0
 
-    while t < t_end
+    @inbounds while t < t_end
         ψcurrent = ode_rk4(ψcurrent, dt, t, eom)
         t += dt
         step_number += 1
