@@ -25,7 +25,7 @@ function hamiltonian!(KineticEnergy, PotentialEnergy, irt = im)
     function internal_hamiltonian!(
         dψ::AbstractArray,
         ψ::AbstractArray,
-        parameters,
+        parameters::NamedTuple,
         time::Float64,
     )
         dψ .=

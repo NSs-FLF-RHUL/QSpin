@@ -90,7 +90,7 @@ end
 function fft_ke(KE_mtx::Array{Float64})
     function kinetic_energy(
         ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}},
-        parameters,
+        parameters::NamedTuple,
         time::Float64,
     )
         return ifft(KE_mtx .* fft(ψ))
@@ -119,7 +119,7 @@ function fft_Lzψ(
 )
     function angular_momentum_z(
         ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}},
-        parameters,
+        parameters::NamedTuple,
         time::Float64,
     )
         ψk = fft(ψ)
