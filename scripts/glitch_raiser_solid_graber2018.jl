@@ -22,16 +22,16 @@ function eom(dψ::AbstractArray, ψ::AbstractArray, parameters, time::Float64)
     dψ .= M * ψ
 end
 
-u = QSpin.evolve(eom, ψ0, alg = DE.Tsit5(), dt = dt, saveat = Dt)
+u = QSpin.OdeSolve.evolve(eom, ψ0, t_start, t_end; alg = DE.Tsit5(), dt = dt, saveat = Dt)
 
-output_plot = plot(u_desolve.t, u_desolve[1, :])
+output_plot = plot(u.t, u[1, :])
 plot!(
     output_plot,
     u.t,
     u[2, :],
     xlabel = "time (A.U.)",
     ylabel = "Rotating Frequency (A.U.)",
-    title = "Solving a set of coupled ODEs [DESolve]",
+    title = "Solving a set of coupled ODEs",
 )
 
 savefig(output_plot, "./outputs/glitch-raiser-output.png")
