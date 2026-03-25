@@ -7,6 +7,23 @@ using ParallelStencil
 import OrdinaryDiffEq as DE
 
 """
+Time-evolve an equation of motion using ``OrdinaryDiffEq`` (DE).
+
+This is a thin wrapper around ``DE.ODEProblem`` and ``DE.solve``. The keyword arguments in
+``solver_options`` are handed directly to ``DE.solve``. See
+<https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts/#solver_options> for the
+full range of options.
+
+The equation of motion provided is expected to have signature ``(dψ, ψ, parameters, t)``, where
+``dψ`` is the array to which the output is to be written in-place. ``ψ``, ``parameters``, and ``t``
+are the current field, parameters of the problem, and current time respectively.
+
+:param eom: Equation of motion.
+:param ψ0: Initial field value.
+:param t_start: Start time for system evolution.
+:param t_end: End time for system evolution.
+:param p: Problem parameters, to pass to ``DE.ODEProblem``.
+:param solver_options: Keyword arguments that will be passed to ``DE.solve``.
 
 """
 function evolve(
@@ -41,8 +58,6 @@ function ode_rk4(u::AbstractArray, δt::Float64, time::Float64, eom::Function)
     un = u + δt * (k1 + 2 * k2 + 2 * k3 + k4) / 6
     return un
 end
-
-
 
 """
 Time-evolve an equation of motion using the RK4 Runge-Kutta 4-th order method.
