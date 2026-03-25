@@ -18,7 +18,7 @@ The equation of motion provided is expected to have signature ``(dψ, ψ, parame
 ``dψ`` is the array to which the output is to be written in-place. ``ψ``, ``parameters``, and ``t``
 are the current field, parameters of the problem, and current time respectively.
 
-:param eom: Equation of motion.
+:param eom!: Equation of motion.
 :param ψ0: Initial field value.
 :param t_start: Start time for system evolution.
 :param t_end: End time for system evolution.
@@ -27,7 +27,7 @@ are the current field, parameters of the problem, and current time respectively.
 
 """
 function evolve(
-    eom::Function,
+    eom!::Function,
     ψ0::AbstractArray,
     t_start::Float64 = 0.0,
     t_end::Float64 = 1.0,
@@ -38,7 +38,7 @@ function evolve(
         p = ()
     end
 
-    problem = DE.ODEProblem(eom, ψ0, (t_start, t_end), p)
+    problem = DE.ODEProblem(eom!, ψ0, (t_start, t_end), p)
     return DE.solve(problem; solver_options...)
 end
 

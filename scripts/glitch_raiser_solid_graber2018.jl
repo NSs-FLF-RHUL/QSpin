@@ -12,17 +12,11 @@ t_start = 0.0
 t_end = 1.0
 t_span = (t_start, t_end)
 
-"""
-Setting the equation of motion for the target problem
-
-    :param ψ: variable/vector/array associated with the problem.
-    "param time: the time of the problem
-"""
-function eom(dψ::AbstractArray, ψ::AbstractArray, parameters, time::Float64)
+function eom!(dψ::AbstractArray, ψ::AbstractArray, parameters, time::Float64)
     dψ .= M * ψ
 end
 
-u = QSpin.OdeSolve.evolve(eom, ψ0, t_start, t_end; alg = DE.Tsit5(), dt = dt, saveat = Dt)
+u = QSpin.OdeSolve.evolve(eom!, ψ0, t_start, t_end; alg = DE.Tsit5(), dt = dt, saveat = Dt)
 
 output_plot = plot(u.t, u[1, :])
 plot!(
