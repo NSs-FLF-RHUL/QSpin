@@ -33,23 +33,19 @@ KE_mtx = 0.5 * (Kx .^ 2 + Ky .^ 2)
 KE = QSpin.Grids.fft_ke(KE_mtx)
 Lz = QSpin.Grids.fft_Lzψ(X, Y, Kx, Ky)
 
-function Pot(ψ::Array{ComplexF64}, time)
+function Pot(ψ::Array{ComplexF64}, parameters, time)
     pot = (trap .- ParaIn["μ"]) .* ψ + ParaIn["g"] .* (abs.(ψ) .^ 2) .* ψ
-    ang_mom = ParaIn["Ω"] * Lz(ψ, time)
+    ang_mom = ParaIn["Ω"] * Lz(ψ, parameters, time)
     return pot - ang_mom
 end
 
-Hamil = QSpin.Hamiltonian.hamiltonian(KE, Pot, ParaIn["irt"])
-
-function H!(dψ, ψ, params, t)
-    dψ .= Hamil(ψ, t)
-end
+Hamil! = QSpin.Hamiltonian.hamiltonian!(KE, Pot, ParaIn["irt"])
 
 ψ0::Array{ComplexF64} =
     sqrt(50.0) .* exp.(-((X) .^ 2 + Y .^ 2) / 2) .* X .* Y +
     0.01 * randn(ComplexF64, (length(x), length(y)))
 
-problem = DE.ODEProblem(H!, ψ0, t_span)
+problem = DE.ODEProblem(Hamil!, ψ0, t_span)
 
 # Solving the GPE
 println("Simulation begins")
