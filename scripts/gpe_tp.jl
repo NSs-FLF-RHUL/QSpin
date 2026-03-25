@@ -12,7 +12,7 @@ ParaIn = Dict(
     "Xmax" => 22.0,
     "Ymax" => 22.0,
     "Nx" => 256,
-    "Ny" => 256,
+    "Ny" => 128,
     "irt" => -1.0,
     "dt" => 5e-4,
     "Dt" => 0.5,
@@ -32,8 +32,11 @@ KE_mtx = 0.5 * (Kx .^ 2 + Ky .^ 2)
     Creating the function of kinetic energy term in the Hamiltonian.
 
 """
-KE = QSpin.Grids.fft_ke(KE_mtx)
-
+PFFT = plan_fft(zeros(ComplexF64, ParaIn["Ny"], ParaIn["Nx"]), [1, 2])
+PiFFT = plan_ifft(zeros(ComplexF64, ParaIn["Ny"], ParaIn["Nx"]), [1, 2])
+KE = QSpin.Grids.Pfft_ke(KE_mtx, PFFT, PiFFT);
+KE2 = QSpin.Grids.fft_ke(KE_mtx);
+#KE = QSpin.Grids.fft_ke(KE_mtx);
 """
     Pot(trap::Array{Float64}, ψ::Array{ComplexF64})
 
@@ -61,7 +64,7 @@ Hamil = QSpin.Hamiltonian.hamiltonian(KE, Pot, ParaIn["irt"])
 # Initial condition
 ψ0::Array{ComplexF64} =
     sqrt(50.0) .* exp.(-((X) .^ 2+Y .^ 2)/2) .* X .* Y +
-    0.01*randn(ComplexF64, (length(x), length(y)))
+    0.01*randn(ComplexF64, (length(y), length(x)))
 
 # Solving the GPE
 println("Simulation begins")

@@ -78,6 +78,18 @@ function CartGrid(CompDomain::Array{Float64}, GridSize::Array{Int64})
 end
 
 
+
+function Pfft_ke(KE_mtx, PFFT, PiFFT)
+    function kinetic_energy(
+        ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}},
+        time::Float64,
+    )
+        return PiFFT * (KE_mtx .* (PFFT * ψ))
+    end
+
+    return kinetic_energy
+end
+
 """
     fft_ke(KE_mtx::Array{Float64})(ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}})
 
@@ -96,6 +108,9 @@ function fft_ke(KE_mtx::Array{Float64})
     end
     return kinetic_energy
 end
+
+
+
 
 """
     fft_Lzψ(X::Array{Float64},Y::Array{Float64},Kx::Array{Float64}, Ky::Array{Float64})(ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}})
