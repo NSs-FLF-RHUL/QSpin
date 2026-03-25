@@ -3,6 +3,8 @@ using FFTW
 using MAT, Random
 using Plots, LaTeXStrings
 
+import OrdinaryDiffEq as DE
+
 Random.seed!(42)
 FFTW.set_num_threads(6)
 
@@ -17,8 +19,10 @@ ParaIn = Dict(
     "irt" => -1.0,
     "dt" => 5e-4,
     "Dt" => 0.5,
+    "tstart" => 0.0,
     "tend" => 1.0,
 )
+t_span = (ParaIn["tstart"], ParaIn["tend"])
 
 # Grid setup
 x, y, X, Y, kx, ky, Kx, Ky, facx, facy =
@@ -37,15 +41,21 @@ end
 
 Hamil = QSpin.Hamiltonian.hamiltonian(KE, Pot, ParaIn["irt"])
 
+function H!(dψ, ψ, params, t)
+    dψ .= Hamil(ψ, t)
+end
+
 ψ0::Array{ComplexF64} =
     sqrt(50.0) .* exp.(-((X) .^ 2 + Y .^ 2) / 2) .* X .* Y +
     0.01 * randn(ComplexF64, (length(x), length(y)))
 
+problem = DE.ODEProblem(H!, ψ0, t_span)
+
 # Solving the GPE
 println("Simulation begins")
-@time ψt, t =
-    QSpin.OdeSolve.evolve_rk4(ψ0, ParaIn["dt"], ParaIn["Dt"], ParaIn["tend"], Hamil);
+@time ψt = DE.solve(problem, DE.Tsit5(), dt = ParaIn["dt"], saveat = ParaIn["Dt"]);
 println("Simulation finishes.")
+t = ψt.t
 
 # Create animation
 anim = @animate for i = 1:length(t)
