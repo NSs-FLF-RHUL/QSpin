@@ -51,10 +51,9 @@ problem = DE.ODEProblem(Hamil!, ψ0, t_span, ParaIn)
 println("Simulation begins")
 @time ψt = DE.solve(problem, DE.Tsit5(), dt = ParaIn.dt, saveat = ParaIn.Dt);
 println("Simulation finishes.")
-t = ψt.t
 
 # Create animation
-anim = @animate for i = 1:length(t)
+anim = @animate for i = 1:length(ψt.t)
     heatmap!(
         x,
         y,
@@ -63,7 +62,7 @@ anim = @animate for i = 1:length(t)
             L"\mathrm{Rotating BEC}, \Omega=",
             ParaIn.Ω,
             L" \omega, i\omega\tau=",
-            round(t[i] * 10) / 10,
+            round(ψt.t[i] * 10) / 10,
         ),
         xlims = (-ParaIn.Xmax, ParaIn.Xmax),
         ylims = (-ParaIn.Ymax, ParaIn.Ymax),
