@@ -19,10 +19,9 @@ ParaIn = (
     irt = -1.0,
     dt = 5e-4,
     Dt = 0.5,
-    tstart = 0.0,
-    tend = 1.0,
+    t_start = 0.0,
+    t_end = 1.0,
 )
-t_span = (ParaIn.tstart, ParaIn.tend)
 
 # Grid setup
 x, y, X, Y, kx, ky, Kx, Ky, facx, facy =
@@ -33,7 +32,7 @@ KE_mtx = 0.5 * (Kx .^ 2 + Ky .^ 2)
 KE = QSpin.Grids.fft_ke(KE_mtx)
 Lz = QSpin.Grids.fft_Lzψ(X, Y, Kx, Ky)
 
-function Pot(ψ::Array{ComplexF64}, parameters::NamedTuple, time)
+function Pot(ψ::Array{ComplexF64}, parameters::NamedTuple, time::Float64)
     pot = (trap .- parameters.μ) .* ψ + parameters.g .* (abs.(ψ) .^ 2) .* ψ
     ang_mom = parameters.Ω * Lz(ψ, parameters, time)
     return pot - ang_mom
@@ -45,12 +44,16 @@ Hamil! = QSpin.Hamiltonian.hamiltonian!(KE, Pot, ParaIn.irt)
     sqrt(50.0) .* exp.(-((X) .^ 2 + Y .^ 2) / 2) .* X .* Y +
     0.01 * randn(ComplexF64, (length(x), length(y)))
 
-problem = DE.ODEProblem(Hamil!, ψ0, t_span, ParaIn)
-
-# Solving the GPE
-println("Simulation begins")
-@time ψt = DE.solve(problem, DE.Tsit5(), dt = ParaIn.dt, saveat = ParaIn.Dt);
-println("Simulation finishes.")
+@time ψt = QSpin.OdeSolve.evolve(
+    Hamil!,
+    ψ0,
+    ParaIn.t_start,
+    ParaIn.t_end,
+    ParaIn;
+    alg = DE.Tsit5(),
+    dt = ParaIn.dt,
+    saveat = ParaIn.Dt,
+)
 
 # Create animation
 anim = @animate for i = 1:length(ψt.t)

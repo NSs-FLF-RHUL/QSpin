@@ -14,12 +14,14 @@ function evolve(
     ψ0::AbstractArray,
     t_start::Float64 = 0.0,
     t_end::Float64 = 1.0,
-    parameters::NamedTuple = NamedTuple();
+    p::Union{NamedTuple,Nothing} = nothing;
     solver_options...,
 )
-    t_span = (t_start, t_end)
-    problem = DE.ODEProblem(eom, ψ0, (t_start, t_end), p = parameters)
+    if p === nothing
+        p = ()
+    end
 
+    problem = DE.ODEProblem(eom, ψ0, (t_start, t_end), p)
     return DE.solve(problem; solver_options...)
 end
 
