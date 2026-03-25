@@ -5,8 +5,7 @@ module Hamiltonian
 
 Return a function H!(dψ, ψ, parameters, time) that evaluates the Hamiltonian formed from the
 given Kinetic and Potential energy functions, at the given time. The ``KineticEnergy`` and
-``PotentialEnergy`` functions are assumed to take ``(ψ, time)`` as positional arguments and (variable)
-keyword arguments that ``parameters`` will be passed to.
+``PotentialEnergy`` functions are assumed to take ``(ψ, parameters, time)`` as positional arguments.
 
 :param KineticEnergy: a function that computes the kinetic energy term in the equation of motion, which takes ψ and time as input.
 :param PotentialEnergy: a function that computes the potential energy term in the equation of motion, which takes ψ and time as input.
