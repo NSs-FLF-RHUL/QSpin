@@ -8,24 +8,13 @@ import OrdinaryDiffEq as DE
 Random.seed!(42)
 FFTW.set_num_threads(6)
 
-ParaIn = (
-    g = 1.0,
-    μ = 50.0,
-    Ω = 0.75,
-    Xmax = 22.0,
-    Ymax = 22.0,
-    Nx = 256,
-    Ny = 256,
-    irt = -1.0,
-    dt = 5e-4,
-    Dt = 0.5,
-    t_start = 0.0,
-    t_end = 1.0,
-)
+GridParams = (Xmax = 22.0, Ymax = 22.0, Nx = 256, Ny = 256)
+ParaIn = (g = 1.0, μ = 50.0, Ω = 0.75, irt = -1.0)
+SolverParams = (dt = 5e-4, Dt = 0.5, t_start = 0.0, t_end = 1.0)
 
 # Grid setup
 x, y, X, Y, kx, ky, Kx, Ky, facx, facy =
-    QSpin.Grids.CartGrid([ParaIn.Xmax, ParaIn.Ymax], [ParaIn.Nx, ParaIn.Ny])
+    QSpin.Grids.CartGrid([GridParams.Xmax, GridParams.Ymax], [GridParams.Nx, GridParams.Ny])
 trap = 0.5 * (X .^ 2 + Y .^ 2)
 KE_mtx = 0.5 * (Kx .^ 2 + Ky .^ 2)
 
@@ -47,12 +36,12 @@ Hamil! = QSpin.Hamiltonian.hamiltonian!(KE, Pot, ParaIn.irt)
 @time ψt = QSpin.OdeSolve.evolve(
     Hamil!,
     ψ0,
-    ParaIn.t_start,
-    ParaIn.t_end,
+    SolverParams.t_start,
+    SolverParams.t_end,
     ParaIn;
     alg = DE.Tsit5(),
-    dt = ParaIn.dt,
-    saveat = ParaIn.Dt,
+    dt = SolverParams.dt,
+    saveat = SolverParams.Dt,
 )
 
 # Create animation
@@ -67,8 +56,8 @@ anim = @animate for i = 1:length(ψt.t)
             L" \omega, i\omega\tau=",
             round(ψt.t[i] * 10) / 10,
         ),
-        xlims = (-ParaIn.Xmax, ParaIn.Xmax),
-        ylims = (-ParaIn.Ymax, ParaIn.Ymax),
+        xlims = (-GridParams.Xmax, GridParams.Xmax),
+        ylims = (-GridParams.Ymax, GridParams.Ymax),
         aspect_ratio = 1.0,
         clim = (0, 50),
     )
