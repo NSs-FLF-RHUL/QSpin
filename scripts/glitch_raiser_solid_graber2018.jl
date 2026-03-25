@@ -22,8 +22,7 @@ function eom(dψ::AbstractArray, ψ::AbstractArray, parameters, time::Float64)
     dψ .= M * ψ
 end
 
-problem = DE.ODEProblem(eom, ψ0, t_span)
-u = DE.solve(problem, DE.Tsit5(), dt = dt, saveat = Dt)
+u = QSpin.evolve(eom, ψ0, alg = DE.Tsit5(), dt = dt, saveat = Dt)
 
 output_plot = plot(u_desolve.t, u_desolve[1, :])
 plot!(

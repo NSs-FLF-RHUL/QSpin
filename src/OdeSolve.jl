@@ -4,6 +4,25 @@ using FFTW
 using MAT
 using ParallelStencil
 
+import OrdinaryDiffEq as DE
+
+"""
+
+"""
+function evolve(
+    eom::Function,
+    ψ0::AbstractArray,
+    t_start::Float64 = 0.0,
+    t_end::Float64 = 1.0,
+    parameters::NamedTuple = (),
+    solver_options...,
+)
+    t_span = (t_start, t_end)
+    problem = DE.ODEProblem(eom, ψ0, (t_start, t_end), p = parameters)
+
+    return DE.solve(problem, solver_options...)
+end
+
 """
 Integrate an equation of motion using the Runge-Kutta 4-th order method.
 
@@ -13,11 +32,11 @@ Integrate an equation of motion using the Runge-Kutta 4-th order method.
 :param eom: The equation of motion of the problem.
 """
 function ode_rk4(u::AbstractArray, δt::Float64, time::Float64, eom::Function)
-    k1 = eom(u, time);
-    k2 = eom(u+0.5*k1*δt, time+0.5*δt);
-    k3 = eom(u+0.5*k2*δt, time+0.5*δt);
-    k4 = eom(u+k3*δt, time+δt);
-    un = u + δt * (k1 + 2 * k2 + 2 * k3 + k4) / 6;
+    k1 = eom(u, time)
+    k2 = eom(u + 0.5 * k1 * δt, time + 0.5 * δt)
+    k3 = eom(u + 0.5 * k2 * δt, time + 0.5 * δt)
+    k4 = eom(u + k3 * δt, time + δt)
+    un = u + δt * (k1 + 2 * k2 + 2 * k3 + k4) / 6
     return un
 end
 
@@ -68,7 +87,7 @@ function evolve_rk4(
         ψcurrent = ode_rk4(ψcurrent, dt, t, eom)
         t += dt
         step_number += 1
-        if sum(isnan.(ψcurrent[:]))>0
+        if sum(isnan.(ψcurrent[:])) > 0
             println(
                 "NaN detected in the field at time ",
                 t,
