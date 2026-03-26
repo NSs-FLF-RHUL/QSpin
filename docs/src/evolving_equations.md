@@ -35,3 +35,58 @@ As a simple example, let's solve the system of equations
 ```
 
 over the time interval $t\in[0,1]$.
+
+Naively, we could just define our equation of motion function $f$ as
+
+```julia
+function f(ψ)
+  return [-2 1; 1 -2] * ψ
+end
+```
+
+however, this is not the format that [`evolve`](@ref QSpin.OdeSolve.evolve) is expecting.
+It also `return`s the evaluation explicitly, rather than updating an argument in place.
+To use this equation of motion with `evolve`, we need to give it the appropriate signature:
+
+```@setup coupled-odes
+using LaTeXStrings
+using Plots
+using OrdinaryDiffEq
+using QSpin
+```
+
+```@example coupled-odes; continued = true
+function f!(dψ, ψ, parameters, t)
+  # Perform an in-place overwrite of the input array,
+  # replacing the current values with the result of evaluation.
+  dψ .= [-2 1; 1 -2] * ψ
+end
+```
+
+Notice that:
+
+- Even though the equation of motion does not use the `parameters` or `t` arguments, they must be present in the function signature.
+- The final line performs an in-place update (`.=`) to one of the input arrays.
+- The exclamation mark at the end of the function name (`f!`) is consistent with Julia's naming practices for functions that edit their input arguments.
+
+We could then time-evolve $f$ as follows:
+
+```@example coupled-odes
+ψ0 = [0.1; 0.2]
+timestep = 1e-3
+save_interval = 1e-1
+
+# Note that the default time-range for evolve is [0, 1].
+ψ = QSpin.OdeSolve.evolve(f!, ψ0; alg=OrdinaryDiffEq.Tsit5(), dt=timestep, saveat=save_interval)
+
+output_plot = plot(ψ.t, ψ[1, :], label=L"$\psi_1$")
+plot!(
+    output_plot,
+    ψ.t,
+    ψ[2, :],
+    label = L"$\psi_2$",
+    xlabel = L"$t$",
+    ylabel = L"$\psi$",
+    title = "Solving a set of coupled ODEs",
+)
+```
