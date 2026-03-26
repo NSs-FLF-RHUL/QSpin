@@ -1,8 +1,12 @@
-# My Package Documentation
+# QSpin Documentation
 
 ```@docs
 QSpin.OdeSolve.ode_rk4
 ```
+
+## Evolving Equations
+
+For an overview of how to use the functionality in this package to time-evolve equations, [see this page](evolving_equations.md).
 
 ## Building the Documentation
 
