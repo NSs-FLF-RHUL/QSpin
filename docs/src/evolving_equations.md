@@ -6,11 +6,36 @@ The `QSpin` package itself provides some helper methods for constructing frequen
 One important thing to keep in mind is that the functions `QSpin` provides need to be written in a format that `OrdinaryDiffEq.ODEProblem` is expecting.
 The full documentation for these problems is available `OrdinaryDiffEq`'s website, but the main impact on how we write functions in `QSpin` is the functional form of the equation of motion $f$.
 
-The function $f$ that defines the equation of motion should have Julia signature `f(du, u, parameters, t)`.
-`du` **should be overwritten** with the result of evaluating `f`, rather than having the result of the evaluation explicitly returned via `return`.
-`u` and `t` are the field value and current time respectively.
-`parameters` is a container that includes all constant parameter values that are needed to evaluate the equation of motion.
-`OrdinaryDiffEq` recommends using immutable containers for the `parameters` variable, and as such `QSpin` elects to store these values in `NamedTuple`s.
+The function $f$ that defines the equation of motion should have one of two signatures:
+
+- The simplest signature is `f(ψ, parameters, t)`.
+  - These functions should explicitly `return` an array that corresponds to the evaluation of the equation of motion $f$.
+  - `ψ` and `t` are the field value and current time respectively.
+  - `parameters` is a container that includes all constant parameter values that are needed to evaluate the equation of motion.
+- A more memory-efficient format for the functions is `f!(dψ, ψ, parameters, t)`.
+  - `dψ` **should be overwritten** with the result of evaluating $f$, rather than having the result of the evaluation explicitly returned via `return`.
+  - `ψ`, `t`, and `parameters` have the same interpretations as above.
+
+## QSpin Conventions
+
+### Helper Functions for the Equations of Motion
+
+There are several functions within `QSpin` that can generate an appropriate function `f` from the component "pieces" of the equation of motion.
+The `QSpin.Hamiltonian.hamiltonian!` function, for example, constructs a function `H!(dψ, ψ, parameters, t)` from two other functions that compute the kinetic and potential energy.
+`QSpin` uses the convention that the names of these "constructor" functions have an `!` at the end if **the function they return** has the `f!(dψ, ψ, parameters, t)` signature - that is, when the returned function is expected to mutate its input in-place.
+Conversely, constructor functions without the `!` at the end of their name return functions with the `f(ψ, parameters, t)` signature.
+
+### `parameters` Data Type
+
+`OrdinaryDiffEq` recommends using immutable containers for the `parameters` variable.
+As such `QSpin` elects to store these values in `NamedTuple`s:
+
+```julia
+my_parameters = (
+  parameter_name_1 = 1.0,
+  parameters_name_2 = 3.14,
+)
+```
 
 ## Time-Evolving Equations of Motion
 
