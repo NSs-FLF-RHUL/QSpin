@@ -46,12 +46,16 @@ function evolve(
 end
 
 """
-Integrate an equation of motion using the Runge-Kutta 4-th order method.
+Integrate an equation of motion using the [Runge-Kutta 4-th order method](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods).
 
-:param u: The target solution of the equation of motion.
-:param δt: The integrating time step.
-:param time: Current time.
-:param eom: The equation of motion of the problem.
+# Arguments
+- `u::AbstractArray`: The target solution of the equation of motion.
+- `δt::Float64`: The integrating time step.
+- `time::Float64`: Current time.
+- `eom::Function`: The equation of motion of the problem.
+
+# Returns
+- `un::AbstractArray`: Field value at time `time + δt`.
 """
 function ode_rk4(u::AbstractArray, δt::Float64, time::Float64, eom::Function)
     k1 = eom(u, time);
@@ -62,19 +66,20 @@ function ode_rk4(u::AbstractArray, δt::Float64, time::Float64, eom::Function)
     return un
 end
 
-
-
 """
 Time-evolve an equation of motion using the RK4 Runge-Kutta 4-th order method.
 
-:param ψ0: Initial value for the field at time 0.
-:param dt: Timestep interval (used as the integral timestep in RK4).
-:param Dt: Time interval between recorded field values.
-:param t_end: End time for equation evolution.
-:param eom: The equation of motion of the problem.
-:returns ψall: Field values at recorded timestamps.
-    `ψall[.., i]` is the field value at time `tspan[i]`.
-:returns tspan: Timestamps at which field values were recorded.
+# Arguments
+- `ψ0::AbstractArray`: Initial value for the field at time 0.
+- `dt::Float64`: Timestep interval (used as the integral timestep in RK4).
+- `Dt::Float64`: Time interval between recorded field values.
+- `t_end::Float64`: End time for equation evolution.
+- `eom::Function`: The equation of motion of the problem.
+
+# Returns
+- `ψall::AbstractArray`: Field values at recorded timestamps.
+    `ψall[..., i]` is the field value at time `tspan[i]`.
+- `tspan::Vector{Float64}`: Timestamps at which field values were recorded.
 """
 function evolve_rk4(
     ψ0::Union{AbstractArray,Array{Float64},Array{ComplexF64}},
