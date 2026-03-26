@@ -26,16 +26,16 @@ trap = 0.5 * (X .^ 2 + Y .^ 2)
 KE_mtx = 0.5 * (Kx .^ 2 + Ky .^ 2)
 
 # Setting the equation of motion for the target problem
-"""
-    KE(ψ::Array{ComplexF64}, time::Float64)
 
-    Creating the function of kinetic energy term in the Hamiltonian.
-
-"""
+# Creating the function of kinetic energy term in the Hamiltonian, using plan fft and plan ifft for better performance.
+# One may use fft_ket in the Grids module, which is more convenient but slightly less efficient, using KE = QSpin.Grids.fft_ke(KE_mtx).
 PFFT = plan_fft(zeros(ComplexF64, ParaIn["Ny"], ParaIn["Nx"]), [1, 2])
 PiFFT = plan_ifft(zeros(ComplexF64, ParaIn["Ny"], ParaIn["Nx"]), [1, 2])
 KE = QSpin.Grids.Pfft_ke(KE_mtx, PFFT, PiFFT);
 
+# Creating the function of angular momentum term in the Hamiltonian, using plan fft and plan ifft for better performance.
+# One may use fft_Lzψ in the Grids module, which is more convenient but slightly less efficient, using Lz = QSpin.Grids.fft_Lzψ(X, Y, Kx, Ky).
+Lz = QSpin.Grids.Pfft_Lzψ(X, Y, Kx, Ky, PFFT, PiFFT);
 """
     Pot(trap::Array{Float64}, ψ::Array{ComplexF64})
 
@@ -46,12 +46,6 @@ KE = QSpin.Grids.Pfft_ke(KE_mtx, PFFT, PiFFT);
     :param trap: the external trap potential, which is a two-dimensional array in this example.
     :param ψ: the field variable, which is a two-dimensional complex array in this example
 """
-#function Pot(ψ::Array{ComplexF64},time)
-#    pot = (trap.-μ) .* ψ + g .* (abs.(ψ).^2).* ψ - Ω * QSpin.Grids.fft_Lzψ(X,Y,Kx,Ky)(ψ,time)
-#    return pot
-#end
-
-Lz = QSpin.Grids.fft_Lzψ(X, Y, Kx, Ky)
 function Pot(ψ::Array{ComplexF64}, time)
     pot = (trap .- ParaIn["μ"]) .* ψ + ParaIn["g"] .* (abs.(ψ) .^ 2) .* ψ
     ang_mom = ParaIn["Ω"] * Lz(ψ, time)
