@@ -63,7 +63,8 @@ function evolve_rk4(
     ψcurrent = ψ0
     save_number = 1
     step_number = 0
-
+    println("。  Simulation Begins。")
+    println(" t = ", t)
     @inbounds while t < t_end
         ψcurrent = ode_rk4(ψcurrent, dt, t, eom)
         t += dt
@@ -77,7 +78,7 @@ function evolve_rk4(
             break
         end
         if mod(step_number, ΔNt) == 0
-            println("t=", t)
+            println(" t = ", t)
             selectdim(ψall, time_dimension_index, save_number + 1) .= ψcurrent
             tspan[save_number+1] = t
             save_number += 1
