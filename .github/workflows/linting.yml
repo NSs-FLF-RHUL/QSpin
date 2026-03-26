@@ -23,7 +23,7 @@ jobs:
         uses: julia-actions/setup-julia@v2
 
       - name: Cache Julia depot
-        uses: julia-actions/cache@v2
+        uses: julia-actions/cache@v3
 
       - name: Install JuliaFormatter.jl
         run: julia -e 'import Pkg; Pkg.add("JuliaFormatter")'

@@ -17,10 +17,10 @@ function CartGrid(CompDomain::Array{Float64}, GridSize::Array{Int64})
     if dims <= 3
         Nx = GridSize[1]
         dx = 2 * CompDomain[1] / Nx
-        x = range(-CompDomain[1], stop = CompDomain[1] - dx, length = Int(Nx))
+        x = range(-CompDomain[1], stop = CompDomain[1]-dx, length = Int(Nx))
         kx = [
-            range(0, stop = Nx / 2 - 1, length = Int(Nx / 2));
-            range(-Nx / 2, stop = -1, length = Int(Nx / 2))
+            range(0, stop = Nx/2-1, length = Int(Nx/2));
+            range(-Nx/2, stop = -1, length = Int(Nx/2))
         ]
         facx = pi / CompDomain[1]
         kx = kx .* facx
@@ -28,10 +28,10 @@ function CartGrid(CompDomain::Array{Float64}, GridSize::Array{Int64})
     if dims >= 2
         Ny = GridSize[2]
         dy = 2 * CompDomain[2] / Ny
-        y = range(-CompDomain[2], stop = CompDomain[2] - dy, length = Int(Ny))
+        y = range(-CompDomain[2], stop = CompDomain[2]-dy, length = Int(Ny))
         ky = [
-            range(0, stop = Ny / 2 - 1, length = Int(Ny / 2));
-            range(-Ny / 2, stop = -1, length = Int(Ny / 2))
+            range(0, stop = Ny/2-1, length = Int(Ny/2));
+            range(-Ny/2, stop = -1, length = Int(Ny/2))
         ]
         facy = pi / CompDomain[2]
         ky = ky .* facy
@@ -39,10 +39,10 @@ function CartGrid(CompDomain::Array{Float64}, GridSize::Array{Int64})
     if dims == 3 # In progress, not tested yet
         Nz = GridSize[3]
         dz = 2 * CompDomain[3] / Nz
-        z = range(-CompDomain[3], stop = CompDomain[3] - dz, length = Int(Nz))
+        z = range(-CompDomain[3], stop = CompDomain[3]-dz, length = Int(Nz))
         kz = [
-            range(0, stop = Nz / 2 - 1, length = Int(Nz / 2));
-            range(-Nz / 2, stop = -1, length = Int(Nz / 2))
+            range(0, stop = Nz/2-1, length = Int(Nz/2));
+            range(-Nz/2, stop = -1, length = Int(Nz/2))
         ]
         facz = pi / CompDomain[3]
         kz = kz .* facz
@@ -53,17 +53,17 @@ function CartGrid(CompDomain::Array{Float64}, GridSize::Array{Int64})
     elseif dims == 2
         X = repeat(x', Ny, 1)
         Y = repeat(y, 1, Nx)
-        Kx = repeat(kx', Ny, 1)
-        Ky = repeat(ky, 1, Nx)
+        Kx = repeat(kx', Ny, 1);
+        Ky = repeat(ky, 1, Nx);
         println("    Creating 2D Cartesian grid with ", Nx, " x ", Ny, " points.")
         return x, y, X, Y, kx, ky, Kx, Ky, facx, facy
     elseif dims == 3
-        X = repeat(x', GridSize[2], 1, GridSize[3])
-        Y = repeat(y, 1, GridSize[1], GridSize[3])
-        Z = permutedims(repeat(z, 1, GridSize[1], GridSize[2]), [3 2 1])
+        X = repeat(x', GridSize[2], 1, GridSize[3]);
+        Y = repeat(y, 1, GridSize[1], GridSize[3]);
+        Z = permutedims(repeat(z, 1, GridSize[1], GridSize[2]), [3 2 1]);
         Kx = repeat((kx)', GridSize[2], 1, GridSize[3])
         Ky = repeat((ky), 1, GridSize[1], GridSize[3])
-        Kz = permutedims(repeat((kz), 1, GridSize[1], GridSize[2]), [3 2 1]) # Meshgrid K_sq
+        Kz = permutedims(repeat((kz), 1, GridSize[1], GridSize[2]), [3 2 1]); # Meshgrid K_sq
         println(
             "    Creating 3D Cartesian grid with ",
             Nx,
@@ -77,9 +77,16 @@ function CartGrid(CompDomain::Array{Float64}, GridSize::Array{Int64})
     end
 end
 
+"""
+    Pfft_ke(KE_mtx::Array{Float64}, PFFT, PiFFT)(ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}})
 
+    Computing the quantum kinetic energy term in Schrodinger-type equations, namely, -∇^2ψ, using the Fourier spectral method.
 
-function Pfft_ke(KE_mtx, PFFT, PiFFT)
+    :param KE_mtx: the k-square matrix for computing kinetic energy in momentum space, which can be obtained by using the k-matrices in CartGrid function in Grids.jl.
+    :param PFFT: the plan for forward FFT, which can be created by using plan_fft function in FFTW.jl.
+    :param PiFFT: the plan for inverse FFT, which can be created by using plan_ifft function in FFTW.jl.
+"""
+function Pfft_ke(KE_mtx::Array{Float64}, PFFT, PiFFT)
     function kinetic_energy(
         ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}},
         parameters::NamedTuple,
@@ -111,9 +118,6 @@ function fft_ke(KE_mtx::Array{Float64})
     return kinetic_energy
 end
 
-
-
-
 """
     fft_Lzψ(X::Array{Float64},Y::Array{Float64},Kx::Array{Float64}, Ky::Array{Float64})(ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}})
 
@@ -143,4 +147,45 @@ function fft_Lzψ(
     end
     return angular_momentum_z
 end
+
+"""
+    Pfft_Lzψ(
+    X::Array{Float64},
+    Y::Array{Float64},
+    Kx::Array{Float64},
+    Ky::Array{Float64},
+    PFFT,
+    PiFFT,
+)
+(ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}})
+
+    Computing the quantum angular momentum term, namely, Lz ψ, using the Fourier spectral method.
+    The angular momentum operator along the z-axis is given by Lz = -i (x ∂/∂y - y ∂/∂x).
+
+    :param X: the x-coordinate matrix, which can be obtained by using the x-matrix in CartGrid function in Grids.jl.
+    :param Y: the y-coordinate matrix, which can be obtained by using the y-matrix in CartGrid function in Grids.jl.
+    :param Kx: the kx-coordinate matrix, which can be obtained by using the kx-matrix in CartGrid function in Grids.jl.
+    :param Ky: the ky-coordinate matrix, which can be obtained by using the ky-matrix in CartGrid function in Grids.jl.
+    :param PFFT: the plan for forward FFT, which can be created by using plan_fft function in FFTW.jl.
+    :param PiFFT: the plan for inverse FFT, which can be created by using plan_ifft function in FFTW.jl.
+"""
+function Pfft_Lzψ(
+    X::Array{Float64},
+    Y::Array{Float64},
+    Kx::Array{Float64},
+    Ky::Array{Float64},
+    PFFT,
+    PiFFT,
+)
+    function angular_momentum_z(
+        ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}},
+        parameters::NamedTuple,
+        time::Float64,
+    )
+        ψk = PFFT * ψ;
+        return im .* (Y .* (PiFFT * (im .* Kx .* ψk)) - X .* (PiFFT * (im .* Ky .* ψk)));
+    end
+    return angular_momentum_z
+end
+
 end
