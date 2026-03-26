@@ -6,7 +6,7 @@ QSpin.OdeSolve.ode_rk4
 
 ## Evolving Equations
 
-For an overview of how to use the functionality in this package to time-evolve equations, [see this page](evolving_equations.md).
+For an overview of how to use the functionality in this package to time-evolve equations, [see this page](@ref using-desolve).
 
 ## Building the Documentation
 
@@ -25,7 +25,7 @@ The codebase [uses `JuliaFormatter.jl` for its code linting style](https://githu
 This is the default linter that is packaged with the VSCode Julia extension.
 
 The project is configured with a `pre-commit` hook that will format (and attempt to fix in place) any `.jl` files that have been added to git's staging area.
-To setup the `pre-commit` checks, you will first need to [install `pre-commit`](https://`pre-commit`.com/#installation), which will require a suitable Python environment (unless you want to install `pre-commit` system wide).
+To setup the `pre-commit` checks, you will first need to [install `pre-commit`](https://pre-commit.com/#installation), which will require a suitable Python environment (unless you want to install `pre-commit` system wide).
 Once `pre-commit` is installed, you can run the usual
 
 ```bash

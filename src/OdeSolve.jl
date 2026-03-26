@@ -7,24 +7,27 @@ using ParallelStencil
 import OrdinaryDiffEq as DE
 
 """
-Time-evolve an equation of motion using ``OrdinaryDiffEq`` (DE).
+Time-evolve an equation of motion using `OrdinaryDiffEq` (DE).
 
-This is a thin wrapper around ``DE.ODEProblem`` and ``DE.solve``. The keyword arguments in
-``solver_options`` are handed directly to ``DE.solve``. See
-<https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts/#solver_options> for the
-full range of options.
+This is a thin wrapper around `DE.ODEProblem` and `DE.solve`. The keyword arguments in
+`solver_options` are handed directly to `DE.solve`. See
+[their documentation](https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts/#solver_options)
+for the full range of options.
 
-The equation of motion provided is expected to have signature ``(dψ, ψ, parameters, t)``, where
-``dψ`` is the array to which the output is to be written in-place. ``ψ``, ``parameters``, and ``t``
+The equation of motion provided is expected to have signature `(dψ, ψ, parameters, t)`, where
+`dψ` is the array to which the output is to be written in-place. `ψ`, `parameters`, and `t`
 are the current field, parameters of the problem, and current time respectively.
 
-:param eom!: Equation of motion.
-:param ψ0: Initial field value.
-:param t_start: Start time for system evolution.
-:param t_end: End time for system evolution.
-:param p: Problem parameters, to pass to ``DE.ODEProblem``.
-:param solver_options: Keyword arguments that will be passed to ``DE.solve``.
+# Arguments
+- `eom!::Function`: Equation of motion.
+-  `ψ0::AbstractArray`: Initial field value.
+- `t_start::Float64`: Start time for system evolution.
+- `t_end::Float64`: End time for system evolution.
+- `p::NamedTuple`: Problem parameters, to pass to `DE.ODEProblem`.
+- `solver_options`: Keyword arguments that will be passed to `DE.solve`.
 
+# Returns
+- `solution`: [Solution object](https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts/#CommonSolve.solve-Tuple{SciMLBase.AbstractDEProblem,%20Vararg{Any}}) for the problem that was time-evolved.
 """
 function evolve(
     eom!::Function,
