@@ -22,19 +22,23 @@ The positional arguments to `QSpin.OdeSolve.evolve` are essentially analogues of
 QSpin.OdeSolve.evolve
 ```
 
-## Example: Coupled System of ODEs
+### Example: Coupled System of ODEs
 
 As a simple example, let's solve the system of equations
 
 ```math
 \begin{aligned}
-\frac{\mathrm{d}\psi}{\mathrm{d}t} = \begin{pmatrix} -2 & 1 \\ 1 & -2 \end{pmatrix} \psi,
+\frac{\mathrm{d}\psi}{\mathrm{d}t} = M \psi,
 &\qquad
 \psi_0 = \begin{pmatrix} 0.1 \\ 0.2 \end{pmatrix},
 \end{aligned}
 ```
 
-over the time interval $t\in[0,1]$.
+over the time interval $t\in[0,1]$, with
+
+```math
+M = \begin{pmatrix} -2 & 1 \\ 1 & -2 \end{pmatrix}.
+```
 
 Naively, we could just define our equation of motion function $f$ as
 
@@ -53,6 +57,30 @@ using LaTeXStrings
 using Plots
 using OrdinaryDiffEq
 using QSpin
+
+default(show = false)
+
+function create_plot!(ψ, plot_ref = nothing, label_1 = L"$\psi_1$", label_2 = L"$\psi_2$"; fmt_args...)
+  if plot_ref === nothing
+    plot_ref = plot();
+  end
+
+  plot!(
+    plot_ref, ψ.t, ψ[1, :], label = label_1;
+    fmt_args...,
+  );
+  plot!(
+    plot_ref, ψ.t, ψ[2, :], label = label_2; 
+    fmt_args...,
+  );
+
+  return plot_ref
+end
+
+default_plot_args = (
+  xlabel = L"$t$",
+  ylabel = L"$\psi$",
+)
 ```
 
 ```@example coupled-odes; continued = true
@@ -77,16 +105,62 @@ timestep = 1e-3
 save_interval = 1e-1
 
 # Note that the default time-range for evolve is [0, 1].
-ψ = QSpin.OdeSolve.evolve(f!, ψ0; alg=OrdinaryDiffEq.Tsit5(), dt=timestep, saveat=save_interval)
-
-output_plot = plot(ψ.t, ψ[1, :], label=L"$\psi_1$")
-plot!(
-    output_plot,
-    ψ.t,
-    ψ[2, :],
-    label = L"$\psi_2$",
-    xlabel = L"$t$",
-    ylabel = L"$\psi$",
-    title = "Solving a set of coupled ODEs",
+ψ = QSpin.OdeSolve.evolve(
+  f!, ψ0;
+  alg=OrdinaryDiffEq.Tsit5(),
+  dt=timestep,
+  saveat=save_interval,
 )
+
+create_plot!(ψ; default_plot_args...); # hide
+```
+
+### Example: Parametrised Coupling Matrix
+
+In the example above, we hard-coded the value we wanted the matrix $M$ to take into our equation of motion.
+This is inefficient, as every time we want to solve an equation of motion of the same form as $f$, we'd need to re-write (or define a new function) `f!`.
+We can instead make use of `OrdinaryDiffEq`'s parametrisation functionality, and the `parameters` argument to `evolve`, to avoid having multiple "versions" of the same function floating around.
+
+```@example coupled-odes
+function f_parametrised!(dψ, ψ, parameters, t)
+  dψ .= parameters.M * ψ
+end
+
+ψ0 = [0.1; 0.2]
+timestep = 1e-3
+save_interval = 1e-1
+original_parameters = (
+  M = [-2 1; 1 -2],
+)
+alternative_parameters = (
+  M = [-4 1; 1 -4],
+)
+
+ψ_original = QSpin.OdeSolve.evolve(
+  f_parametrised!, ψ0, p=original_parameters;
+  alg=OrdinaryDiffEq.Tsit5(),
+  dt=timestep,
+  saveat=save_interval,
+)
+ψ_alternative = QSpin.OdeSolve.evolve(
+  f_parametrised!, ψ0, p=alternative_parameters;
+  alg=OrdinaryDiffEq.Tsit5(),
+  dt=timestep,
+  saveat=save_interval,
+)
+
+plot_ref = create_plot!( # hide
+  ψ_original, # hide
+  nothing, # hide
+  L"$(\psi_{\mathrm{original}})_1$", # hide
+  L"$(\psi_{\mathrm{original}})_2$"; # hide
+  default_plot_args... # hide
+); # hide
+plot_ref = create_plot!( # hide
+  ψ_alternative, # hide
+  plot_ref, # hide
+  L"$(\psi_{\mathrm{alternative}})_1$", # hide
+  L"$(\psi_{\mathrm{alternative}})_2$"; # hide
+  default_plot_args... # hide
+); # hide
 ```
