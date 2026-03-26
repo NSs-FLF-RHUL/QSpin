@@ -41,11 +41,7 @@ my_parameters = (
 
 `QSpin.OdeSolve` provides the `evolve` method which is a thin wrapper that creates an appropriate [`OrdinaryDiffEq.ODEProblem`](https://docs.sciml.ai/DiffEqDocs/stable/types/ode_types/#SciMLBase.ODEProblem) and then passes it to [`OrdinaryDiffEq.solve`](https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts/#CommonSolve.solve-Tuple{SciMLBase.AbstractDEProblem,%20Vararg{Any}}).
 Solver options, usually taken by `OrdinaryDiffEq.solve`, can be passed via keyword arguments to `solver_options`.
-The positional arguments to `QSpin.OdeSolve.evolve` are essentially analogues of the arguments that are passed to `OrdinaryDiffEq.ODEProblem` to create the problem.
-
-```@docs
-QSpin.OdeSolve.evolve
-```
+The positional arguments to [`QSpin.OdeSolve.evolve`](@ref) are essentially analogues of the arguments that are passed to `OrdinaryDiffEq.ODEProblem` to create the problem.
 
 ### Example: Coupled System of ODEs
 
