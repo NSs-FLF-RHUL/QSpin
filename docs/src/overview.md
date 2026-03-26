@@ -1,4 +1,4 @@
-# [Time-Evolving Equations](@id using-desolve)
+# [Quick Overview](@id using-desolve)
 
 `QSpin` relies on [`OrdinaryDiffEq`](https://github.com/SciML/OrdinaryDiffEq.jl) to time-evolve equations of motion.
 The `QSpin` package itself provides some helper methods for constructing frequently-used terms (or functions, or sub-functions) that appear in the equations of motion, as well as some thin wrappers around the functionality we need from `OrdinaryDiffEq`.

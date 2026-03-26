@@ -1,13 +1,5 @@
 # QSpin Documentation
 
-```@docs
-QSpin.OdeSolve.ode_rk4
-```
-
-## Evolving Equations
-
-For an overview of how to use the functionality in this package to time-evolve equations, [see this page](@ref using-desolve).
-
 ## Building the Documentation
 
 From the top-level package directory, run the `docs/make.jl` script using the `docs` project;
