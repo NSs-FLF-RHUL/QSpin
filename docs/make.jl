@@ -1,8 +1,14 @@
 using Documenter, QSpin
 
 makedocs(
-    sitename = "QSpin Documentation",
-    remotes = nothing,
-    modules = [QSpin],
     checkdocs = :exports,
+    linkcheck = true,
+    modules = [QSpin],
+    pages = [
+        "QSpin Home" => "index.md",
+        "Overview" => "overview.md",
+        "API Reference" => "api.md",
+    ],
+    remotes = nothing,
+    sitename = "QSpin Documentation",
 )

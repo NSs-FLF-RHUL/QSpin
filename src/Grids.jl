@@ -4,13 +4,16 @@ using FFTW
 using MAT
 using ParallelStencil
 
+using ..Parameters: ParameterType
+
 """
-    CartGrid(CompDomain::Array{Float64},GridSize::Array{Int64})
+Set up a uniform Cartesian grid, applicable for the Fourier spectral method.
 
-    Setting up uniform Cartesian grids and applicable for Fourier spectral method.
-
-        :param CompDomain: The half computational domain size. Input as an array for [Lx,Ly,Lz] and up to 3D.
-        :param GridSize: The number of grid points in each dimension, in the form of [Nx,Ny,Nz] and up to 3D.
+# Arguments
+- `CompDomain::Array{Float64}`: The half computational domain size.
+    Input as an array for [Lx,Ly,Lz], and up to 3D.
+- `GridSize::Array{Float64}`: The number of grid points in each dimension.
+    Input as an array of the form [Nx,Ny,Nz], and up to 3D.
 """
 function CartGrid(CompDomain::Array{Float64}, GridSize::Array{Int64})
     dims = length(GridSize)
@@ -77,21 +80,26 @@ function CartGrid(CompDomain::Array{Float64}, GridSize::Array{Int64})
     end
 end
 
-
 """
-    Pfft_ke(KE_mtx::Array{Float64}, PFFT, PiFFT)(ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}})
+Return a function that computes the quantum kinetic energy term in Schrodinger-type equations.
 
-    Computing the quantum kinetic energy term in Schrodinger-type equations, namely, -∇^2ψ, using the Fourier spectral method.
+Namely, return a function that computes ``-\\nabla^2 \\psi``, given ``\\psi``, using the Fourier spectral method.
+The returned function has signature `kinetic_energy(ψ, parameters, time)`.
 
-    :param KE_mtx: the k-square matrix for computing kinetic energy in momentum space, which can be obtained by using the k-matrices in CartGrid function in Grids.jl.
-    :param PFFT: the plan for forward FFT, which can be created by using plan_fft function in FFTW.jl.
-    :param PiFFT: the plan for inverse FFT, which can be created by using plan_ifft function in FFTW.jl.
+The k-square matrix can be obtained from the `CartGrid` function in `Grids.jl`.
+The plans for the forward and inverse Fourier transforms can be generated using the `plan_{i}fft` function(s) provided by `FFTW`.
+
+# Arguments
+- `KE_mtx::AbstractArray`: k-square matrix for computing kinetic energy in momentum space.
+    This can be obtained by using the k-matrices in `CartGrid` function in `Grids.jl`.
+- `PFFT::`: Plan for forward FFT.
+- `PiFFT::`: Plan for inverse FFT.
+
+# Returns
+- `kinetic_energy::Function`: Function that evaluates the kinetic energy.
 """
 function Pfft_ke(KE_mtx::Array{Float64}, PFFT, PiFFT)
-    function kinetic_energy(
-        ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}},
-        time::Float64,
-    )
+    function kinetic_energy(ψ::AbstractArray, parameters::ParameterType, time::Float64)
         return PiFFT * (KE_mtx .* (PFFT * ψ))
     end
 
@@ -99,17 +107,26 @@ function Pfft_ke(KE_mtx::Array{Float64}, PFFT, PiFFT)
 end
 
 """
-    fft_ke(KE_mtx::Array{Float64})(ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}})
+Return a function that computes the quantum kinetic energy term in Schrodinger-type equations.
 
-    Computing the quantum kinetic energy term in Schrodinger-type equations, namely, -∇^2ψ, using the Fourier spectral method.
+Namely, return a function that computes ``-\\nabla^2 \\psi``, given ``\\psi``, using the Fourier spectral method.
+The returned function has signature `kinetic_energy(ψ, parameters, time)`.
 
-    :param KE_mtx: the k-square matrix for computing kinetic energy in momentum space, which can be obtained by using the k-matrices in CartGrid function in Grids.jl.
-    :param ψ: the field for computing.
+The k-square matrix can be obtained from the `CartGrid` function in `Grids.jl`.
 
+TODO: Combine this function with `Pfft_ke`, above.
+
+# Arguments
+- `KE_mtx::AbstractArray`: k-square matrix for computing kinetic energy in momentum space.
+    This can be obtained by using the k-matrices in `CartGrid` function in `Grids.jl`.
+
+# Returns
+- `kinetic_energy::Function`: Function that evaluates the kinetic energy.
 """
 function fft_ke(KE_mtx::Array{Float64})
     function kinetic_energy(
         ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}},
+        parameters::ParameterType,
         time::Float64,
     )
         return ifft(KE_mtx .* fft(ψ))
@@ -118,17 +135,25 @@ function fft_ke(KE_mtx::Array{Float64})
 end
 
 """
-    fft_Lzψ(X::Array{Float64},Y::Array{Float64},Kx::Array{Float64}, Ky::Array{Float64})(ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}})
+Return a function that computes the quantum angular momentum using the Fourier spectral method.
 
-    Computing the quantum angular momentum term, namely, Lz ψ, using the Fourier spectral method.
-    The angular momentum operator along the z-axis is given by Lz = -i (x ∂/∂y - y ∂/∂x).
+The angular momentum operator along the z-axis is given by
 
-    :param X: the x-coordinate matrix, which can be obtained by using the x-matrix in CartGrid function in Grids.jl.
-    :param Y: the y-coordinate matrix, which can be obtained by using the y-matrix in CartGrid function in Grids.jl.
-    :param Kx: the kx-coordinate matrix, which can be obtained by using the kx-matrix in CartGrid function in Grids.jl.
-    :param Ky: the ky-coordinate matrix, which can be obtained by using the ky-matrix in CartGrid function in Grids.jl.
-    :param ψ: the field for computing.
+``
+\\mathcal{L}_z = -\\mathrm{i} \\left(x \\frac{\\partial}{\\partial y} - y \\frac{\\partial}{\\partial x} \\right).
+``
 
+The returned function has signature `Lz(ψ, parameters, time)`.
+
+The various coordinate matrices can be obtained via the `CartGrid` function in `Grids.jl`.
+
+TODO: Combine with `Pfft_Lzψ`, below.
+
+# Arguments
+- `X::Array{Float64}`: x-coordinate matrix.
+- `Y::Array{Float64}`: y-coordinate matrix.
+- `Kx::Array{Float64}`: kx-coordinate matrix.
+- `Ky::Array{Float64}`: ky-coordinate matrix.
 """
 function fft_Lzψ(
     X::Array{Float64},
@@ -138,37 +163,36 @@ function fft_Lzψ(
 )
     function angular_momentum_z(
         ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}},
+        parameters::ParameterType,
         time::Float64,
     )
-        ψk = fft(ψ);
+        ψk = fft(ψ)
         return im .* (Y .* ifft(im .* Kx .* ψk) - X .* ifft(im .* Ky .* ψk))
     end
     return angular_momentum_z
 end
 
 """
-    Pfft_Lzψ(
-    X::Array{Float64},
-    Y::Array{Float64},
-    Kx::Array{Float64},
-    Ky::Array{Float64},
-    PFFT,
-    PiFFT,
-)
-(ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}})
+Return a function that computes the quantum angular momentum using the Fourier spectral method.
 
-    Computing the quantum angular momentum term, namely, Lz ψ, using the Fourier spectral method.
-    The angular momentum operator along the z-axis is given by Lz = -i (x ∂/∂y - y ∂/∂x).
+The angular momentum operator along the z-axis is given by
 
-    :param X: the x-coordinate matrix, which can be obtained by using the x-matrix in CartGrid function in Grids.jl.
-    :param Y: the y-coordinate matrix, which can be obtained by using the y-matrix in CartGrid function in Grids.jl.
-    :param Kx: the kx-coordinate matrix, which can be obtained by using the kx-matrix in CartGrid function in Grids.jl.
-    :param Ky: the ky-coordinate matrix, which can be obtained by using the ky-matrix in CartGrid function in Grids.jl.
-    :param PFFT: the plan for forward FFT, which can be created by using plan_fft function in FFTW.jl.
-    :param PiFFT: the plan for inverse FFT, which can be created by using plan_ifft function in FFTW.jl.
-    :param ψ: the field for computing.
-    :param time: the time for computing, which is required for the Hamiltonian but may not used in this function.
+``
+\\mathcal{L}_z = -\\mathrm{i} \\left(x \\frac{\\partial}{\\partial y} - y \\frac{\\partial}{\\partial x} \\right).
+``
 
+The returned function has signature `Lz(ψ, parameters, time)`.
+
+The various coordinate matrices can be obtained via the `CartGrid` function in `Grids.jl`.
+The plans for the forward and inverse Fourier transforms can be generated using the `plan_{i}fft` function(s) provided by `FFTW`.
+
+# Arguments
+- `X::Array{Float64}`: x-coordinate matrix.
+- `Y::Array{Float64}`: y-coordinate matrix.
+- `Kx::Array{Float64}`: kx-coordinate matrix.
+- `Ky::Array{Float64}`: ky-coordinate matrix.
+- `PFFT::`: Plan for forward FFT.
+- `PiFFT::`: Plan for inverse FFT.
 """
 function Pfft_Lzψ(
     X::Array{Float64},
@@ -180,6 +204,7 @@ function Pfft_Lzψ(
 )
     function angular_momentum_z(
         ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}},
+        parameters::ParameterType,
         time::Float64,
     )
         ψk = PFFT * ψ;

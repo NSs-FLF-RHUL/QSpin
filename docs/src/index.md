@@ -1,8 +1,4 @@
-# My Package Documentation
-
-```@docs
-QSpin.OdeSolve.ode_rk4
-```
+# QSpin Documentation
 
 ## Building the Documentation
 
