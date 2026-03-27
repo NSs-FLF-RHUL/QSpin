@@ -37,6 +37,8 @@ my_parameters = (
 )
 ```
 
+Empty `NamedTuple`s can be created via the syntax `(;)`, if you want to explicitly evaluate any functions that require the parameters argument as a positional input, but which do not actually use any parameters themselves.
+
 ## Time-Evolving Equations of Motion
 
 `QSpin.OdeSolve` provides the `evolve` method which is a thin wrapper that creates an appropriate [`OrdinaryDiffEq.ODEProblem`](https://docs.sciml.ai/DiffEqDocs/stable/types/ode_types/#SciMLBase.ODEProblem) and then passes it to [`OrdinaryDiffEq.solve`](https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts/#CommonSolve.solve-Tuple{SciMLBase.AbstractDEProblem,%20Vararg{Any}}).
