@@ -38,7 +38,7 @@ function evolve(
     solver_options...,
 )
     if p === nothing
-        p = ()
+        p = (;)
     end
 
     problem = DE.ODEProblem(eom!, ψ0, (t_start, t_end), p)
