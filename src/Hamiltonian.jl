@@ -1,5 +1,7 @@
 module Hamiltonian
 
+using ..Parameters: ParameterType
+
 """
 Construct a Hamiltonian from a Kinetic and Potential energy.
 
@@ -25,7 +27,12 @@ as positional arguments, and return the value of the respective energy quantitie
 - `H!::Function`: The Hamiltonian formed from the kinetic and potential energies
 """
 function hamiltonian!(KineticEnergy, PotentialEnergy, irt = im)
-    function H!(dψ::AbstractArray, ψ::AbstractArray, parameters::NamedTuple, time::Float64)
+    function H!(
+        dψ::AbstractArray,
+        ψ::AbstractArray,
+        parameters::ParameterType,
+        time::Float64,
+    )
         dψ .=
             irt .*
             (KineticEnergy(ψ, parameters, time) + PotentialEnergy(ψ, parameters, time))

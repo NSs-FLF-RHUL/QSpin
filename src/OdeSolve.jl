@@ -6,6 +6,8 @@ using ParallelStencil
 
 import OrdinaryDiffEq as DE
 
+using ..Parameters: ParameterType
+
 """
 Time-evolve an equation of motion using `OrdinaryDiffEq` (DE).
 
@@ -34,11 +36,11 @@ function evolve(
     ψ0::AbstractArray,
     t_start::Float64 = 0.0,
     t_end::Float64 = 1.0,
-    p::Union{NamedTuple,Nothing} = nothing;
+    p::Union{ParameterType,Nothing} = nothing;
     solver_options...,
 )
     if p === nothing
-        p = (;)
+        p = ()
     end
 
     problem = DE.ODEProblem(eom!, ψ0, (t_start, t_end), p)

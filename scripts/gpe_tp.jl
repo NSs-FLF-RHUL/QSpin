@@ -1,9 +1,11 @@
-using QSpin
 using FFTW
 using MAT, Random
 using Plots, LaTeXStrings
 
 import OrdinaryDiffEq as DE
+
+using QSpin
+using QSpin.Parameters: ParameterType
 
 Random.seed!(42)
 FFTW.set_num_threads(6)
@@ -25,7 +27,7 @@ PiFFT = plan_ifft(zeros(ComplexF64, GridParams.Ny, GridParams.Nx), [1, 2])
 KE = QSpin.Grids.Pfft_ke(KE_mtx, PFFT, PiFFT);
 Lz = QSpin.Grids.fft_Lzψ(X, Y, Kx, Ky)
 
-function Pot(ψ::Array{ComplexF64}, parameters::NamedTuple, time::Float64)
+function Pot(ψ::Array{ComplexF64}, parameters::ParameterType, time::Float64)
     pot = (trap .- parameters.μ) .* ψ + parameters.g .* (abs.(ψ) .^ 2) .* ψ
     ang_mom = parameters.Ω * Lz(ψ, parameters, time)
     return pot - ang_mom

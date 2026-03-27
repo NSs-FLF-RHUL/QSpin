@@ -1,6 +1,7 @@
 # This is an example script solve the simple glitch model under solid-body rotation approach
 using Plots
 using QSpin
+using QSpin.Parameters: ParameterType
 
 import OrdinaryDiffEq as DE
 
@@ -12,7 +13,7 @@ t_start = 0.0
 t_end = 1.0
 t_span = (t_start, t_end)
 
-function eom!(dψ::AbstractArray, ψ::AbstractArray, parameters, time::Float64)
+function eom!(dψ::AbstractArray, ψ::AbstractArray, parameters::ParameterType, time::Float64)
     dψ .= M * ψ
 end
 

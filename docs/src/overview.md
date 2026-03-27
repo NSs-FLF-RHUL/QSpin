@@ -21,23 +21,28 @@ The function $f$ that defines the equation of motion should have one of two sign
 ### Helper Functions for the Equations of Motion
 
 There are several functions within `QSpin` that can generate an appropriate function `f` from the component "pieces" of the equation of motion.
-The `QSpin.Hamiltonian.hamiltonian!` function, for example, constructs a function `H!(dψ, ψ, parameters, t)` from two other functions that compute the kinetic and potential energy.
+The [`hamiltonian!`](@ref QSpin.Hamiltonian.hamiltonian!) function, for example, constructs a function `H!(dψ, ψ, parameters, t)` from two other functions that compute the kinetic and potential energy.
+
 `QSpin` uses the convention that the names of these "constructor" functions have an `!` at the end if **the function they return** has the `f!(dψ, ψ, parameters, t)` signature - that is, when the returned function is expected to mutate its input in-place.
 Conversely, constructor functions without the `!` at the end of their name return functions with the `f(ψ, parameters, t)` signature.
 
-### `parameters` Data Type
+### The `ParameterType` used for `parameters` Arguments
+
+The [`ParameterType`](@ref QSpin.Parameters.ParameterType) type provided by `QSpin` can be used for static typing of the `parameters` argument.
 
 `OrdinaryDiffEq` recommends using immutable containers for the `parameters` variable.
-As such `QSpin` elects to store these values in `NamedTuple`s:
+`QSpin` elects to use `NamedTuple`s for this purpose, however will not complain if you write equations of motion that also accept `Tuple` values.
+However, the functions provided by `QSpin` all assume that either:
 
-```julia
-my_parameters = (
-  parameter_name_1 = 1.0,
-  parameters_name_2 = 3.14,
-)
-```
+- `parameters` is provided as a `NamedTuple`, if the function requires access to certain named parameters.
+  Parameter values are then accessed by name within the function, e.g. via `parameters.theta`.
+- `parameters` is provided as an empty `NamedTuple` or empty `Tuple`, if it is not accessed by the function.
+  Empty `Tuple`s and `NamedTuple`s can be created with the `()` and `(;)` syntax, respectively.
 
-Empty `NamedTuple`s can be created via the syntax `(;)`, if you want to explicitly evaluate any functions that require the parameters argument as a positional input, but which do not actually use any parameters themselves.
+!!! alert
+    You are free to write your own equations of motion that assume the `parameters` argument is provided as a `Tuple`.
+    `QSpin` prefers `NamedTuple`s, since it makes reading the source code of the problem being defined easier; `parameters.theta` is much more legible than simply accessing `parameters[2]` which you have decided will correspond to `theta`.
+    This is of particular importance to `QSpin`, since we anticipate exploring a variety of problems, each with different parameter names and values, and thus cannot feasibly decide on an absolute-indexing convention for `parameters` that spans all the systems we want to explore.
 
 ## Time-Evolving Equations of Motion
 

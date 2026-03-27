@@ -4,6 +4,8 @@ using FFTW
 using MAT
 using ParallelStencil
 
+using ..Parameters: ParameterType
+
 """
 Set up a uniform Cartesian grid, applicable for the Fourier spectral method.
 
@@ -97,7 +99,7 @@ The plans for the forward and inverse Fourier transforms can be generated using 
 - `kinetic_energy::Function`: Function that evaluates the kinetic energy.
 """
 function Pfft_ke(KE_mtx::Array{Float64}, PFFT, PiFFT)
-    function kinetic_energy(ψ::AbstractArray, parameters::NamedTuple, time::Float64)
+    function kinetic_energy(ψ::AbstractArray, parameters::ParameterType, time::Float64)
         return PiFFT * (KE_mtx .* (PFFT * ψ))
     end
 
@@ -124,7 +126,7 @@ TODO: Combine this function with `Pfft_ke`, above.
 function fft_ke(KE_mtx::Array{Float64})
     function kinetic_energy(
         ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}},
-        parameters::NamedTuple,
+        parameters::ParameterType,
         time::Float64,
     )
         return ifft(KE_mtx .* fft(ψ))
@@ -161,7 +163,7 @@ function fft_Lzψ(
 )
     function angular_momentum_z(
         ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}},
-        parameters::NamedTuple,
+        parameters::ParameterType,
         time::Float64,
     )
         ψk = fft(ψ)
@@ -202,7 +204,7 @@ function Pfft_Lzψ(
 )
     function angular_momentum_z(
         ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}},
-        parameters::NamedTuple,
+        parameters::ParameterType,
         time::Float64,
     )
         ψk = PFFT * ψ;
