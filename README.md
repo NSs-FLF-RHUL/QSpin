@@ -30,6 +30,20 @@ Here we also include an example script for a neutron star glitch simulator, base
 
 1. Download [Julia](https://julialang.org/downloads/) (version 1.12 or later).
 
-2. Download [QSpin](https://github.com/NSs-FLF-RHUL/QSpin/tree/gl_glitch_raiser_script?tab=readme-ov-file) package.
+2. Install required packages, including [FFTW](https://github.com/JuliaMath/FFTW.jl), [LinearAlgebra](https://docs.julialang.org/en/v1/stdlib/LinearAlgebra/), [MAT](https://juliaio.github.io/MAT.jl/stable/), [OrdinaryDiffEq](https://docs.sciml.ai/OrdinaryDiffEq/stable/). For data visualization, we primarily use [Plots](https://docs.juliaplots.org/stable/) and [LaTeXStrings](https://github.com/JuliaStrings/LaTeXStrings.jl) to plot results in our scirpts.
+
+3. Download [QSpin](https://github.com/NSs-FLF-RHUL/QSpin/tree/gl_glitch_raiser_script?tab=readme-ov-file) package.
+
+## Functions and Features in QSpin
+
+There are 4 modules, OdeSolve, Grids, Hamiltonian, Parameters, in QSpin package. They are built to solve the targeted differential equation problems.
+
+OdeSolve:
+
+Grids: Geranting the spatial and momentum grids (CartGrid), computing quantum kinetic energy (fft_ke & Pfft_ke) and angular momenta (fft_Lz).
+
+Hamiltonian: Combining kinetic and potential energy functions in Schrdinger-like equations.
+
+Parameters:
 
 ## Running your first PDE/ODE
