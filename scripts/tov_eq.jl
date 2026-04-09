@@ -1,17 +1,8 @@
 using QSpin
 using QSpin.Parameters: ParameterType
 using Plots, LaTeXStrings
-# Physical constants in SI units
-PhysConst = (
-    ħ = 1.0545718 * 1e-34, # m^2*kg / s
-    Msun = 1.9891 * 1e30,      # kg
-    c = 299792458,         # m / s
-    G = 6.67408 * 1e-11,   # m^3 / (kg * s^2)
-    kpc = 3.08567758 * 1e19, # m
-    eV = 1.782662 * 1e-36,  # kg
-    Gyear = 31556926 * 1e9,   # s
-    mn = 1.674927471 * 1e-27, # kg
-)
+
+include("PhysConsts.jl")
 
 # Polytropic EoS parameters
 EoS_Param = (
@@ -45,6 +36,16 @@ function EoS_Func(EoS_Param::ParameterType, PhysConst::ParameterType)
     Kcrust = (3*π^2)^(2/3) * PhysConst.ħ^2 / (5*PhysConst.mn^(8/3)); # Crust EoS constant
     γcrust = 5/3; # Crust EoS polytropic
     Kcore = Kcrust * EoS_Param.ρb^(γcrust-EoS_Param.γcore); # Core EoS constant to ensure continuity at ρb
+
+    """
+    Define the EoS function giving the P-ρ relation.
+
+    # Arguments
+    - `ρ::Union{Float64,AbstractArray,Array{Float64},Vector{Float64}}`: The density or array of densities for which to compute the pressure.
+
+    # Returns
+    - `P::Union{Float64,AbstractArray,Array{Float64},Vector{Float64}}`: The corresponding pressure or array of pressures computed from the EoS.
+    """
     function EoS_P(ρ::Union{Float64,AbstractArray,Array{Float64},Vector{Float64}})
         if ρ < 0
             P = 0.0; # Ensure non-negative pressure
@@ -57,6 +58,15 @@ function EoS_Func(EoS_Param::ParameterType, PhysConst::ParameterType)
     end
     Pb = EoS_P(EoS_Param.ρb); # Pressure at the crust-core transition for continuity check
     println("Pressure at crust-core transition (Pb): ", Pb)
+
+    """
+    Define the inverse EoS function giving the ρ-P relation.
+    # Arguments
+    - `P::Union{Float64,AbstractArray,Array{Float64},Vector{Float64}}`: The pressure or array of pressures for which to compute the density.
+
+    # Returns
+    - `ρ::Union{Float64,AbstractArray,Array{Float64},Vector{Float64}}`: The corresponding density or array of densities computed from the EoS.
+    """
     function EoS_Inv(P::Union{Float64,AbstractArray,Array{Float64},Vector{Float64}})
         if P < 0
             ρ = 0.0; # Ensure non-negative density
@@ -80,8 +90,14 @@ m0 = 0.0; # Initial enclosed mass at the center
 u0 = [P0; m0]; # Initial conditions: central pressure and enclosed mass
 
 # Sovling the TOV equation using the RK4 method with QSpin OdeSolve module
-@time Pr, mr, ρr, r =
-    QSpin.OdeSolve.TOV_Solve_rk4(u0, Sim_Input.dr, Sim_Input.Dr, Sim_Input.r_end, EoS_inv);
+@time Pr, mr, ρr, r = QSpin.OdeSolve.TOV_Solve_rk4(
+    u0,
+    Sim_Input.dr,
+    Sim_Input.Dr,
+    Sim_Input.r_end,
+    EoS_inv,
+    PhysConst,
+);
 
 # Plotting
 Pc = EoS(Sim_Input.ρ0) # Check continuity at crust-core transition
