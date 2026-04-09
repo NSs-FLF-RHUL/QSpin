@@ -1,7 +1,6 @@
 using QSpin
 using QSpin.Parameters: ParameterType
 using Plots, LaTeXStrings
-
 # Physical constants in SI units
 PhysConst = (
     ħ = 1.0545718 * 1e-34, # m^2*kg / s
@@ -72,39 +71,8 @@ function EoS_Func(EoS_Param::ParameterType, PhysConst::ParameterType)
     return EoS_P, EoS_Inv
 end
 
-"""
-Set up the TOV equation for a given inverse EoS function and physical constants.
-
-# Arguments
-- `EoS_inv::Function`: The inverse EoS function that gives density as
-- 'u::AbstractArray': The current state of the system, where u[1] is pressure P and u[2] is enclosed mass m.
--'r::Float64': The current radius at which the TOV equation is being evaluated.
-
-# Returns
-- `tov_eq::Function`: A function of [dP/dr; dm/dr] for the TOV equation.
-
-"""
-function TOV_Eq(Eos_inv::Function, PhysConst::ParameterType)
-    function tov_eq(u::AbstractArray, r::Float64)
-        P = u[1];
-        m = u[2];
-        ρ = EoS_inv(P);
-        if r == 0.0
-            dPdr = 0;
-        else
-            dPdr =
-                -PhysConst.G / r^2 * (ρ + P/PhysConst.c^2) * (m + 4*π*r^3*P/PhysConst.c^2) /
-                (1 - 2*PhysConst.G*m/(r*PhysConst.c^2));
-        end
-        dmdr = 4*π*r^2*ρ;
-        return [dPdr; dmdr]
-    end
-    return tov_eq
-end
-
 # Fucntion Setup for inverse EoS and TOV equation for the solver
 EoS, EoS_inv = EoS_Func(EoS_Param, PhysConst);
-TOV = TOV_Eq(EoS_inv, PhysConst);
 
 # Setting up initial condition accordingly to the EoS for a given central density ρ0.
 P0 = EoS(Sim_Input.ρ0); # Initial central pressure from EoS
@@ -112,17 +80,14 @@ m0 = 0.0; # Initial enclosed mass at the center
 u0 = [P0; m0]; # Initial conditions: central pressure and enclosed mass
 
 # Sovling the TOV equation using the RK4 method with QSpin OdeSolve module
-@time ur, r =
-    QSpin.OdeSolve.evolve_rk4(u0, Sim_Input.dr, Sim_Input.Dr, Sim_Input.r_end, TOV);
-ρr = zeros(size(r))
-for rr = 1:length(r)
-    ρr[rr] = EoS_inv(ur[1, rr]) # Density profile from the inverse EoS
-end
+@time Pr, mr, ρr, r =
+    QSpin.OdeSolve.TOV_Solve_rk4(u0, Sim_Input.dr, Sim_Input.Dr, Sim_Input.r_end, EoS_inv);
+
 # Plotting
 Pc = EoS(Sim_Input.ρ0) # Check continuity at crust-core transition
 plot!(
     r/1e3,
-    ur[1, :]/Pc,
+    Pr/Pc,
     label = string(L"\gamma_{core}=", EoS_Param.γcore),
     xlabel = "Radius (km)",
     ylabel = L"P/P_c",
