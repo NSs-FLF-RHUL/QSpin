@@ -27,30 +27,44 @@ Sim_Input = (
     Dr = 0.1*1e3, # Radial interval for recording values in meters
     r_end = 15e3, # Maximum radius to solve up to in meters
 );
-# Polytropic EoS for P-ρ relation
+
+"""
+Set up the EoS functions for a given set of parameters and physical constants.
+
+# Arguments
+- `EoS_Param::ParameterType`: The parameters for the polytropic EoS.
+- `PhysConst::ParameterType`: The physical constants in SI units.
+
+# Returns
+- `EoS_P::Function`: The EoS function that gives pressure as a function of density.
+- `EoS_Inv::Function`: The inverse EoS function that gives density as a function of pressure.
+
+# A polytropic EoS is used in this script.
+
+"""
 function EoS_Func(EoS_Param::ParameterType, PhysConst::ParameterType)
     Kcrust = (3*π^2)^(2/3) * PhysConst.ħ^2 / (5*PhysConst.mn^(8/3)); # Crust EoS constant
     γcrust = 5/3; # Crust EoS polytropic
     Kcore = Kcrust * EoS_Param.ρb^(γcrust-EoS_Param.γcore); # Core EoS constant to ensure continuity at ρb
-    function EoS_P(ρ::Float64)
+    function EoS_P(ρ::Union{Float64,AbstractArray,Array{Float64},Vector{Float64}})
         if ρ < 0
             P = 0.0; # Ensure non-negative pressure
         elseif ρ <= EoS_Param.ρb
-            P = Kcrust * ρ^γcrust;
+            P = Kcrust * ρ .^ γcrust;
         else
-            P = Kcore * ρ^EoS_Param.γcore;
+            P = Kcore * ρ .^ EoS_Param.γcore;
         end
         return P;
     end
     Pb = EoS_P(EoS_Param.ρb); # Pressure at the crust-core transition for continuity check
     println("Pressure at crust-core transition (Pb): ", Pb)
-    function EoS_Inv(P::Float64)
+    function EoS_Inv(P::Union{Float64,AbstractArray,Array{Float64},Vector{Float64}})
         if P < 0
             ρ = 0.0; # Ensure non-negative density
         elseif P <= Pb
-            ρ = (P / Kcrust)^(1/γcrust);
+            ρ = (P / Kcrust) .^ (1/γcrust);
         else
-            ρ = (P / Kcore)^(1/EoS_Param.γcore);
+            ρ = (P / Kcore) .^ (1/EoS_Param.γcore);
         end
         return ρ
     end
@@ -58,7 +72,18 @@ function EoS_Func(EoS_Param::ParameterType, PhysConst::ParameterType)
     return EoS_P, EoS_Inv
 end
 
-# ToV equation setup
+"""
+Set up the TOV equation for a given inverse EoS function and physical constants.
+
+# Arguments
+- `EoS_inv::Function`: The inverse EoS function that gives density as
+- 'u::AbstractArray': The current state of the system, where u[1] is pressure P and u[2] is enclosed mass m.
+-'r::Float64': The current radius at which the TOV equation is being evaluated.
+
+# Returns
+- `tov_eq::Function`: A function of [dP/dr; dm/dr] for the TOV equation.
+
+"""
 function TOV_Eq(Eos_inv::Function, PhysConst::ParameterType)
     function tov_eq(u::AbstractArray, r::Float64)
         P = u[1];
@@ -89,7 +114,10 @@ u0 = [P0; m0]; # Initial conditions: central pressure and enclosed mass
 # Sovling the TOV equation using the RK4 method with QSpin OdeSolve module
 @time ur, r =
     QSpin.OdeSolve.evolve_rk4(u0, Sim_Input.dr, Sim_Input.Dr, Sim_Input.r_end, TOV);
-
+ρr = zeros(size(r))
+for rr = 1:length(r)
+    ρr[rr] = EoS_inv(ur[1, rr]) # Density profile from the inverse EoS
+end
 # Plotting
 Pc = EoS(Sim_Input.ρ0) # Check continuity at crust-core transition
 plot!(
