@@ -220,8 +220,8 @@ function TOV_Solve_rk4(
 
     Pr = uall[1, :];
     mr = uall[2, :];
-    ρr = zeros(length(r))
-    for rr = 1:length(r)
+    ρr = zeros(length(rspan))
+    for rr = 1:length(rspan)
         ρr[rr] = EoS_inv(Pr[rr]) # Density profile from the inverse EoS
     end
     return Pr, mr, ρr, rspan

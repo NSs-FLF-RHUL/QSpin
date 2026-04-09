@@ -5,11 +5,14 @@ using Plots, LaTeXStrings
 include("PhysConsts.jl")
 
 # Polytropic EoS parameters
-EoS_Param = (
-    γcore = 5/2.0, # Polytropic index for the core
+EoS_Param_Stiff = (
+    γcore = 3.0, # Polytropic index for the core
     ρb = 3e14*1e3, # Transition density between crust and core in kg/m^3
 )
-
+EoS_Param_Soft = (
+    γcore = 5.0/2.0, # Polytropic index for the core
+    ρb = 3e14*1e3, # Transition density between crust and core in kg/m^3
+)
 # Simulation Input Parameters
 Sim_Input = (
     ρ0 = 1e15*1e3, # Initial central density in kg/m^3 !! CHECKING UNITS
@@ -82,32 +85,71 @@ function EoS_Func(EoS_Param::ParameterType, PhysConst::ParameterType)
 end
 
 # Fucntion Setup for inverse EoS and TOV equation for the solver
-EoS, EoS_inv = EoS_Func(EoS_Param, PhysConst);
+EoS_Stiff, EoS_inv_Stiff = EoS_Func(EoS_Param_Stiff, PhysConst);
+EoS_Soft, EoS_inv_Soft = EoS_Func(EoS_Param_Soft, PhysConst);
 
 # Setting up initial condition accordingly to the EoS for a given central density ρ0.
-P0 = EoS(Sim_Input.ρ0); # Initial central pressure from EoS
-m0 = 0.0; # Initial enclosed mass at the center
-u0 = [P0; m0]; # Initial conditions: central pressure and enclosed mass
+u0_Stiff = [EoS_Stiff(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
+u0_Soft = [EoS_Soft(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
 
 # Sovling the TOV equation using the RK4 method with QSpin OdeSolve module
-@time Pr, mr, ρr, r = QSpin.OdeSolve.TOV_Solve_rk4(
-    u0,
+@time Pr_Stiff, mr_Stiff, ρr_Stiff, r = QSpin.OdeSolve.TOV_Solve_rk4(
+    u0_Stiff,
     Sim_Input.dr,
     Sim_Input.Dr,
     Sim_Input.r_end,
-    EoS_inv,
+    EoS_inv_Stiff,
+    PhysConst,
+);
+
+@time Pr_Soft, mr_Soft, ρr_Soft = QSpin.OdeSolve.TOV_Solve_rk4(
+    u0_Soft,
+    Sim_Input.dr,
+    Sim_Input.Dr,
+    Sim_Input.r_end,
+    EoS_inv_Soft,
     PhysConst,
 );
 
 # Plotting
-Pc = EoS(Sim_Input.ρ0) # Check continuity at crust-core transition
-plot!(
-    r/1e3,
-    Pr/Pc,
-    label = string(L"\gamma_{core}=", EoS_Param.γcore),
-    xlabel = "Radius (km)",
-    ylabel = L"P/P_c",
-    title = string("TOV Solution for ", L"ρ_{c}=", Sim_Input.ρ0, L"\textrm{kg/m}^3"),
-    xticks = range(0.0, stop = 15.0, length = 7),
-    yticks = range(0.0, stop = 1.0, length = 6),
+Pc_Stiff = EoS_Stiff(Sim_Input.ρ0) # Check continuity at crust-core transition
+Pc_Soft = EoS_Soft(Sim_Input.ρ0) # Check continuity at crust-core transition
+
+
+plot(
+    plot(
+        r/1e3,
+        [Pr_Stiff/Pc_Stiff Pr_Soft/Pc_Soft],
+        label = [string(L"\gamma_{core}=", EoS_Param_Stiff.γcore) string(
+            L"\gamma_{core}=",
+            EoS_Param_Soft.γcore,
+        )],
+        xlabel = "Radius (km)",
+        ylabel = L"P/P_c",
+        framestyle = :box,
+    ),
+    plot(
+        r/1e3,
+        [mr_Stiff mr_Soft]/PhysConst.Msun,
+        label = [string(L"\gamma_{core}=", EoS_Param_Stiff.γcore) string(
+            L"\gamma_{core}=",
+            EoS_Param_Soft.γcore,
+        )],
+        xlabel = "Radius (m)",
+        ylabel = L"m/M_\odot",
+        framestyle = :box,
+    ),
+    plot(
+        r/1e3,
+        [ρr_Stiff ρr_Soft],
+        label = [string(L"\gamma_{core}=", EoS_Param_Stiff.γcore) string(
+            L"\gamma_{core}=",
+            EoS_Param_Soft.γcore,
+        )],
+        xlabel = "Radius (m)",
+        ylabel = L"\rho\;(\textrm{kg/m}^3)",
+        framestyle = :box,
+    ),
+    layout = (1, 3),
 )
+#plot!(size=(800,400))
