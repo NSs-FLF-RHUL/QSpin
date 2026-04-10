@@ -2,10 +2,11 @@
 
 ```@autodocs
 Modules = [
-  QSpin.PhysicalConstants,
   QSpin.Parameters,
+  QSpin.PhysicalConstants,
   QSpin.Grids,
   QSpin.Hamiltonian,
   QSpin.OdeSolve,
+  QSpin.TOV,
 ]
 ```
