@@ -1,6 +1,9 @@
 using QSpin
 using QSpin.Parameters: ParameterType
 using Plots, LaTeXStrings
+# This script is demonstrating how to solve the Tolman–Oppenheimer–Volkoff (TOV) equation for neutron stars using the QSpin package with the built-in TOV solver using Runge-Kutta 4th order method.
+# The parameters are chosen from https://github.com/vanessagraber/teaching_materials/blob/master/summerschool_CRAQ_2019/mass_radius_relations.ipynb.
+
 
 include("PhysConsts.jl")
 
@@ -17,7 +20,7 @@ EoS_Param_Soft = (
 Sim_Input = (
     ρ0 = 1e15*1e3, # Initial central density in kg/m^3 (1e15 g/cm^3)
     dr = 0.01*1e3, # Radial step in meters
-    Dr = 0.05*1e3, # Radial interval for recording values in meters
+    Dr = 0.01*1e3, # Radial interval for recording values in meters
     r_end = 20e3, # Maximum radius to solve up to in meters
 );
 
@@ -123,7 +126,6 @@ R_StiffScan = zeros(length(ρc_scan));
 M_SoftScan = zeros(length(ρc_scan));
 R_SoftScan = zeros(length(ρc_scan));
 for cc = 1:length(ρc_scan)
-    println(cc)
     ρc = ρc_scan[Int.(cc)];
 
     Pr, mr, ρr, M, R = QSpin.OdeSolve.TOV_Solve_rk4(
@@ -153,8 +155,8 @@ plot(
     plot(
         r/1e3,
         [Pr_Stiff/Pc_Stiff Pr_Soft/Pc_Soft],
-        label = [string(L"\gamma_{core}=", EoS_Param_Stiff.γcore) string(
-            L"\gamma_{core}=",
+        label = [string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.γcore) string(
+            L"\gamma_\mathrm{core}=",
             EoS_Param_Soft.γcore,
         )],
         xlabel = "Radius (km)",
@@ -165,20 +167,20 @@ plot(
     plot(
         r/1e3,
         [mr_Stiff mr_Soft]/PhysConst.Msun,
-        label = [string(L"\gamma_{core}=", EoS_Param_Stiff.γcore) string(
-            L"\gamma_{core}=",
+        label = [string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.γcore) string(
+            L"\gamma_\mathrm{core}=",
             EoS_Param_Soft.γcore,
         )],
         xlabel = "Radius (m)",
         ylabel = L"m/M_\odot",
         framestyle = :box,
-        inewidth = 2,
+        linewidth = 2,
     ),
     plot(
         r/1e3,
         [ρr_Stiff ρr_Soft]/1e18,
-        label = [string(L"\gamma_{core}=", EoS_Param_Stiff.γcore) string(
-            L"\gamma_{core}=",
+        label = [string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.γcore) string(
+            L"\gamma_\mathrm{core}=",
             EoS_Param_Soft.γcore,
         )],
         xlabel = "Radius (m)",
@@ -186,13 +188,15 @@ plot(
         framestyle = :box,
         linewidth = 2,
     ),
-    plot(
-        [R_SoftScan R_StiffScan]/1e3,
-        [M_SoftScan M_StiffScan]/PhysConst.Msun,
-        seriestype = :scatter,
+    scatter(
+        [R_StiffScan R_SoftScan]/1e3,
+        [M_StiffScan M_SoftScan]/PhysConst.Msun;
+        zcolor = log.([ρc_scan ρc_scan])/log(10), # color the data by the core density
+        markershape = [:circle :diamond],
+        markersize = [2 2],
         label = ["Stiff" "Soft"],
         xlabel = "Radius (km)",
-        ylabel = L"\textrm{Mass }(M_\odot)",
+        ylabel = L"\textrm{Mass}\;(M_\odot)",
         framestyle = :box,
         linewidth = 2,
     ),
