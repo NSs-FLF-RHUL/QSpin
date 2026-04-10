@@ -4,11 +4,10 @@ Submodule containing helper functions for solving the TOV equation.
 The TOV equation reads
 
 ``
-\\frac{\\mathrm{d}P}{\\mathrm{d}r} &=
-- \\frac{G}{r^2}
+\\frac{\\mathrm{d}P}{\\mathrm{d}r} = - \\frac{G}{r^2}
 \\left[ \\rho(r) + \\frac{P(r)}{c^2} \\right]
-\\left[ m(r) + 4\\pi r^3 \frac{P(r)}{c^2} \\right]
-\\left[ 1 - \frac{2Gm(r)}{c^2 r} \\right]^{-1},
+\\left[ m(r) + 4\\pi r^3 \\frac{P(r)}{c^2} \\right]
+\\left[ 1 - \\frac{2Gm(r)}{c^2 r} \\right]^{-1},
 ``
 
 where ``G`` and ``c`` represent the gravitational constant and speed of light in vacuum, respectively.
@@ -16,13 +15,14 @@ where ``G`` and ``c`` represent the gravitational constant and speed of light in
 Finally, ``m(r)`` is the gravitational mass satisfying ``m(0) = 0`` and is found by solving the continuity equation
 
 ``
-\\frac{\\mathrm{d}m}{\\mathrm{d}r} &= 4\\pi\\rho(r)r^2.
+\\frac{\\mathrm{d}m}{\\mathrm{d}r} = 4\\pi\\rho(r)r^2.
 ``
 
 To solve the TOV equation we must also provide an equation of state (EoS) that relates the pressure and density of the neutron star, that is we must provide ``P = P(\\rho)`` (and the inverse).
 
 Note that we can solve the TOV equation(s) numerically using the vector ``u = (P, m)`` and solving a first-order system in ``u``.
 """
+module TOV
 
 using ..Parameters: ParameterType
 using ..PhysicalConstants: hbar, gravitational_constant, neutron_mass, speed_of_light_vacuum
@@ -53,35 +53,34 @@ function tov_eq!(EoS_rho_to_P::Function)
     return tov_inner!
 end
 
-"""
+@doc raw"""
 Create EoS functions for two-component polytrope neutron stars.
 
 Such stars are assumed to be spheres composed of non-interacting, degenerate neutrons that are characterised by two EoS, in the core and crust regions.
-The boundary between the regions is located at some radial coordinate ``r = \\rho_b``;
+The boundary between the regions is located at some density ``\rho_b``;
 
-``
-P =
-\\begin{cases}
-K_{crust} \\rho^{\\gamma_{crust}} & \\rho < \\rho_b, \\
-K_{core} \\rho^{\\gamma_{core}} & \\rho > \\rho_b,
-\\end{cases}
-&\\qquad
-K_{core} = K_{crust} \\rho_b^{\\gamma_{crust}-\\gamma_{core}},
-``
+```math
+P = \begin{cases}
+K_{crust} \rho^{\gamma_{crust}} & \rho < \rho_b, \\
+K_{core} \rho^{\gamma_{core}} & \rho > \rho_b,
+\end{cases}
+\quad
+K_{core} = K_{crust} \rho_b^{ \gamma_{crust} - \gamma_{core} },
+```
 
 with the equation for ``K_{core}`` being a result of imposing pressure continuity at the crust-core interface.
 
 We further assume that the crust is pure degenerate neutron matter;
 
 ``
-P_{crust} = \\frac{(3\\pi^2)^{2/3}}{5} \\frac{\\bar{h}^2}{m_n^{8/3}} \\rho^{5/3}.
+P_{crust} = \frac{(3\pi^2)^{2/3}}{5} \frac{\bar{h}^2}{m_n^{8/3}} \rho^{5/3}.
 ``
 
 `parameters` is assumed to define the following quantities:
 
-- ``K_{crust}``, under the name ``K_crust``.
-- ``\\gamma_{crust}``, under the name `gamma_crust`.
-- ``\\gamma_{core}``, under the name `gamma_core`.
+- ``K_{crust}``, under the name `K_crust`.
+- ``\gamma_{crust}``, under the name `gamma_crust`.
+- ``\gamma_{core}``, under the name `gamma_core`.
 - ``\rho_b``, under the name `rho_b`.
 
 # Arguments
@@ -89,8 +88,8 @@ P_{crust} = \\frac{(3\\pi^2)^{2/3}}{5} \\frac{\\bar{h}^2}{m_n^{8/3}} \\rho^{5/3}
 - `report_transition_pressure::Bool`: If `true`, the transition pressure at the interface will be printed.
 
 # Returns
-- `EoS_P_to_rho::Function`: ``P(\\rho)`` as a function called with `(rho, params, r)`.
-- `EoS_rho_to_P::Function`: ``\\rho(P)`` as a function called with `(P, params, r)`.
+- `EoS_P_to_rho::Function`: ``P(\rho)`` as a function called with `(rho, params, r)`.
+- `EoS_rho_to_P::Function`: ``\rho(P)`` as a function called with `(P, params, r)`.
 """
 function EoS_two_component_polytrope(
     parameters::ParameterType,
@@ -130,4 +129,6 @@ function EoS_two_component_polytrope(
     end
 
     return EoS_P_to_rho, EoS_rho_to_P
+end
+
 end
