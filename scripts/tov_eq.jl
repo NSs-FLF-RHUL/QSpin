@@ -35,7 +35,7 @@ Set up the EoS functions for a given set of parameters and physical constants.
 - `EoS_P::Function`: The EoS function that gives pressure as a function of density.
 - `EoS_Inv::Function`: The inverse EoS function that gives density as a function of pressure.
 
-# A polytropic EoS is used in this script.
+# A polytropic EoS is used in this script according to https://github.com/vanessagraber/teaching_materials/blob/master/summerschool_CRAQ_2019/mass_radius_relations.ipynb.
 
 """
 function EoS_Func(EoS_Param::ParameterType, PhysConst::ParameterType)
@@ -95,7 +95,7 @@ EoS_Soft, EoS_inv_Soft = EoS_Func(EoS_Param_Soft, PhysConst);
 u0_Stiff = [EoS_Stiff(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
 u0_Soft = [EoS_Soft(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
 
-# Sovling the TOV equation using the RK4 method with QSpin OdeSolve module
+# Sovling the TOV equation using the RK4 method with QSpin OdeSolve module for Stiff and Soft EoSs.
 @time Pr_Stiff, mr_Stiff, ρr_Stiff, M_Stiff, R_Stiff, r = QSpin.OdeSolve.TOV_Solve_rk4(
     u0_Stiff,
     Sim_Input.dr,
@@ -114,13 +114,8 @@ u0_Soft = [EoS_Soft(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure
     PhysConst,
 );
 
-# Plotting
-Pc_Stiff = EoS_Stiff(Sim_Input.ρ0) # Check continuity at crust-core transition
-Pc_Soft = EoS_Soft(Sim_Input.ρ0) # Check continuity at crust-core transition
-
+# Computing the M-R relation by varying the central density and solving the TOV equation for each case. The radius is defined by the first point that the pressure becomes negative.
 ρc_scan = exp10.(range(17.5, stop = 20, length = 150))
-
-
 M_StiffScan = zeros(length(ρc_scan));
 R_StiffScan = zeros(length(ρc_scan));
 M_SoftScan = zeros(length(ρc_scan));
@@ -151,6 +146,9 @@ for cc = 1:length(ρc_scan)
     R_SoftScan[Int.(cc)] = R
 end
 
+# Plotting
+Pc_Stiff = EoS_Stiff(Sim_Input.ρ0) # Getting the reference core pressure for the stiff case.
+Pc_Soft = EoS_Soft(Sim_Input.ρ0) # Getting the reference core pressure for the soft case.
 plot(
     plot(
         r/1e3,
@@ -202,4 +200,3 @@ plot(
     ),
     layout = (2, 2),
 )
-#plot!(size=(800,400))
