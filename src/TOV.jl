@@ -24,6 +24,8 @@ To solve the TOV equation we must also provide an equation of state (EoS) that r
 Note that we can solve the TOV equation(s) numerically using the vector ``u = (P, m)`` and solving a first-order system in ``u``.
 """
 
+using ..PhysicalConstants: gravitational_constant, speed_of_light_vacuum
+
 """
 Return a function that evaluates the TOV equation.
 
@@ -37,12 +39,15 @@ function tov_eq!(EoS_inv::Function)
         m = u[2]
         rho = EoS_inv(P);
         if r == 0.0
-            dPdr = 0;
+            du[1] .= 0.0;
         else
-            dPdr =
-                -PhysConst.G / r^2 * (ρ + P/PhysConst.c^2) * (m + 4*π*r^3*P/PhysConst.c^2) /
-                (1 - 2*PhysConst.G*m/(r*PhysConst.c^2));
+            du[1] .=
+                - gravitational_constant / r^2 *
+                (rho + P / speed_of_light_vacuum^2) *
+                (m + 4*π*r^3*P / speed_of_light_vacuum^2) /
+                (1 - 2*gravitational_constant*m / (r*speed_of_light_vacuum^2));
         end
-        dmdr = 4*π*r^2*ρ;
+        du[2] .= 4*π*r^2*rho;
     end
+    return tov_inner!
 end
