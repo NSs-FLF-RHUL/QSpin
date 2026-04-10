@@ -15,10 +15,10 @@ EoS_Param_Soft = (
 )
 # Simulation Input Parameters
 Sim_Input = (
-    ρ0 = 1e15*1e3, # Initial central density in kg/m^3 !! CHECKING UNITS
+    ρ0 = 1e15*1e3, # Initial central density in kg/m^3 (1e15 g/cm^3)
     dr = 0.01*1e3, # Radial step in meters
-    Dr = 0.1*1e3, # Radial interval for recording values in meters
-    r_end = 15e3, # Maximum radius to solve up to in meters
+    Dr = 0.05*1e3, # Radial interval for recording values in meters
+    r_end = 20e3, # Maximum radius to solve up to in meters
 );
 
 """
@@ -93,7 +93,7 @@ u0_Stiff = [EoS_Stiff(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressu
 u0_Soft = [EoS_Soft(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
 
 # Sovling the TOV equation using the RK4 method with QSpin OdeSolve module
-@time Pr_Stiff, mr_Stiff, ρr_Stiff, r = QSpin.OdeSolve.TOV_Solve_rk4(
+@time Pr_Stiff, mr_Stiff, ρr_Stiff, M_Stiff, R_Stiff, r = QSpin.OdeSolve.TOV_Solve_rk4(
     u0_Stiff,
     Sim_Input.dr,
     Sim_Input.Dr,
@@ -102,7 +102,7 @@ u0_Soft = [EoS_Soft(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure
     PhysConst,
 );
 
-@time Pr_Soft, mr_Soft, ρr_Soft = QSpin.OdeSolve.TOV_Solve_rk4(
+@time Pr_Soft, mr_Soft, ρr_Soft, M_Soft, R_Soft = QSpin.OdeSolve.TOV_Solve_rk4(
     u0_Soft,
     Sim_Input.dr,
     Sim_Input.Dr,
@@ -115,6 +115,39 @@ u0_Soft = [EoS_Soft(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure
 Pc_Stiff = EoS_Stiff(Sim_Input.ρ0) # Check continuity at crust-core transition
 Pc_Soft = EoS_Soft(Sim_Input.ρ0) # Check continuity at crust-core transition
 
+ρc_scan = exp10.(range(17.5, stop = 20, length = 150))
+
+
+M_StiffScan = zeros(length(ρc_scan));
+R_StiffScan = zeros(length(ρc_scan));
+M_SoftScan = zeros(length(ρc_scan));
+R_SoftScan = zeros(length(ρc_scan));
+for cc = 1:length(ρc_scan)
+    println(cc)
+    ρc = ρc_scan[Int.(cc)];
+
+    Pr, mr, ρr, M, R = QSpin.OdeSolve.TOV_Solve_rk4(
+        [EoS_Stiff(ρc); 0.0],
+        Sim_Input.dr,
+        Sim_Input.Dr,
+        Sim_Input.r_end,
+        EoS_inv_Stiff,
+        PhysConst,
+    );
+    M_StiffScan[Int.(cc)] = M
+    R_StiffScan[Int.(cc)] = R
+    # println("Mass: ", M/PhysConst.Msun, " M_sun, Radius: ", R/1e3, " km")
+    Pr, mr, ρr, M, R = QSpin.OdeSolve.TOV_Solve_rk4(
+        [EoS_Soft(ρc); 0.0],
+        Sim_Input.dr,
+        Sim_Input.Dr,
+        Sim_Input.r_end,
+        EoS_inv_Soft,
+        PhysConst,
+    );
+    M_SoftScan[Int.(cc)] = M
+    R_SoftScan[Int.(cc)] = R
+end
 
 plot(
     plot(
@@ -127,6 +160,7 @@ plot(
         xlabel = "Radius (km)",
         ylabel = L"P/P_c",
         framestyle = :box,
+        linewidth = 2,
     ),
     plot(
         r/1e3,
@@ -138,18 +172,30 @@ plot(
         xlabel = "Radius (m)",
         ylabel = L"m/M_\odot",
         framestyle = :box,
+        inewidth = 2,
     ),
     plot(
         r/1e3,
-        [ρr_Stiff ρr_Soft],
+        [ρr_Stiff ρr_Soft]/1e18,
         label = [string(L"\gamma_{core}=", EoS_Param_Stiff.γcore) string(
             L"\gamma_{core}=",
             EoS_Param_Soft.γcore,
         )],
         xlabel = "Radius (m)",
-        ylabel = L"\rho\;(\textrm{kg/m}^3)",
+        ylabel = L"\rho\;(\times10^{18}\;\textrm{kg/m}^3)",
         framestyle = :box,
+        linewidth = 2,
     ),
-    layout = (1, 3),
+    plot(
+        [R_SoftScan R_StiffScan]/1e3,
+        [M_SoftScan M_StiffScan]/PhysConst.Msun,
+        seriestype = :scatter,
+        label = ["Stiff" "Soft"],
+        xlabel = "Radius (km)",
+        ylabel = L"\textrm{Mass }(M_\odot)",
+        framestyle = :box,
+        linewidth = 2,
+    ),
+    layout = (2, 2),
 )
 #plot!(size=(800,400))
