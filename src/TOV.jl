@@ -19,14 +19,30 @@ Finally, ``m(r)`` is the gravitational mass satisfying ``m(0) = 0`` and is found
 \\frac{\\mathrm{d}m}{\\mathrm{d}r} &= 4\\pi\\rho(r)r^2.
 ``
 
-To solve the TOV equation we must also provide an equation of state that relates the pressure and density of the neutron star, that is we must provide ``P = P(\\rho)`` (and the inverse).
+To solve the TOV equation we must also provide an equation of state (EoS) that relates the pressure and density of the neutron star, that is we must provide ``P = P(\\rho)`` (and the inverse).
 
 Note that we can solve the TOV equation(s) numerically using the vector ``u = (P, m)`` and solving a first-order system in ``u``.
 """
 
+"""
+Return a function that evaluates the TOV equation.
+
+Returns a function `tov!(du, u, params, r)` that evaluates the TOV equation (in vector form) given the EoS relationship ``\\rho(P)``.
+
+`Eos_inv` is assumed to take `(P, parameters, r)` as inputs, where `P = u[1]` is the pressure.
+"""
 function tov_eq!(EoS_inv::Function)
-    function tov_inner!(du, u, p, r)
+    function tov_inner!(du, u, params, r)
         P = u[1]
         m = u[2]
+        rho = EoS_inv(P);
+        if r == 0.0
+            dPdr = 0;
+        else
+            dPdr =
+                -PhysConst.G / r^2 * (ρ + P/PhysConst.c^2) * (m + 4*π*r^3*P/PhysConst.c^2) /
+                (1 - 2*PhysConst.G*m/(r*PhysConst.c^2));
+        end
+        dmdr = 4*π*r^2*ρ;
     end
 end
