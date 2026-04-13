@@ -135,6 +135,7 @@ function evolve_rk4(
     return ψall, tspan
 end
 
+using QSpin.PhysicalConstants: speed_of_light_vacuum, gravitational_constant
 
 function TOV_Solve_rk4(
     u0::Union{AbstractArray,Array{Float64}},
@@ -143,17 +144,6 @@ function TOV_Solve_rk4(
     r_end::Float64,
     EoS_inv::Function,
 )
-    # Physical constants in SI units
-    PhysConst = (
-        ħ = 1.0545718 * 1e-34, # m^2*kg / s
-        Msun = 1.9891 * 1e30,      # kg
-        c = 299792458,         # m / s
-        G = 6.67408 * 1e-11,   # m^3 / (kg * s^2)
-        kpc = 3.08567758 * 1e19, # m
-        eV = 1.782662 * 1e-36,  # kg
-        Gyear = 31556926 * 1e9,   # s
-        mn = 1.674927471 * 1e-27, # kg
-    )
     """
     Set up the TOV equation for a given inverse EoS function and physical constants.
 
@@ -166,7 +156,7 @@ function TOV_Solve_rk4(
     - `tov_eq::Function`: A function of [dP/dr; dm/dr] for the TOV equation.
 
     """
-    function TOV_Eq(Eos_inv::Function, PhysConst::ParameterType)
+    function TOV_Eq(Eos_inv::Function)
         function tov_eq(u::AbstractArray, r::Float64)
             P = u[1];
             m = u[2];
@@ -175,16 +165,17 @@ function TOV_Solve_rk4(
                 dPdr = 0;
             else
                 dPdr =
-                    -PhysConst.G / r^2 *
-                    (ρ + P/PhysConst.c^2) *
-                    (m + 4*π*r^3*P/PhysConst.c^2) / (1 - 2*PhysConst.G*m/(r*PhysConst.c^2));
+                    -gravitational_constant / r^2 *
+                    (ρ + P/speed_of_light_vacuum^2) *
+                    (m + 4*π*r^3*P/speed_of_light_vacuum^2) /
+                    (1 - 2*gravitational_constant*m/(r*speed_of_light_vacuum^2));
             end
             dmdr = 4*π*r^2*ρ;
             return [dPdr; dmdr]
         end
         return tov_eq
     end
-    TOV = TOV_Eq(EoS_inv, PhysConst);
+    TOV = TOV_Eq(EoS_inv);
     ΔNr = floor(Int, Dr / dr)
     Nr = floor(Int, r_end / Dr)
     uall = zeros(eltype(u0), size(u0)..., Nr + 1)
