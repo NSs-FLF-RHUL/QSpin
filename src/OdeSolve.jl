@@ -142,7 +142,6 @@ function TOV_Solve_rk4(
     Dr::Float64,
     r_end::Float64,
     EoS_inv::Function,
-    PhysConst::ParameterType,
 )
     # Physical constants in SI units
     PhysConst = (

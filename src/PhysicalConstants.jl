@@ -19,7 +19,7 @@ planck_constant = 6.62607015e-34
 hbar = planck_constant / (2*pi)
 
 # Mass of the sun; kg
-mass_sun = 1.9891e30
+sun_mass = 1.9891e30
 
 # Speed of light in vacuum; m / s
 speed_of_light_vacuum = 2.99792458e8
