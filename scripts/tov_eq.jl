@@ -7,6 +7,19 @@ using Plots, LaTeXStrings
 # This script is demonstrating how to solve the Tolman–Oppenheimer–Volkoff (TOV) equation for neutron stars using the QSpin package with the built-in TOV solver using Runge-Kutta 4th order method.
 # The parameters are chosen from https://github.com/vanessagraber/teaching_materials/blob/master/summerschool_CRAQ_2019/mass_radius_relations.ipynb.
 
+"""
+Helper function to return TOV-specific fields from `QSpin.OdeSolve.evolve` solution object.
+"""
+function TOV_quantities(u, EoS_rho_from_P)
+    Pr = u[1, :]
+    mr = u[2, :]
+    rho_r = EoS_rho_from_P.(Pr)
+    r_index = findfirst(x->x<0, Pr)
+    M = mr[r_index]
+    R = u.t[r_index]
+    return Pr, mr, rho_r, M, R
+end
+
 # Polytropic EoS parameters
 EoS_Param_Stiff = (
     K_crust = (3*π^2)^(2/3) * hbar^2 / (5*neutron_mass^(8/3)),
@@ -38,36 +51,33 @@ EoS_P_from_rho_soft, EoS_rho_from_P_soft =
 u0_Stiff = [EoS_P_from_rho_stiff(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
 u0_Soft = [EoS_P_from_rho_soft(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
 
-# tov_stiff = QSpin.TOV.tov_eq!(EoS_rho_from_P_stiff)
-# tov_soft = QSpin.TOV.tov_eq!(EoS_rho_from_P_soft)
-
-# @time u_stiff = QSpin.OdeSolve.evolve(tov_stiff, u0_Stiff, 0.0, Sim_Input.r_end; alg = DE.Tsit5(), dt=Sim_Input.dr, saveat=Sim_Input.Dr)
-# # @time u_soft = QSpin.OdeSolve.evolve(tov_soft, u0_Soft, 0.0, Sim_Input.r_end; alg = DE.Tsit5(), dt=Sim_Input.dr, saveat=Sim_Input.Dr)
-
-# Pr_Stiff = u_stiff[1, :]
-# mr_Stiff = u_stiff[2, :]
-# ρr_Stiff_foo = EoS_P_from_rho_stiff.(Pr_Stiff)
-# r_index_stiff = findfirst(x->x<0, Pr_Stiff)
-# M_Stiff = mr_Stiff[r_index_stiff]
-# R_Stiff = u_stiff.t[r_index_stiff]
-# r = u_stiff.t
-
-# Sovling the TOV equation using the RK4 method with QSpin OdeSolve module for Stiff and Soft EoSs.
-@time Pr_Stiff, mr_Stiff, ρr_Stiff, M_Stiff, R_Stiff, r = QSpin.OdeSolve.TOV_Solve_rk4(
+# Solve with stiff parameters
+tov_stiff = QSpin.TOV.tov_eq!(EoS_rho_from_P_stiff)
+@time u_stiff = QSpin.OdeSolve.evolve(
+    tov_stiff,
     u0_Stiff,
-    Sim_Input.dr,
-    Sim_Input.Dr,
-    Sim_Input.r_end,
-    EoS_rho_from_P_stiff,
-);
+    0.0,
+    Sim_Input.r_end;
+    alg = DE.Tsit5(),
+    dt = Sim_Input.dr,
+    saveat = Sim_Input.Dr,
+)
+Pr_Stiff, mr_Stiff, ρr_Stiff, M_Stiff, R_Stiff =
+    TOV_quantities(u_stiff, EoS_rho_from_P_stiff)
+r = u_stiff.t
 
-@time Pr_Soft, mr_Soft, ρr_Soft, M_Soft, R_Soft = QSpin.OdeSolve.TOV_Solve_rk4(
+# Solve with soft parameters
+tov_soft = QSpin.TOV.tov_eq!(EoS_rho_from_P_soft)
+@time u_soft = QSpin.OdeSolve.evolve(
+    tov_soft,
     u0_Soft,
-    Sim_Input.dr,
-    Sim_Input.Dr,
-    Sim_Input.r_end,
-    EoS_rho_from_P_soft,
-);
+    0.0,
+    Sim_Input.r_end;
+    alg = DE.Tsit5(),
+    dt = Sim_Input.dr,
+    saveat = Sim_Input.Dr,
+)
+Pr_Soft, mr_Soft, ρr_Soft, M_Soft, R_Soft = TOV_quantities(u_soft, EoS_rho_from_P_soft)
 
 # Computing the M-R relation by varying the central density and solving the TOV equation for each case. The radius is defined by the first point that the pressure becomes negative.
 ρc_scan = exp10.(range(17.5, stop = 20, length = 150))
