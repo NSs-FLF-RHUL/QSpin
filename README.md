@@ -30,7 +30,21 @@ Here we also include an example script for a neutron star glitch simulator, base
 
 1. Download [Julia](https://julialang.org/downloads/) (version 1.12 or later).
 
-2. Install required packages, including [FFTW](https://github.com/JuliaMath/FFTW.jl), [LinearAlgebra](https://docs.julialang.org/en/v1/stdlib/LinearAlgebra/), [MAT](https://juliaio.github.io/MAT.jl/stable/), [OrdinaryDiffEq](https://docs.sciml.ai/OrdinaryDiffEq/stable/). For data visualization, we primarily use [Plots](https://docs.juliaplots.org/stable/) and [LaTeXStrings](https://github.com/JuliaStrings/LaTeXStrings.jl) to plot results in our scirpts.
+2. Install essentially required packages, including [FFTW](https://github.com/JuliaMath/FFTW.jl), [LinearAlgebra](https://docs.julialang.org/en/v1/stdlib/LinearAlgebra/), [MAT](https://juliaio.github.io/MAT.jl/stable/), [OrdinaryDiffEq](https://docs.sciml.ai/OrdinaryDiffEq/stable/):
+
+- Julia version 1.12 or higher.
+- Install required Julia packages:
+
+  ```julia
+  using Pkg
+  Pkg.add(["LinearAlgebra","OrdinaryDiffEq","FFTW","MAT"])
+
+If you are going to use GPU feature, pleae furtehr include
+
+```julia
+Pkg.add("ParallelStencil")
+
+For data visualization, we primarily use [Plots](https://docs.juliaplots.org/stable/) and [LaTeXStrings](https://github.com/JuliaStrings/LaTeXStrings.jl) to plot results in our scirpts.
 
 3. Download [QSpin](https://github.com/NSs-FLF-RHUL/QSpin/tree/gl_glitch_raiser_script?tab=readme-ov-file) package.
 
@@ -48,20 +62,6 @@ Parameters:
 
 ## Usage
 
-### Prerequisites
 
-Here are essential requirment and packages for executing QSpin:
-
-- Julia version 1.12 or higher.
-- Install required Julia packages:
-
-  ```julia
-  using Pkg
-  Pkg.add(["LinearAlgebra","OrdinaryDiffEq","FFTW","MAT"])
-
-If you are going to use GPU feature, pleae furtehr include
-
-```julia
-Pkg.add("ParallelStencil")
 
 ## Running your first PDE/ODE
