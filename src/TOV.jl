@@ -36,8 +36,8 @@ Returns a function `tov!(du, u, params, r)` that evaluates the TOV equation (in 
 """
 function tov_eq!(EoS_rho_from_P::Function)
     function tov_inner!(du, u, params, r)
-        P = u[1]
-        m = u[2]
+        P = u[1];
+        m = u[2];
         rho = EoS_rho_from_P(P);
 
         if r == 0.0
