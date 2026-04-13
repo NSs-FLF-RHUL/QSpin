@@ -58,7 +58,7 @@ tov_stiff = QSpin.TOV.tov_eq!(EoS_rho_from_P_stiff)
     u0_Stiff,
     0.0,
     Sim_Input.r_end;
-    alg = DE.Tsit5(),
+    alg = DE.AutoTsit5(DE.Rosenbrock23()),
     dt = Sim_Input.dr,
     saveat = Sim_Input.Dr,
 )
@@ -73,7 +73,7 @@ tov_soft = QSpin.TOV.tov_eq!(EoS_rho_from_P_soft)
     u0_Soft,
     0.0,
     Sim_Input.r_end;
-    alg = DE.Tsit5(),
+    alg = DE.AutoTsit5(DE.Rosenbrock23()),
     dt = Sim_Input.dr,
     saveat = Sim_Input.Dr,
 )
@@ -85,9 +85,11 @@ M_StiffScan = zeros(length(ρc_scan));
 R_StiffScan = zeros(length(ρc_scan));
 M_SoftScan = zeros(length(ρc_scan));
 R_SoftScan = zeros(length(ρc_scan));
-for cc = 1:length(ρc_scan)
-    ρc = ρc_scan[Int.(cc)];
 
+for cc in eachindex(ρc_scan)
+    ρc = ρc_scan[cc];
+
+    # So in theory, this solve and the one below should give the same results.
     Pr, mr, ρr, M, R = QSpin.OdeSolve.TOV_Solve_rk4(
         [EoS_P_from_rho_stiff(ρc); 0.0],
         Sim_Input.dr,
@@ -97,6 +99,20 @@ for cc = 1:length(ρc_scan)
     );
     M_StiffScan[Int.(cc)] = M
     R_StiffScan[Int.(cc)] = R
+
+    # Solve via evolve instead
+    u = QSpin.OdeSolve.evolve(
+        tov_stiff,
+        [EoS_P_from_rho_stiff(ρc); 0.0],
+        0.0,
+        Sim_Input.r_end;
+        alg = DE.RK4(), # even DE.Tsit5(), which is a strict upgrade to RK4, is unstable here.
+        dt = Sim_Input.dr,
+        saveat = Sim_Input.Dr,
+        progress = true,
+    )
+    println("cc = ", cc, " | Solve return code: ", u.retcode)
+
     # println("Mass: ", M/sun_mass, " M_sun, Radius: ", R/1e3, " km")
     Pr, mr, ρr, M, R = QSpin.OdeSolve.TOV_Solve_rk4(
         [EoS_P_from_rho_soft(ρc); 0.0],
