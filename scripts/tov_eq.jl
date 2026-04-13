@@ -1,3 +1,5 @@
+import OrdinaryDiffEq as DE
+
 using QSpin
 using QSpin.Parameters: ParameterType
 using QSpin.PhysicalConstants: hbar, sun_mass, neutron_mass
@@ -27,12 +29,28 @@ Sim_Input = (
 );
 
 # Function Setup for inverse EoS and TOV equation for the solver
-EoS_Stiff, EoS_inv_Stiff = QSpin.TOV.EoS_two_component_polytrope(EoS_Param_Stiff, true);
-EoS_Soft, EoS_inv_Soft = QSpin.TOV.EoS_two_component_polytrope(EoS_Param_Soft, true);
+EoS_P_from_rho_stiff, EoS_rho_from_P_stiff =
+    QSpin.TOV.EoS_two_component_polytrope(EoS_Param_Stiff, true);
+EoS_P_from_rho_soft, EoS_rho_from_P_soft =
+    QSpin.TOV.EoS_two_component_polytrope(EoS_Param_Soft, true);
 
 # Setting up initial condition accordingly to the EoS for a given central density ρ0.
-u0_Stiff = [EoS_Stiff(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
-u0_Soft = [EoS_Soft(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
+u0_Stiff = [EoS_P_from_rho_stiff(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
+u0_Soft = [EoS_P_from_rho_soft(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
+
+# tov_stiff = QSpin.TOV.tov_eq!(EoS_rho_from_P_stiff)
+# tov_soft = QSpin.TOV.tov_eq!(EoS_rho_from_P_soft)
+
+# @time u_stiff = QSpin.OdeSolve.evolve(tov_stiff, u0_Stiff, 0.0, Sim_Input.r_end; alg = DE.Tsit5(), dt=Sim_Input.dr, saveat=Sim_Input.Dr)
+# # @time u_soft = QSpin.OdeSolve.evolve(tov_soft, u0_Soft, 0.0, Sim_Input.r_end; alg = DE.Tsit5(), dt=Sim_Input.dr, saveat=Sim_Input.Dr)
+
+# Pr_Stiff = u_stiff[1, :]
+# mr_Stiff = u_stiff[2, :]
+# ρr_Stiff_foo = EoS_P_from_rho_stiff.(Pr_Stiff)
+# r_index_stiff = findfirst(x->x<0, Pr_Stiff)
+# M_Stiff = mr_Stiff[r_index_stiff]
+# R_Stiff = u_stiff.t[r_index_stiff]
+# r = u_stiff.t
 
 # Sovling the TOV equation using the RK4 method with QSpin OdeSolve module for Stiff and Soft EoSs.
 @time Pr_Stiff, mr_Stiff, ρr_Stiff, M_Stiff, R_Stiff, r = QSpin.OdeSolve.TOV_Solve_rk4(
@@ -40,7 +58,7 @@ u0_Soft = [EoS_Soft(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure
     Sim_Input.dr,
     Sim_Input.Dr,
     Sim_Input.r_end,
-    EoS_inv_Stiff,
+    EoS_rho_from_P_stiff,
 );
 
 @time Pr_Soft, mr_Soft, ρr_Soft, M_Soft, R_Soft = QSpin.OdeSolve.TOV_Solve_rk4(
@@ -48,7 +66,7 @@ u0_Soft = [EoS_Soft(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure
     Sim_Input.dr,
     Sim_Input.Dr,
     Sim_Input.r_end,
-    EoS_inv_Soft,
+    EoS_rho_from_P_soft,
 );
 
 # Computing the M-R relation by varying the central density and solving the TOV equation for each case. The radius is defined by the first point that the pressure becomes negative.
@@ -61,29 +79,29 @@ for cc = 1:length(ρc_scan)
     ρc = ρc_scan[Int.(cc)];
 
     Pr, mr, ρr, M, R = QSpin.OdeSolve.TOV_Solve_rk4(
-        [EoS_Stiff(ρc); 0.0],
+        [EoS_P_from_rho_stiff(ρc); 0.0],
         Sim_Input.dr,
         Sim_Input.Dr,
         Sim_Input.r_end,
-        EoS_inv_Stiff,
+        EoS_rho_from_P_stiff,
     );
     M_StiffScan[Int.(cc)] = M
     R_StiffScan[Int.(cc)] = R
     # println("Mass: ", M/sun_mass, " M_sun, Radius: ", R/1e3, " km")
     Pr, mr, ρr, M, R = QSpin.OdeSolve.TOV_Solve_rk4(
-        [EoS_Soft(ρc); 0.0],
+        [EoS_P_from_rho_soft(ρc); 0.0],
         Sim_Input.dr,
         Sim_Input.Dr,
         Sim_Input.r_end,
-        EoS_inv_Soft,
+        EoS_rho_from_P_soft,
     );
     M_SoftScan[Int.(cc)] = M
     R_SoftScan[Int.(cc)] = R
 end
 
 # Plotting
-Pc_Stiff = EoS_Stiff(Sim_Input.ρ0) # Getting the reference core pressure for the stiff case.
-Pc_Soft = EoS_Soft(Sim_Input.ρ0) # Getting the reference core pressure for the soft case.
+Pc_Stiff = EoS_P_from_rho_stiff(Sim_Input.ρ0) # Getting the reference core pressure for the stiff case.
+Pc_Soft = EoS_P_from_rho_soft(Sim_Input.ρ0) # Getting the reference core pressure for the soft case.
 output_fig = plot(
     plot(
         r/1e3,

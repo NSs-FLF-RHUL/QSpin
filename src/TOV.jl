@@ -32,23 +32,24 @@ Return a function that evaluates the TOV equation.
 
 Returns a function `tov!(du, u, params, r)` that evaluates the TOV equation (in vector form) given the EoS relationship ``\\rho(P)``.
 
-`EoS_rho_to_P` is assumed to take `(P,)` as inputs, where `P = u[1]` is the pressure.
+`EoS_rho_from_P` is assumed to take `(P,)` as inputs, where `P = u[1]` is the pressure.
 """
-function tov_eq!(EoS_rho_to_P::Function)
+function tov_eq!(EoS_rho_from_P::Function)
     function tov_inner!(du, u, params, r)
         P = u[1]
         m = u[2]
-        rho = EoS_rho_to_P(P);
+        rho = EoS_rho_from_P(P);
+
         if r == 0.0
-            du[1] .= 0.0;
+            du[1] = 0.0;
         else
-            du[1] .=
+            du[1] =
                 - gravitational_constant / r^2 *
                 (rho + P / speed_of_light_vacuum^2) *
                 (m + 4*π*r^3*P / speed_of_light_vacuum^2) /
                 (1 - 2*gravitational_constant*m / (r*speed_of_light_vacuum^2));
         end
-        du[2] .= 4*π*r^2*rho;
+        du[2] = 4*π*r^2*rho;
     end
     return tov_inner!
 end
@@ -88,8 +89,8 @@ P_{crust} = \frac{(3\pi^2)^{2/3}}{5} \frac{\bar{h}^2}{m_n^{8/3}} \rho^{5/3}.
 - `report_transition_pressure::Bool`: If `true`, the transition pressure at the interface will be printed.
 
 # Returns
-- `EoS_P_to_rho::Function`: ``P(\rho)`` as a function called with `(rho,)`.
-- `EoS_rho_to_P::Function`: ``\rho(P)`` as a function called with `(P,)`.
+- `EoS_P_from_rho::Function`: ``P(\rho)`` as a function called with `(rho,)`.
+- `EoS_rho_from_P::Function`: ``\rho(P)`` as a function called with `(P,)`.
 """
 function EoS_two_component_polytrope(
     parameters::ParameterType,
@@ -99,7 +100,7 @@ function EoS_two_component_polytrope(
         parameters.K_crust *
         parameters.rho_b ^ (parameters.gamma_crust - parameters.gamma_core);
 
-    function EoS_P_to_rho(rho)
+    function EoS_P_from_rho(rho)
         if rho < 0
             P = 0.0;
         elseif rho <= parameters.rho_b
@@ -111,13 +112,13 @@ function EoS_two_component_polytrope(
     end
 
     # Pressure at the crust-core transition for continuity check
-    P_b = EoS_P_to_rho(parameters.rho_b);
+    P_b = EoS_P_from_rho(parameters.rho_b);
 
     if report_transition_pressure
         println("Pressure at crust-core transition (Pb): ", P_b)
     end
 
-    function EoS_rho_to_P(P)
+    function EoS_rho_from_P(P)
         if P < 0
             rho = 0.0;
         elseif P <= P_b
@@ -128,7 +129,7 @@ function EoS_two_component_polytrope(
         return rho
     end
 
-    return EoS_P_to_rho, EoS_rho_to_P
+    return EoS_P_from_rho, EoS_rho_from_P
 end
 
 end
