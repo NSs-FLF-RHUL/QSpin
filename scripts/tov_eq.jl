@@ -7,12 +7,16 @@ using Plots, LaTeXStrings
 
 # Polytropic EoS parameters
 EoS_Param_Stiff = (
-    γcore = 3.0, # Polytropic index for the core
-    ρb = 3e14*1e3, # Transition density between crust and core in kg/m^3
+    K_crust = (3*π^2)^(2/3) * hbar^2 / (5*neutron_mass^(8/3)),
+    gamma_crust = 5.0/3.0,
+    gamma_core = 3.0, # Polytropic index for the core
+    rho_b = 3e14*1e3, # Transition density between crust and core in kg/m^3
 )
 EoS_Param_Soft = (
-    γcore = 5.0/2.0, # Polytropic index for the core
-    ρb = 3e14*1e3, # Transition density between crust and core in kg/m^3
+    K_crust = (3*π^2)^(2/3) * hbar^2 / (5*neutron_mass^(8/3)),
+    gamma_crust = 5.0/3.0,
+    gamma_core = 5.0/2.0, # Polytropic index for the core
+    rho_b = 3e14*1e3, # Transition density between crust and core in kg/m^3
 )
 # Simulation Input Parameters
 Sim_Input = (
@@ -22,71 +26,9 @@ Sim_Input = (
     r_end = 20e3, # Maximum radius to solve up to in meters
 );
 
-"""
-Set up the EoS functions for a given set of parameters and physical constants.
-
-# Arguments
-- `EoS_Param::ParameterType`: The parameters for the polytropic EoS.
-
-# Returns
-- `EoS_P::Function`: The EoS function that gives pressure as a function of density.
-- `EoS_Inv::Function`: The inverse EoS function that gives density as a function of pressure.
-
-# A polytropic EoS is used in this script according to https://github.com/vanessagraber/teaching_materials/blob/master/summerschool_CRAQ_2019/mass_radius_relations.ipynb.
-
-"""
-function EoS_Func(EoS_Param::ParameterType)
-    Kcrust = (3*π^2)^(2/3) * hbar^2 / (5*neutron_mass^(8/3)); # Crust EoS constant
-    γcrust = 5/3; # Crust EoS polytropic
-    Kcore = Kcrust * EoS_Param.ρb^(γcrust-EoS_Param.γcore); # Core EoS constant to ensure continuity at ρb
-
-    """
-    Define the EoS function giving the P-ρ relation.
-
-    # Arguments
-    - `ρ::Union{Float64,AbstractArray,Array{Float64},Vector{Float64}}`: The density or array of densities for which to compute the pressure.
-
-    # Returns
-    - `P::Union{Float64,AbstractArray,Array{Float64},Vector{Float64}}`: The corresponding pressure or array of pressures computed from the EoS.
-    """
-    function EoS_P(ρ::Union{Float64,AbstractArray,Array{Float64},Vector{Float64}})
-        if ρ < 0
-            P = 0.0; # Ensure non-negative pressure
-        elseif ρ <= EoS_Param.ρb
-            P = Kcrust * ρ .^ γcrust;
-        else
-            P = Kcore * ρ .^ EoS_Param.γcore;
-        end
-        return P;
-    end
-    Pb = EoS_P(EoS_Param.ρb); # Pressure at the crust-core transition for continuity check
-    println("Pressure at crust-core transition (Pb): ", Pb)
-
-    """
-    Define the inverse EoS function giving the ρ-P relation.
-    # Arguments
-    - `P::Union{Float64,AbstractArray,Array{Float64},Vector{Float64}}`: The pressure or array of pressures for which to compute the density.
-
-    # Returns
-    - `ρ::Union{Float64,AbstractArray,Array{Float64},Vector{Float64}}`: The corresponding density or array of densities computed from the EoS.
-    """
-    function EoS_Inv(P::Union{Float64,AbstractArray,Array{Float64},Vector{Float64}})
-        if P < 0
-            ρ = 0.0; # Ensure non-negative density
-        elseif P <= Pb
-            ρ = (P / Kcrust) .^ (1/γcrust);
-        else
-            ρ = (P / Kcore) .^ (1/EoS_Param.γcore);
-        end
-        return ρ
-    end
-
-    return EoS_P, EoS_Inv
-end
-
-# Fucntion Setup for inverse EoS and TOV equation for the solver
-EoS_Stiff, EoS_inv_Stiff = EoS_Func(EoS_Param_Stiff);
-EoS_Soft, EoS_inv_Soft = EoS_Func(EoS_Param_Soft);
+# Function Setup for inverse EoS and TOV equation for the solver
+EoS_Stiff, EoS_inv_Stiff = QSpin.TOV.EoS_two_component_polytrope(EoS_Param_Stiff, true);
+EoS_Soft, EoS_inv_Soft = QSpin.TOV.EoS_two_component_polytrope(EoS_Param_Soft, true);
 
 # Setting up initial condition accordingly to the EoS for a given central density ρ0.
 u0_Stiff = [EoS_Stiff(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
@@ -146,9 +88,9 @@ output_fig = plot(
     plot(
         r/1e3,
         [Pr_Stiff/Pc_Stiff Pr_Soft/Pc_Soft],
-        label = [string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.γcore) string(
+        label = [string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.gamma_core) string(
             L"\gamma_\mathrm{core}=",
-            EoS_Param_Soft.γcore,
+            EoS_Param_Soft.gamma_core,
         )],
         xlabel = "Radius (km)",
         ylabel = L"P/P_c",
@@ -158,9 +100,9 @@ output_fig = plot(
     plot(
         r/1e3,
         [mr_Stiff mr_Soft]/sun_mass,
-        label = [string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.γcore) string(
+        label = [string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.gamma_core) string(
             L"\gamma_\mathrm{core}=",
-            EoS_Param_Soft.γcore,
+            EoS_Param_Soft.gamma_core,
         )],
         xlabel = "Radius (m)",
         ylabel = L"m/M_\odot",
@@ -170,9 +112,9 @@ output_fig = plot(
     plot(
         r/1e3,
         [ρr_Stiff ρr_Soft]/1e18,
-        label = [string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.γcore) string(
+        label = [string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.gamma_core) string(
             L"\gamma_\mathrm{core}=",
-            EoS_Param_Soft.γcore,
+            EoS_Param_Soft.gamma_core,
         )],
         xlabel = "Radius (m)",
         ylabel = L"\rho\;(\times10^{18}\;\textrm{kg/m}^3)",
