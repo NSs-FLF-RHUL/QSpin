@@ -46,4 +46,22 @@ Hamiltonian: Combining kinetic and potential energy functions in Schrdinger-like
 
 Parameters:
 
+## Usage
+
+### Prerequisites
+
+Here are essential requirment and packages for executing QSpin:
+
+- Julia version 1.12 or higher.
+- Install required Julia packages:
+
+  ```julia
+  using Pkg
+  Pkg.add(["LinearAlgebra","OrdinaryDiffEq","FFTW","MAT"])
+
+If you are going to use GPU feature, pleae furtehr include
+
+```julia
+Pkg.add("ParallelStencil")
+
 ## Running your first PDE/ODE
