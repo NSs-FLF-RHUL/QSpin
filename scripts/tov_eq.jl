@@ -27,8 +27,6 @@ Sim_Input = (
     r_end = 20e3, # Maximum radius to solve up to in meters
 );
 
-
-
 # Fucntion Setup for inverse EoS and TOV equation for the solver
 EoS_Stiff, EoS_inv_Stiff = QSpin.TOV.EoS_two_component_polytrope(EoS_Param_Stiff);
 EoS_Soft, EoS_inv_Soft = QSpin.TOV.EoS_two_component_polytrope(EoS_Param_Soft);
@@ -60,6 +58,7 @@ M_StiffScan = zeros(length(ρc_scan));
 R_StiffScan = zeros(length(ρc_scan));
 M_SoftScan = zeros(length(ρc_scan));
 R_SoftScan = zeros(length(ρc_scan));
+
 for cc = 1:length(ρc_scan)
     ρc = ρc_scan[Int.(cc)];
 
@@ -91,9 +90,9 @@ plot(
     plot(
         r/1e3,
         [Pr_Stiff/Pc_Stiff Pr_Soft/Pc_Soft],
-        label = [string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.γcore) string(
+        label = [string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.γ_core) string(
             L"\gamma_\mathrm{core}=",
-            EoS_Param_Soft.γcore,
+            EoS_Param_Soft.γ_core,
         )],
         xlabel = "Radius (km)",
         ylabel = L"P/P_c",
@@ -103,9 +102,9 @@ plot(
     plot(
         r/1e3,
         [mr_Stiff mr_Soft]/mass_sun,
-        label = [string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.γcore) string(
+        label = [string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.γ_core) string(
             L"\gamma_\mathrm{core}=",
-            EoS_Param_Soft.γcore,
+            EoS_Param_Soft.γ_core,
         )],
         xlabel = "Radius (m)",
         ylabel = L"m/M_\odot",
@@ -115,9 +114,9 @@ plot(
     plot(
         r/1e3,
         [ρr_Stiff ρr_Soft]/1e18,
-        label = [string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.γcore) string(
+        label = [string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.γ_core) string(
             L"\gamma_\mathrm{core}=",
-            EoS_Param_Soft.γcore,
+            EoS_Param_Soft.γ_core,
         )],
         xlabel = "Radius (m)",
         ylabel = L"\rho\;(\times10^{18}\;\textrm{kg/m}^3)",
