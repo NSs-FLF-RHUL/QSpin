@@ -19,16 +19,20 @@ TOV_Input = (
     ρ0 = 1e15*1e3, # Initial central density in kg/m^3 (1e15 g/cm^3)
     dr = 0.01*1e3, # Radial step in meters
     Dr = 0.01*1e3, # Radial interval for recording values in meters
-    r_end = 20e3, # Maximum radius to solve up to in meters
+    r_end = 15e3, # Maximum radius to solve up to in meters
 );
 
 Glitch_Raiser_Input = (
-    B = 5e-4, # Mutual Friction Parameter
+    B_core = 5e-4, # Mutual Friction Parameter
+    B_sf = 1e-4, # Mutual Friction Parameter
     Ω_crust = 70.34, # Initial angular velocity of the crust in rad/s
-    Ω_sf = 70.34 - 6.3e-3, # Initial angular velocity of the superfluid in rad/s
+    Ω_sf = 70.34 + 6.3e-3, # Initial angular velocity of the superfluid in rad/s
     Ω_core = 70.34, # Initial angular velocity of the core in rad/s
-    dt = 1e-3, # Time step for the ODE solver in seconds
-    Dt = 1e-1, # Time interval for recording values in the glitch model in seconds
+    I_crust = 4.5e30, # Moment of inertia of the crust in kg m^2
+    I_core = 0.8 * 4.5e30, # Moment of inertia of the core in kg m
+    N_ext = 0.0,
+    dt = 1e-4, # Time step for the ODE solver in seconds
+    Dt = 1.0, # Time interval for recording values in the glitch model in seconds
     t_start = 0.0, # Start time for the glitch model simulation in seconds
     t_end = 120.0, # End time for the glitch model simulation in seconds
 );
@@ -38,10 +42,43 @@ EoS_Stiff, EoS_inv_Stiff = QSpin.TOV.EoS_two_component_polytrope(EoS_Param_Stiff
 # Setting up initial condition accordingly to the EoS for a given central density ρ0.
 u0_Stiff = [EoS_Stiff(TOV_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
 # Sovling the TOV equation using the RK4 method with QSpin OdeSolve module for Stiff and Soft EoSs.
-@time Pr, mr, ρr, M, R, r = QSpin.OdeSolve.TOV_Solve_rk4(
+@time Pr, mr, ρr, M, R, r = QSpin.TOV.TOV_Solve_rk4(
     u0_Stiff,
     TOV_Input.dr,
     TOV_Input.Dr,
     TOV_Input.r_end,
     EoS_inv_Stiff,
 );
+
+function eom!(Param::ParameterType)
+    function eom_inner!(Ω::AbstractArray, time::Float64)
+        dΩ = zeros(size(Ω));
+        # dΩ_sf/dt
+        Ω_sf = Ω[3:end];
+        dΩ_sfdr = [diff(Ω_sf) ./ diff(r); 0.0];
+        dΩ[3:end] = Param.B_sf .* (2 * Ω_sf + r .* dΩ_sfdr) .* (Ω[1] .- Ω_sf);
+        dΩ_sf_net = 4 .* π .* sum(((r .^ 2) .* ρr .* dΩ[3:end]) .* [diff(r); diff(r)[1]]);
+        # dΩ_core/dt
+        dΩ[2] = 2 * Param.B_core * Ω[2] * (Ω[1] - Ω[2]);
+        # dΩ_crust/dt
+        dΩ[1] =
+            -Param.N_ext/Param.I_crust - Param.I_core/Param.I_crust * dΩ[2] -
+            dΩ_sf_net/Param.I_crust;
+        return dΩ
+    end
+    return eom_inner!
+end
+
+Ω0 = [
+    Glitch_Raiser_Input.Ω_crust;
+    Glitch_Raiser_Input.Ω_core;
+    Glitch_Raiser_Input.Ω_sf*ones(length(r))
+];
+EoM! = eom!(Glitch_Raiser_Input);
+Ωt, t = QSpin.OdeSolve.evolve_rk4(
+    Ω0,
+    Glitch_Raiser_Input.dt,
+    Glitch_Raiser_Input.Dt,
+    Glitch_Raiser_Input.t_end,
+    EoM!,
+)
