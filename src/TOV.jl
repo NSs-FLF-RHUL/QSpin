@@ -28,17 +28,18 @@ using ..Parameters: ParameterType
 using ..PhysicalConstants: hbar, gravitational_constant, neutron_mass, speed_of_light_vacuum
 
 function tov_eq!(EoS_rho_from_P::Function)
-    function tov_inner!(du,u,paras,r)
+    function tov_inner!(du, u, paras, r)
         P = u[1];
         m = u[2];
         ρ = EoS_rho_from_P(P);
         if r == 0.0
-            du[1] = 0.;
+            du[1] = 0.0;
         else
             du[1] =
                 -gravitational_constant / r^2 *
                 (ρ + P/speed_of_light_vacuum^2) *
-                (m + 4*pi*r^3*P/speed_of_light_vacuum^2) / (1 - 2*gravitational_constant*m/(r*speed_of_light_vacuum^2));
+                (m + 4*pi*r^3*P/speed_of_light_vacuum^2) /
+                (1 - 2*gravitational_constant*m/(r*speed_of_light_vacuum^2));
         end
         du[2] = 4*pi*r^2*ρ;
     end
@@ -97,9 +98,7 @@ function EoS_two_component_polytrope(
     ParamIn::ParameterType,
     report_transition_pressure::Bool = false,
 )
-    K_core =
-        ParamIn.K_crust *
-        ParamIn.rho_b ^ (ParamIn.gamma_crust - ParamIn.gamma_core);
+    K_core = ParamIn.K_crust * ParamIn.rho_b ^ (ParamIn.gamma_crust - ParamIn.gamma_core);
 
     function EoS_P_from_rho(rho)
         if rho < 0
@@ -131,4 +130,5 @@ function EoS_two_component_polytrope(
     end
 
     return EoS_P_from_rho, EoS_rho_from_P
+end
 end
