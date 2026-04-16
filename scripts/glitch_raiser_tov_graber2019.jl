@@ -24,7 +24,7 @@ TOV_Input = (
 
 Glitch_Raiser_Input = (
     B_core = 5e-4, # Mutual Friction Parameter
-    B_sf = 1e-4, # Mutual Friction Parameter
+    B_sf = 1e-3, # Mutual Friction Parameter
     Ω_crust = 70.34, # Initial angular velocity of the crust in rad/s
     Ω_sf = 70.34 + 6.3e-3, # Initial angular velocity of the superfluid in rad/s
     Ω_core = 70.34, # Initial angular velocity of the core in rad/s
@@ -72,7 +72,7 @@ end
 Ω0 = [
     Glitch_Raiser_Input.Ω_crust;
     Glitch_Raiser_Input.Ω_core;
-    Glitch_Raiser_Input.Ω_sf*ones(length(r))
+    Glitch_Raiser_Input.Ω_sf*ones(length(r)) + 5 * (rand(length(r)) .- 0.5) * 1e-6; # Adding small random perturbations to the superfluid angular velocity
 ];
 EoM! = eom!(Glitch_Raiser_Input);
 Ωt, t = QSpin.OdeSolve.evolve_rk4(
@@ -81,4 +81,26 @@ EoM! = eom!(Glitch_Raiser_Input);
     Glitch_Raiser_Input.Dt,
     Glitch_Raiser_Input.t_end,
     EoM!,
+)
+
+
+plot(
+    plot(
+        t,
+        [Ωt[1, :] Ωt[2, :] Ωt[end, :]],
+        label = ["Crust" "Core" "Superfluid"],
+        xlabel = "Time (s)",
+        ylabel = L"\Omega\;(\mathrm{rad/s})",
+        framestyle = :box,
+        linewidth = 2,
+    ),
+    heatmap(
+        t,
+        r/1e3,
+        Ωt[3:end, :],
+        framestyle = :box,
+        xlabel = "Time (s)",
+        ylabel = "Radius (km)",
+    ),
+    layout = (2, 1),
 )
