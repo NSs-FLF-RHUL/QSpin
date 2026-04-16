@@ -1,7 +1,6 @@
 using QSpin
 using QSpin.Parameters: ParameterType
 using QSpin.PhysicalConstants
-using QSpin.TOV
 using Plots, LaTeXStrings
 # This script is demonstrating how to solve the Tolman–Oppenheimer–Volkoff (TOV) equation for neutron stars using the QSpin package with the built-in TOV solver using Runge-Kutta 4th order method.
 # The parameters are chosen from https://github.com/vanessagraber/teaching_materials/blob/master/summerschool_CRAQ_2019/mass_radius_relations.ipynb.
@@ -9,12 +8,16 @@ using Plots, LaTeXStrings
 mn = neutron_mass;
 # Polytropic EoS parameters
 EoS_Param_Stiff = (
-    γcore = 3.0, # Polytropic index for the core
-    ρb = 3e14*1e3, # Transition density between crust and core in kg/m^3
+    K_crust = (3*π^2)^(2/3) * ħ^2 / (5*mn^(8/3)), # Polytropic constant for the crust
+    γ_crust = 5.0/3.0, # Polytropic index for the crust
+    γ_core = 3.0, # Polytropic index for the core
+    ρ_b = 3e14*1e3, # Transition density between crust and core in kg/m^3
 )
 EoS_Param_Soft = (
-    γcore = 5.0/2.0, # Polytropic index for the core
-    ρb = 3e14*1e3, # Transition density between crust and core in kg/m^3
+    K_crust = (3*π^2)^(2/3) * ħ^2 / (5*mn^(8/3)), # Polytropic constant for the crust
+    γ_crust = 5.0/3.0, # Polytropic index for the crust
+    γ_core = 5.0/2.0, # Polytropic index for the core
+    ρ_b = 3e14*1e3, # Transition density between crust and core in kg/m^3
 )
 # Simulation Input Parameters
 Sim_Input = (
@@ -27,8 +30,8 @@ Sim_Input = (
 
 
 # Fucntion Setup for inverse EoS and TOV equation for the solver
-EoS_Stiff, EoS_inv_Stiff = EoS_two_component_polytrope(EoS_Param_Stiff);
-EoS_Soft, EoS_inv_Soft = EoS_two_component_polytrope(EoS_Param_Soft);
+EoS_Stiff, EoS_inv_Stiff = QSpin.TOV.EoS_two_component_polytrope(EoS_Param_Stiff);
+EoS_Soft, EoS_inv_Soft = QSpin.TOV.EoS_two_component_polytrope(EoS_Param_Soft);
 
 # Setting up initial condition accordingly to the EoS for a given central density ρ0.
 u0_Stiff = [EoS_Stiff(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass

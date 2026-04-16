@@ -98,21 +98,21 @@ function EoS_two_component_polytrope(
     ParamIn::ParameterType,
     report_transition_pressure::Bool = false,
 )
-    K_core = ParamIn.K_crust * ParamIn.rho_b ^ (ParamIn.gamma_crust - ParamIn.gamma_core);
+    K_core = ParamIn.K_crust * ParamIn.ρ_b ^ (ParamIn.γ_crust - ParamIn.γ_core);
 
-    function EoS_P_from_rho(rho)
-        if rho < 0
+    function EoS_P_from_rho(ρ)
+        if ρ < 0
             P = 0.0;
-        elseif rho <= ParamIn.rho_b
-            P = ParamIn.K_crust * rho .^ ParamIn.gamma_crust;
+        elseif ρ <= ParamIn.ρ_b
+            P = ParamIn.K_crust * ρ .^ ParamIn.γ_crust;
         else
-            P = K_core * rho .^ ParamIn.gamma_core;
+            P = K_core * ρ .^ ParamIn.γ_core;
         end
         return P;
     end
 
     # Pressure at the crust-core transition for continuity check
-    P_b = EoS_P_from_rho(ParamIn.rho_b);
+    P_b = EoS_P_from_rho(ParamIn.ρ_b);
 
     if report_transition_pressure
         println("Pressure at crust-core transition (Pb): ", P_b)
@@ -120,13 +120,13 @@ function EoS_two_component_polytrope(
 
     function EoS_rho_from_P(P)
         if P < 0
-            rho = 0.0;
+            ρ = 0.0;
         elseif P <= P_b
-            rho = (P / ParamIn.K_crust) .^ (1/ParamIn.gamma_crust);
+            ρ = (P / ParamIn.K_crust) .^ (1/ParamIn.γ_crust);
         else
-            rho = (P / K_core) .^ (1/ParamIn.gamma_core);
+            ρ = (P / K_core) .^ (1/ParamIn.γ_core);
         end
-        return rho
+        return ρ
     end
 
     return EoS_P_from_rho, EoS_rho_from_P
