@@ -8,11 +8,13 @@ mn = neutron_mass;
 
 # Polytropic EoS parameters
 EoS_Param_Stiff = (
-    γcore = 3.0, # Polytropic index for the core
-    ρb = 3e14*1e3, # Transition density between crust and core in kg/m^3
+    K_crust = (3*π^2)^(2/3) * ħ^2 / (5*mn^(8/3)), # Polytropic constant for the crust
+    γ_crust = 5.0/3.0, # Polytropic index for the crust
+    γ_core = 3.0, # Polytropic index for the core
+    ρ_b = 3e14*1e3, # Transition density between crust and core in kg/m^3
 )
 
-# Simulation Input Parameters
+# Input Parameters for the TOV solver
 TOV_Input = (
     ρ0 = 1e15*1e3, # Initial central density in kg/m^3 (1e15 g/cm^3)
     dr = 0.01*1e3, # Radial step in meters
@@ -31,11 +33,15 @@ Glitch_Raiser_Input = (
     t_end = 120.0, # End time for the glitch model simulation in seconds
 );
 
-function eom!(dψ::AbstractArray, ψ::AbstractArray, parameters::ParameterType, time::Float64)
-    B = Glitch_Raiser_Input.B
-    dΩ[1] = -B * (Ω[1] - Ω[2]) # dΩ_crust/dt
-    dΩ[2] = B * (Ω[1] - Ω[2]) - B * (Ω[2] - Ω[3]) # dΩ_sf/dt
-    dΩ[3] = B * (Ω[2] - Ω[3]) # dΩ_core/dt
-end
-
-Ωt = QSpin.OdeSolve.evolve(eom!, ψ0, t_start, t_end; alg = DE.Tsit5(), dt = dt, saveat = Dt)
+# Fucntion Setup for inverse EoS and TOV equation for the solver
+EoS_Stiff, EoS_inv_Stiff = QSpin.TOV.EoS_two_component_polytrope(EoS_Param_Stiff);
+# Setting up initial condition accordingly to the EoS for a given central density ρ0.
+u0_Stiff = [EoS_Stiff(TOV_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
+# Sovling the TOV equation using the RK4 method with QSpin OdeSolve module for Stiff and Soft EoSs.
+@time Pr, mr, ρr, M, R, r = QSpin.OdeSolve.TOV_Solve_rk4(
+    u0_Stiff,
+    TOV_Input.dr,
+    TOV_Input.Dr,
+    TOV_Input.r_end,
+    EoS_inv_Stiff,
+);
