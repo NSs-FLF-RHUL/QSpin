@@ -1,5 +1,6 @@
 # QSpin (Quantum-fluid States for Pulsar Interior Numerical-modelling)
 
+[text](https://github.com/[username]/[reponame]/blob/[branch]/image.jpg?raw=true)]
 [![Build Status](https://github.com/willGraham01/MyJuliaPackage.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/willGraham01/MyJuliaPackage.jl/actions/workflows/CI.yml?query=branch%3Amain)
 
 ## About
@@ -41,8 +42,8 @@ Here we also include an example script for a neutron star glitch simulator, base
 
 If you are going to use GPU feature, pleae furtehr include
 
-```julia
-Pkg.add("ParallelStencil")
+  ```julia
+  Pkg.add("ParallelStencil")
 
 For data visualization, we primarily use [Plots](https://docs.juliaplots.org/stable/) and [LaTeXStrings](https://github.com/JuliaStrings/LaTeXStrings.jl) to plot results in our scirpts.
 
