@@ -45,6 +45,7 @@ If you are going to use GPU feature, pleae furtehr include
   ```julia
   Pkg.add("ParallelStencil")
 
+
 For data visualization, we primarily use [Plots](https://docs.juliaplots.org/stable/) and [LaTeXStrings](https://github.com/JuliaStrings/LaTeXStrings.jl) to plot results in our scirpts.
 
 3. Download [QSpin](https://github.com/NSs-FLF-RHUL/QSpin/tree/gl_glitch_raiser_script?tab=readme-ov-file) package.
