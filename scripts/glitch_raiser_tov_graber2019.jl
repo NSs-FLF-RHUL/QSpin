@@ -102,5 +102,5 @@ plot(
         xlabel = "Time (s)",
         ylabel = "Radius (km)",
     ),
-    layout = (2, 1),
+    layout = (1, 2),
 )
