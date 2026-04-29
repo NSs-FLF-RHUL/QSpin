@@ -159,7 +159,10 @@ function fft_Lzψ(
     X::Array{Float64},
     Y::Array{Float64},
     Kx::Array{Float64},
-    Ky::Array{Float64},
+X::AbstractMatrix{Float64},
+Y::AbstractMatrixFloat64},
+Kx::AbstractMatrix{Float64},
+Ky::AbstractMatrix{Float64},
 )
     function angular_momentum_z(
         ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}},
