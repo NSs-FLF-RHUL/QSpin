@@ -156,9 +156,6 @@ TODO: Combine with `Pfft_Lzψ`, below.
 - `Ky::Array{Float64}`: ky-coordinate matrix.
 """
 function fft_Lzψ(
-    X::Array{Float64},
-    Y::Array{Float64},
-    Kx::Array{Float64},
     X::AbstractMatrix{Float64},
     Y::AbstractMatrix{Float64},
     Kx::AbstractMatrix{Float64},
