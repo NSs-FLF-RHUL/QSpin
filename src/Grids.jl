@@ -147,8 +147,6 @@ The returned function has signature `Lz(ψ, parameters, time)`.
 
 The various coordinate matrices can be obtained via the `CartGrid` function in `Grids.jl`.
 
-TODO: Combine with `Pfft_Lzψ`, below.
-
 # Arguments
 - `X::Array{Float64}`: x-coordinate matrix.
 - `Y::Array{Float64}`: y-coordinate matrix.
@@ -161,15 +159,10 @@ function fft_Lzψ(
     Kx::AbstractMatrix{Float64},
     Ky::AbstractMatrix{Float64},
 )
-    function angular_momentum_z(
-        ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}},
-        parameters::ParameterType,
-        time::Float64,
-    )
-        ψk = fft(ψ)
-        return -(Y .* ifft(Kx .* ψk) - X .* ifft(Ky .* ψk))
-    end
-    return angular_momentum_z
+
+    PFFT = plan_fft(X)
+    PiFFT = inv(PFFT)
+    return Pfft_Lzψ(X, Y, Kx, Ky, PFFT, PiFFT)
 end
 
 """
