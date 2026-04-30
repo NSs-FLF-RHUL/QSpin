@@ -25,6 +25,7 @@
 module TOV
 
 using ..OdeSolve: ode_rk4
+using ..OdeSolve: DESolve
 using ..Parameters: ParameterType
 using ..PhysicalConstants: hbar, gravitational_constant, neutron_mass, speed_of_light_vacuum
 
@@ -132,6 +133,8 @@ function EoS_two_component_polytrope(
 
     return EoS_P_from_rho, EoS_rho_from_P
 end
+
+
 
 function TOV_Solve_rk4(
     u0::Union{AbstractArray,Array{Float64}},
