@@ -148,10 +148,10 @@ The returned function has signature `Lz(ψ, parameters, time)`.
 The various coordinate matrices can be obtained via the `CartGrid` function in `Grids.jl`.
 
 # Arguments
-- `X::Array{Float64}`: x-coordinate matrix.
-- `Y::Array{Float64}`: y-coordinate matrix.
-- `Kx::Array{Float64}`: kx-coordinate matrix.
-- `Ky::Array{Float64}`: ky-coordinate matrix.
+- `X::AbstractMatrix{Float64}`: x-coordinate matrix.
+- `Y::AbstractMatrix{Float64}`: y-coordinate matrix.
+- `Kx::AbstractMatrix{Float64}`: kx-coordinate matrix.
+- `Ky::AbstractMatrix{Float64}`: ky-coordinate matrix.
 """
 function fft_Lzψ(
     X::AbstractMatrix{Float64},
@@ -180,18 +180,18 @@ The various coordinate matrices can be obtained via the `CartGrid` function in `
 The plans for the forward and inverse Fourier transforms can be generated using the `plan_{i}fft` function(s) provided by `FFTW`.
 
 # Arguments
-- `X::Array{Float64}`: x-coordinate matrix.
-- `Y::Array{Float64}`: y-coordinate matrix.
-- `Kx::Array{Float64}`: kx-coordinate matrix.
-- `Ky::Array{Float64}`: ky-coordinate matrix.
+- `X::AbstractMatrix{Float64}`: x-coordinate matrix.
+- `Y::AbstractMatrix{Float64}`: y-coordinate matrix.
+- `Kx::AbstractMatrix{Float64}`: kx-coordinate matrix.
+- `Ky::AbstractMatrix{Float64}`: ky-coordinate matrix.
 - `PFFT::`: Plan for forward FFT.
 - `PiFFT::`: Plan for inverse FFT.
 """
 function Pfft_Lzψ(
-    X::Array{Float64},
-    Y::Array{Float64},
-    Kx::Array{Float64},
-    Ky::Array{Float64},
+    X::AbstractMatrix{Float64},
+    Y::AbstractMatrix{Float64},
+    Kx::AbstractMatrix{Float64},
+    Ky::AbstractMatrix{Float64},
     PFFT,
     PiFFT,
 )
