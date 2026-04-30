@@ -156,10 +156,10 @@ TODO: Combine with `Pfft_Lzψ`, below.
 - `Ky::Array{Float64}`: ky-coordinate matrix.
 """
 function fft_Lzψ(
-    X::Array{Float64},
-    Y::Array{Float64},
-    Kx::Array{Float64},
-    Ky::Array{Float64},
+    X::AbstractMatrix{Float64},
+    Y::AbstractMatrix{Float64},
+    Kx::AbstractMatrix{Float64},
+    Ky::AbstractMatrix{Float64},
 )
     function angular_momentum_z(
         ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}},
@@ -167,7 +167,7 @@ function fft_Lzψ(
         time::Float64,
     )
         ψk = fft(ψ)
-        return im .* (Y .* ifft(im .* Kx .* ψk) - X .* ifft(im .* Ky .* ψk))
+        return -(Y .* ifft(Kx .* ψk) - X .* ifft(Ky .* ψk))
     end
     return angular_momentum_z
 end
@@ -208,7 +208,7 @@ function Pfft_Lzψ(
         time::Float64,
     )
         ψk = PFFT * ψ;
-        return im .* (Y .* (PiFFT * (im .* Kx .* ψk)) - X .* (PiFFT * (im .* Ky .* ψk)));
+        return -(Y .* (PiFFT * (Kx .* ψk)) - X .* (PiFFT * (Ky .* ψk)));
     end
     return angular_momentum_z
 end
