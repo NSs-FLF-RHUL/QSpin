@@ -90,7 +90,7 @@ The k-square matrix can be obtained from the `CartGrid` function in `Grids.jl`.
 The plans for the forward and inverse Fourier transforms can be generated using the `plan_{i}fft` function(s) provided by `FFTW`.
 
 # Arguments
-- `KE_mtx::AbstractArray`: k-square matrix for computing kinetic energy in momentum space.
+- `KE_mtx::AbstractMatrix`: k-square matrix for computing kinetic energy in momentum space.
     This can be obtained by using the k-matrices in `CartGrid` function in `Grids.jl`.
 - `PFFT::`: Plan for forward FFT.
 - `PiFFT::`: Plan for inverse FFT.
@@ -98,7 +98,7 @@ The plans for the forward and inverse Fourier transforms can be generated using 
 # Returns
 - `kinetic_energy::Function`: Function that evaluates the kinetic energy.
 """
-function Pfft_ke(KE_mtx::Array{Float64}, PFFT, PiFFT)
+function Pfft_ke(KE_mtx::AbstractMatrix{Float64}, PFFT, PiFFT)
     function kinetic_energy(ψ::AbstractArray, parameters::ParameterType, time::Float64)
         return PiFFT * (KE_mtx .* (PFFT * ψ))
     end
@@ -114,24 +114,18 @@ The returned function has signature `kinetic_energy(ψ, parameters, time)`.
 
 The k-square matrix can be obtained from the `CartGrid` function in `Grids.jl`.
 
-TODO: Combine this function with `Pfft_ke`, above.
-
 # Arguments
-- `KE_mtx::AbstractArray`: k-square matrix for computing kinetic energy in momentum space.
+- `KE_mtx::AbstractMatrix`: k-square matrix for computing kinetic energy in momentum space.
     This can be obtained by using the k-matrices in `CartGrid` function in `Grids.jl`.
 
 # Returns
 - `kinetic_energy::Function`: Function that evaluates the kinetic energy.
 """
-function fft_ke(KE_mtx::Array{Float64})
-    function kinetic_energy(
-        ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}},
-        parameters::ParameterType,
-        time::Float64,
-    )
-        return ifft(KE_mtx .* fft(ψ))
-    end
-    return kinetic_energy
+function fft_ke(KE_mtx::AbstractMatrix{Float64})
+    PFFT = plan_fft(KE_mtx)
+    PiFFT = inv(PFFT)
+
+    return Pfft_ke(KE_mtx, PFFT, PiFFT)
 end
 
 """
