@@ -36,7 +36,7 @@ u0_Stiff = [EoS_Stiff(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressu
 u0_Soft = [EoS_Soft(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
 
 # Sovling the TOV equation using the RK4 method with QSpin OdeSolve module for Stiff and Soft EoSs.
-@time Pr_Stiff, mr_Stiff, ρr_Stiff, M_Stiff, R_Stiff, r = QSpin.OdeSolve.TOV_Solve_rk4(
+@time Pr_Stiff, mr_Stiff, ρr_Stiff, M_Stiff, R_Stiff, r = QSpin.TOV.TOV_Solve_rk4(
     u0_Stiff,
     Sim_Input.dr,
     Sim_Input.Dr,
@@ -44,7 +44,7 @@ u0_Soft = [EoS_Soft(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure
     EoS_inv_Stiff,
 );
 
-@time Pr_Soft, mr_Soft, ρr_Soft, M_Soft, R_Soft = QSpin.OdeSolve.TOV_Solve_rk4(
+@time Pr_Soft, mr_Soft, ρr_Soft, M_Soft, R_Soft = QSpin.TOV.TOV_Solve_rk4(
     u0_Soft,
     Sim_Input.dr,
     Sim_Input.Dr,
@@ -62,7 +62,7 @@ R_SoftScan = zeros(length(ρc_scan));
 for cc = 1:length(ρc_scan)
     ρc = ρc_scan[Int.(cc)];
 
-    Pr, mr, ρr, M, R = QSpin.OdeSolve.TOV_Solve_rk4(
+    Pr, mr, ρr, M, R = QSpin.TOV.TOV_Solve_rk4(
         [EoS_Stiff(ρc); 0.0],
         Sim_Input.dr,
         Sim_Input.Dr,
@@ -72,7 +72,7 @@ for cc = 1:length(ρc_scan)
     M_StiffScan[Int.(cc)] = M
     R_StiffScan[Int.(cc)] = R
     # println("Mass: ", M/PhysConst.Msun, " M_sun, Radius: ", R/1e3, " km")
-    Pr, mr, ρr, M, R = QSpin.OdeSolve.TOV_Solve_rk4(
+    Pr, mr, ρr, M, R = QSpin.TOV.TOV_Solve_rk4(
         [EoS_Soft(ρc); 0.0],
         Sim_Input.dr,
         Sim_Input.Dr,
