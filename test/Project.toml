@@ -1,0 +1,9 @@
+[deps]
+QSpin = "3f62d152-8970-4ff6-93e2-b431c80450c4"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[sources]
+QSpin = {path = ".."}
+
+[compat]
+Test = "<0.0.1, 1"
