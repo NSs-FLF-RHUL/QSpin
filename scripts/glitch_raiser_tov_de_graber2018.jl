@@ -66,10 +66,9 @@ Glitch_Raiser_Input = (
 );
 
 function eom!(dΩ::AbstractArray, Ω::AbstractArray, Param::ParameterType, time::Float64)
-
     # dΩ_sf/dt
     Ω_sf = Ω[3:end];
-
+    #Bsf = Param.B_sf * Param.ρr ./ maximum(Param.ρr); # Scaling B_sf with the local density profile
     dΩ_sfdr = [diff(Ω_sf) ./ diff(r); 0.0];
     dΩ[3:end] = Param.B_sf .* (2 * Ω_sf + r .* dΩ_sfdr) .* (Ω[1] .- Ω_sf);
     dΩ_sf_net = 4 .* π .* sum(((r .^ 2) .* Param.ρr .* dΩ[3:end]) .* [diff(r); diff(r)[1]]);
@@ -96,6 +95,7 @@ end
     alg = DE.KenCarp47(),
     dt = Glitch_Raiser_Input.dt,
     saveat = Glitch_Raiser_Input.Dt,
+    reltol = 1e-8,
 )
 Ωt = Array(sol);
 t = sol.t;
@@ -104,7 +104,7 @@ t = sol.t;
 plot(
     plot(
         t,
-        [Ωt[1, :] Ωt[2, :] Ωt[end, :]],
+        [Ωt[1, :] Ωt[2, :] Ωt[1250, :]],
         label = ["Crust" "Core" "Superfluid"],
         xlabel = "Time (s)",
         ylabel = L"\Omega\;(\mathrm{rad/s})",
