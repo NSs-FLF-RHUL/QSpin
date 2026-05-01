@@ -75,7 +75,7 @@ end
     Glitch_Raiser_Input.Ω_sf*ones(length(r)) + 5 * (rand(length(r)) .- 0.5) * 1e-6; # Adding small random perturbations to the superfluid angular velocity
 ];
 EoM! = eom!(Glitch_Raiser_Input);
-Ωt, t = QSpin.OdeSolve.evolve_rk4(
+@time Ωt, t = QSpin.OdeSolve.evolve_rk4(
     Ω0,
     Glitch_Raiser_Input.dt,
     Glitch_Raiser_Input.Dt,

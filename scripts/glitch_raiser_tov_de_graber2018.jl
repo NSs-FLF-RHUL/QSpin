@@ -56,7 +56,7 @@ Glitch_Raiser_Input = (
     Ω_core = 70.34, # Initial angular velocity of the core in rad/s
     I_crust = 4.5e30, # Moment of inertia of the crust in kg m^2
     I_core = 0.8 * 4.5e30, # Moment of inertia of the core in kg m
-    N_ext = 1.0,
+    N_ext = 0.0,
     dt = 1e-4, # Time step for the ODE solver in seconds
     Dt = 1, # Time interval for recording values in the glitch model in seconds
     t_start = 0.0, # Start time for the glitch model simulation in seconds
@@ -79,7 +79,6 @@ function eom!(dΩ::AbstractArray, Ω::AbstractArray, Param::ParameterType, time:
     dΩ[1] =
         -Param.N_ext/Param.I_crust - Param.I_core/Param.I_crust * dΩ[2] -
         dΩ_sf_net/Param.I_crust;
-    return dΩ
 end
 
 Ω0 = [
@@ -94,6 +93,7 @@ end
     0.0,
     Glitch_Raiser_Input.t_end,
     Glitch_Raiser_Input;
+    alg = DE.KenCarp47(),
     dt = Glitch_Raiser_Input.dt,
     saveat = Glitch_Raiser_Input.Dt,
 )
