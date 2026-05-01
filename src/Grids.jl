@@ -98,7 +98,7 @@ The plans for the forward and inverse Fourier transforms can be generated using 
 # Returns
 - `kinetic_energy::Function`: Function that evaluates the kinetic energy.
 """
-function Pfft_ke(KE_mtx::Array{Float64}, PFFT, PiFFT)
+function Pfft_ke(KE_mtx::AbstractArray{Float64}, PFFT, PiFFT)
     function kinetic_energy(ψ::AbstractArray, parameters::ParameterType, time::Float64)
         return PiFFT * (KE_mtx .* (PFFT * ψ))
     end
@@ -114,8 +114,6 @@ The returned function has signature `kinetic_energy(ψ, parameters, time)`.
 
 The k-square matrix can be obtained from the `CartGrid` function in `Grids.jl`.
 
-TODO: Combine this function with `Pfft_ke`, above.
-
 # Arguments
 - `KE_mtx::AbstractArray`: k-square matrix for computing kinetic energy in momentum space.
     This can be obtained by using the k-matrices in `CartGrid` function in `Grids.jl`.
@@ -123,15 +121,11 @@ TODO: Combine this function with `Pfft_ke`, above.
 # Returns
 - `kinetic_energy::Function`: Function that evaluates the kinetic energy.
 """
-function fft_ke(KE_mtx::Array{Float64})
-    function kinetic_energy(
-        ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}},
-        parameters::ParameterType,
-        time::Float64,
-    )
-        return ifft(KE_mtx .* fft(ψ))
-    end
-    return kinetic_energy
+function fft_ke(KE_mtx::AbstractArray{Float64})
+    PFFT = plan_fft(KE_mtx)
+    PiFFT = inv(PFFT)
+
+    return Pfft_ke(KE_mtx, PFFT, PiFFT)
 end
 
 """
@@ -147,13 +141,11 @@ The returned function has signature `Lz(ψ, parameters, time)`.
 
 The various coordinate matrices can be obtained via the `CartGrid` function in `Grids.jl`.
 
-TODO: Combine with `Pfft_Lzψ`, below.
-
 # Arguments
-- `X::Array{Float64}`: x-coordinate matrix.
-- `Y::Array{Float64}`: y-coordinate matrix.
-- `Kx::Array{Float64}`: kx-coordinate matrix.
-- `Ky::Array{Float64}`: ky-coordinate matrix.
+- `X::AbstractMatrix{Float64}`: x-coordinate matrix.
+- `Y::AbstractMatrix{Float64}`: y-coordinate matrix.
+- `Kx::AbstractMatrix{Float64}`: kx-coordinate matrix.
+- `Ky::AbstractMatrix{Float64}`: ky-coordinate matrix.
 """
 function fft_Lzψ(
     X::AbstractMatrix{Float64},
@@ -161,15 +153,10 @@ function fft_Lzψ(
     Kx::AbstractMatrix{Float64},
     Ky::AbstractMatrix{Float64},
 )
-    function angular_momentum_z(
-        ψ::Union{AbstractArray,Array{Float64},Array{ComplexF64}},
-        parameters::ParameterType,
-        time::Float64,
-    )
-        ψk = fft(ψ)
-        return -(Y .* ifft(Kx .* ψk) - X .* ifft(Ky .* ψk))
-    end
-    return angular_momentum_z
+
+    PFFT = plan_fft(X)
+    PiFFT = inv(PFFT)
+    return Pfft_Lzψ(X, Y, Kx, Ky, PFFT, PiFFT)
 end
 
 """
@@ -187,18 +174,18 @@ The various coordinate matrices can be obtained via the `CartGrid` function in `
 The plans for the forward and inverse Fourier transforms can be generated using the `plan_{i}fft` function(s) provided by `FFTW`.
 
 # Arguments
-- `X::Array{Float64}`: x-coordinate matrix.
-- `Y::Array{Float64}`: y-coordinate matrix.
-- `Kx::Array{Float64}`: kx-coordinate matrix.
-- `Ky::Array{Float64}`: ky-coordinate matrix.
+- `X::AbstractMatrix{Float64}`: x-coordinate matrix.
+- `Y::AbstractMatrix{Float64}`: y-coordinate matrix.
+- `Kx::AbstractMatrix{Float64}`: kx-coordinate matrix.
+- `Ky::AbstractMatrix{Float64}`: ky-coordinate matrix.
 - `PFFT::`: Plan for forward FFT.
 - `PiFFT::`: Plan for inverse FFT.
 """
 function Pfft_Lzψ(
-    X::Array{Float64},
-    Y::Array{Float64},
-    Kx::Array{Float64},
-    Ky::Array{Float64},
+    X::AbstractMatrix{Float64},
+    Y::AbstractMatrix{Float64},
+    Kx::AbstractMatrix{Float64},
+    Ky::AbstractMatrix{Float64},
     PFFT,
     PiFFT,
 )
