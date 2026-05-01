@@ -56,17 +56,17 @@ Glitch_Raiser_Input = (
     Ω_core = 70.34, # Initial angular velocity of the core in rad/s
     I_crust = 4.5e30, # Moment of inertia of the crust in kg m^2
     I_core = 0.8 * 4.5e30, # Moment of inertia of the core in kg m
-    N_ext = 0.0,
+    N_ext = 1.0,
     dt = 1e-4, # Time step for the ODE solver in seconds
-    Dt = 1.0, # Time interval for recording values in the glitch model in seconds
+    Dt = 1, # Time interval for recording values in the glitch model in seconds
     t_start = 0.0, # Start time for the glitch model simulation in seconds
     t_end = 120.0, # End time for the glitch model simulation in seconds
     ρr = ρr,
     r = r,
 );
 
-function eom!(δΩ::AbstractArray, Ω::AbstractArray, Param::ParameterType, time::Float64)
-    dΩ = zeros(size(Ω));
+function eom!(dΩ::AbstractArray, Ω::AbstractArray, Param::ParameterType, time::Float64)
+
     # dΩ_sf/dt
     Ω_sf = Ω[3:end];
 
@@ -85,7 +85,7 @@ end
 Ω0 = [
     Glitch_Raiser_Input.Ω_crust;
     Glitch_Raiser_Input.Ω_core;
-    Glitch_Raiser_Input.Ω_sf*ones(length(r)) + 5 * (rand(length(r)) .- 0.5) * 1e-6; # Adding small random perturbations to the superfluid angular velocity
+    Glitch_Raiser_Input.Ω_sf*ones(length(r)) + 5 * (rand(length(r)) .- 0.5) * 0; # Adding small random perturbations to the superfluid angular velocity
 ];
 
 @time sol = QSpin.OdeSolve.evolve(
