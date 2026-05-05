@@ -35,8 +35,10 @@ jobs:
         with:
           filters: |
             docfiles:
+              - ".github/workflows/docs.yml"
               - "docs/**"
-              - "**.md"
+              - "src/**"
+              - "Project.toml"
 
   build:
     needs: check
@@ -50,10 +52,10 @@ jobs:
       - name: Setup Julia
         uses: julia-actions/setup-julia@v3
       - uses: julia-actions/cache@v3
-      - uses: julia-actions/julia-buildpkg@v1
-
+      - name: Instantiate docs environment
+        run: julia --color=yes --project=docs -e 'using Pkg; Pkg.instantiate()'
       - name: Build HTML documentation
-        run: julia --project=docs docs/make.jl
+        run: julia --color=yes --project=docs docs/make.jl
 
       - name: Upload build artefact
         if: |

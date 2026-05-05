@@ -10,3 +10,7 @@ end
 
     include("grids/fft_ke.jl")
 end
+
+@testset "Quality assurance" begin
+    include("quality_assurance.jl")
+end
