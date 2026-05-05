@@ -3,10 +3,13 @@ using LinearAlgebra
 using FFTW
 using MAT
 using ParallelStencil
+using DocStringExtensions: TYPEDSIGNATURES
 
 using ..Parameters: ParameterType
 
 """
+$(TYPEDSIGNATURES)
+
 Set up a uniform Cartesian grid, applicable for the Fourier spectral method.
 
 # Arguments
@@ -81,6 +84,8 @@ function CartGrid(CompDomain::Array{Float64}, GridSize::Array{Int64})
 end
 
 """
+$(TYPEDSIGNATURES)
+
 Return a function that computes the quantum kinetic energy term in Schrodinger-type equations.
 
 Namely, return a function that computes ``-\\nabla^2 \\psi``, given ``\\psi``, using the Fourier spectral method.
@@ -107,6 +112,8 @@ function Pfft_ke(KE_mtx::AbstractArray{Float64}, PFFT, PiFFT)
 end
 
 """
+$(TYPEDSIGNATURES)
+
 Return a function that computes the quantum kinetic energy term in Schrodinger-type equations.
 
 Namely, return a function that computes ``-\\nabla^2 \\psi``, given ``\\psi``, using the Fourier spectral method.
@@ -129,6 +136,8 @@ function fft_ke(KE_mtx::AbstractArray{Float64})
 end
 
 """
+$(TYPEDSIGNATURES)
+
 Return a function that computes the quantum angular momentum using the Fourier spectral method.
 
 The angular momentum operator along the z-axis is given by
@@ -160,6 +169,8 @@ function fft_Lzψ(
 end
 
 """
+$(TYPEDSIGNATURES)
+
 Return a function that computes the quantum angular momentum using the Fourier spectral method.
 
 The angular momentum operator along the z-axis is given by
