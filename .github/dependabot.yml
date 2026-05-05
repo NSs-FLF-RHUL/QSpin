@@ -5,3 +5,18 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
+  - package-ecosystem: "julia"
+    # Location of Julia projects
+    directories:
+      - "/"
+      - "/docs"
+      - "/scripts"
+      - "/test"
+    schedule:
+      interval: "weekly"
+    ignore:
+      # Ignore package itself
+      - dependency-name: "QSpin"
+    groups:
+      per-dependency:
+        group-by: dependency-name
