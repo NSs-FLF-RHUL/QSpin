@@ -1,10 +1,11 @@
 module OdeSolve
+
 using LinearAlgebra
 using FFTW
 using MAT
 using ParallelStencil
-
-import OrdinaryDiffEq as DE
+using CommonSolve: solve
+using SciMLBase: ODEProblem
 
 using ..Parameters: ParameterType
 
@@ -43,8 +44,8 @@ function evolve(
         p = ()
     end
 
-    problem = DE.ODEProblem(eom!, ψ0, (t_start, t_end), p)
-    return DE.solve(problem; solver_options...)
+    problem = ODEProblem(eom!, ψ0, (t_start, t_end), p)
+    return solve(problem; solver_options...)
 end
 
 """
