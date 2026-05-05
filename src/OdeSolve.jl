@@ -1,9 +1,5 @@
 module OdeSolve
 
-using LinearAlgebra
-using FFTW
-using MAT
-using ParallelStencil
 using CommonSolve: solve
 using DocStringExtensions: TYPEDSIGNATURES
 using SciMLBase: ODEProblem
