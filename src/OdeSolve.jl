@@ -5,11 +5,14 @@ using FFTW
 using MAT
 using ParallelStencil
 using CommonSolve: solve
+using DocStringExtensions: TYPEDSIGNATURES
 using SciMLBase: ODEProblem
 
 using ..Parameters: ParameterType
 
 """
+$(TYPEDSIGNATURES)
+
 Time-evolve an equation of motion using `OrdinaryDiffEq` (DE).
 
 This is a thin wrapper around `DE.ODEProblem` and `DE.solve`. The keyword arguments in
@@ -49,6 +52,8 @@ function evolve(
 end
 
 """
+$(TYPEDSIGNATURES)
+
 Integrate an equation of motion using the [Runge-Kutta 4-th order method](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods).
 
 # Arguments
@@ -70,6 +75,8 @@ function ode_rk4(u::AbstractArray, δt::Float64, time::Float64, eom::Function)
 end
 
 """
+$(TYPEDSIGNATURES)
+
 Time-evolve an equation of motion using the RK4 Runge-Kutta 4-th order method.
 
 # Arguments
