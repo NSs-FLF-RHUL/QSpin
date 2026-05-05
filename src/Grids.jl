@@ -1,8 +1,5 @@
 module Grids
-using LinearAlgebra
-using FFTW
-using MAT
-using ParallelStencil
+using FFTW: plan_fft
 using DocStringExtensions: TYPEDSIGNATURES
 
 using ..Parameters: ParameterType
