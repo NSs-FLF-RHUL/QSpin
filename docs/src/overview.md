@@ -83,7 +83,7 @@ To use this equation of motion with `evolve`, we need to give it the appropriate
 ```@setup coupled-odes
 using LaTeXStrings
 using Plots
-using OrdinaryDiffEq
+using OrdinaryDiffEqTsit5: Tsit5
 using QSpin
 
 default(show = false)
@@ -135,7 +135,7 @@ save_interval = 1e-1
 # Note that the default time-range for evolve is [0, 1].
 ψ = QSpin.OdeSolve.evolve(
   f!, ψ0;
-  alg=OrdinaryDiffEq.Tsit5(),
+  alg=Tsit5(),
   dt=timestep,
   saveat=save_interval,
 )
@@ -166,13 +166,13 @@ alternative_parameters = (
 
 ψ_original = QSpin.OdeSolve.evolve(
   f_parametrised!, ψ0, p=original_parameters;
-  alg=OrdinaryDiffEq.Tsit5(),
+  alg=Tsit5(),
   dt=timestep,
   saveat=save_interval,
 )
 ψ_alternative = QSpin.OdeSolve.evolve(
   f_parametrised!, ψ0, p=alternative_parameters;
-  alg=OrdinaryDiffEq.Tsit5(),
+  alg=Tsit5(),
   dt=timestep,
   saveat=save_interval,
 )
