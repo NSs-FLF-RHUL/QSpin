@@ -52,7 +52,8 @@ jobs:
       - name: Setup Julia
         uses: julia-actions/setup-julia@v3
       - uses: julia-actions/cache@v3
-
+      - name: Instantiate docs environment
+        run: julia --color=yes --project=docs -e 'using Pkg; Pkg.instantiate()'
       - name: Build HTML documentation
         run: julia --color=yes --project=docs docs/make.jl
 
