@@ -35,8 +35,10 @@ jobs:
         with:
           filters: |
             docfiles:
+              - ".github/workflows/docs.yml"
               - "docs/**"
-              - "**.md"
+              - "src/**"
+              - "Project.toml"
 
   build:
     needs: check
