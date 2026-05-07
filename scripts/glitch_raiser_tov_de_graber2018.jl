@@ -23,8 +23,6 @@ TOV_Input = (
     r_end = 15e3, # Maximum radius to solve up to in meters
 );
 
-
-
 # Fucntion Setup for inverse EoS and TOV equation for the solver
 EoS_Stiff, EoS_inv_Stiff = QSpin.TOV.EoS_two_component_polytrope(EoS_Param_Stiff);
 # Setting up initial condition accordingly to the EoS for a given central density ρ0.
@@ -40,6 +38,7 @@ tov! = QSpin.TOV.tov_eq!(EoS_inv_Stiff);
     ;
     dt = TOV_Input.dr,
     saveat = TOV_Input.Dr,
+    reltol = 1e-8,
 );
 ur = Array(sol_tov);
 r = sol_tov.t;
@@ -48,9 +47,12 @@ mr = ur[2, :];
 ρr = EoS_inv_Stiff.(Pr);
 
 
+
+B_sf = 1e-3 * log.(ρr)/maximum(log.(ρr)); # Scaling B_sf with the local density profile
+B_sf[ρr .< 4e8] .= 0;
 Glitch_Raiser_Input = (
     B_core = 5e-4, # Mutual Friction Parameter
-    B_sf = 1e-3, # Mutual Friction Parameter
+    B_sf = B_sf, # Mutual Friction Parameter
     Ω_crust = 70.34, # Initial angular velocity of the crust in rad/s
     Ω_sf = 70.34 + 6.3e-3, # Initial angular velocity of the superfluid in rad/s
     Ω_core = 70.34, # Initial angular velocity of the core in rad/s
@@ -83,7 +85,7 @@ end
 Ω0 = [
     Glitch_Raiser_Input.Ω_crust;
     Glitch_Raiser_Input.Ω_core;
-    Glitch_Raiser_Input.Ω_sf*ones(length(r)) + 5 * (rand(length(r)) .- 0.5) * 0; # Adding small random perturbations to the superfluid angular velocity
+    Glitch_Raiser_Input.Ω_sf*ones(length(r)); # Adding small random perturbations to the superfluid angular velocity
 ];
 
 @time sol = QSpin.OdeSolve.evolve(
