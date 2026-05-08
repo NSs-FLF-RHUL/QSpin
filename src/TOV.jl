@@ -152,7 +152,7 @@ function TOV_Solve_DP5(
     r = sol_tov.t;
     Pr = ur[1, :];
     mr = ur[2, :];
-    R_index = findfirst(x->x<0, Pr);
+    R_index = findfirst(x->x<0, Pr)+1;
     M = mr[R_index];
     r = r[1:R_index];
     Pr = Pr[1:R_index];
@@ -251,7 +251,7 @@ function TOV_Solve_rk4(
         ρr[rr] = EoS_inv(Pr[rr]) # Density profile from the inverse EoS
     end
 
-    R_index = findfirst(x->x<0, Pr);
+    R_index = findfirst(x->x<0, Pr)+1;
     M = mr[R_index];
     R = rspan[R_index];
     return Pr, mr, ρr, M, R, rspan
