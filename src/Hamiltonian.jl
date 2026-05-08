@@ -1,8 +1,12 @@
 module Hamiltonian
 
+using DocStringExtensions: TYPEDSIGNATURES
+
 using ..Parameters: ParameterType
 
 """
+$(TYPEDSIGNATURES)
+
 Construct a Hamiltonian from a Kinetic and Potential energy.
 
 Returns a function `H!(dψ, ψ, parameters, time)` that evaluates the Hamiltonian ``\\mathcal{H}``
