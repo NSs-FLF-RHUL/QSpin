@@ -27,9 +27,10 @@ module TOV
 using Dierckx
 using ..OdeSolve: ode_rk4
 using ..OdeSolve: DESolve
+using ..OdeSolve: evolve
 using ..Parameters: ParameterType
 using ..PhysicalConstants: hbar, gravitational_constant, neutron_mass, speed_of_light_vacuum
-
+import OrdinaryDiffEq as DE
 function tov_eq!(EoS_rho_from_P::Function)
     function tov_inner!(du, u, paras, r)
         P = u[1];
@@ -136,6 +137,30 @@ function EoS_two_component_polytrope(
 end
 
 
+function TOV_Solve_DP5(
+    u0::Union{AbstractArray,Array{Float64}},
+    dr::Float64,
+    Dr::Float64,
+    r_max::Float64,
+    EoS_inv::Function;
+    solver_options...,
+)
+    tov! = tov_eq!(EoS_inv);
+    sol_tov =
+        evolve(tov!, u0, 0.0, r_max, ; alg = DE.DP5(), dt = dr, saveat = Dr, reltol = 1e-8);
+    ur = Array(sol_tov);
+    r = sol_tov.t;
+    Pr = ur[1, :];
+    mr = ur[2, :];
+    R_index = findfirst(x->x<0, Pr);
+    M = mr[R_index];
+    r = r[1:R_index];
+    Pr = Pr[1:R_index];
+    mr = mr[1:R_index];
+    ρr = EoS_inv.(Pr);
+    R = r[R_index];
+    return Pr, mr, ρr, r, M, R
+end
 
 function TOV_Solve_rk4(
     u0::Union{AbstractArray,Array{Float64}},
@@ -234,35 +259,6 @@ function TOV_Solve_rk4(
 end
 
 
-function MutualFriction(ParamIn::ParameterType)
 
-    if typeof(ParamIn.B_core) == Float64
-        B_core = ParamIn.B_core;
-    elseif typeof(ParamIn.B_core) == Matrix{Float64}
-        println("B_core Interpolation")
-        spl = Spline1D(ParamIn.ρr_core, ParamIn.B_core, k = 3, bc = "extrapolate")
-        B_core = spl(ParamIn.ρr);
-    else
-        tyopeof(ParamIn.B_core)
-        println("B_core is a function of density")
-        B_core = ParamIn.B_core(ParamIn.ρr);
-    end
-
-    if typeof(ParamIn.B_sf) == Float64
-        B_sf = ParamIn.B_sf;
-    elseif typeof(ParamIn.B_sf) == Matrix{Float64}
-        println("B_sf Interpolation")
-        spl = Spline1D(ParamIn.ρr_sf, ParamIn.B_sf, k = 3, bc = "extrapolate")
-        B_sf = spl(ParamIn.ρr);
-    else
-        tyopeof(ParamIn.B_sf)
-        println("B_sf is a function of density")
-        B_sf = ParamIn.B_sf(ParamIn.ρr);
-    end
-
-    B_sf[B_sf .< ParamIn.ρ_dripping] .= 0;
-    B_core[B_core .< ParamIn.ρ_dripping] .= 0;
-    return B_crust, B_core, B_sf
-end
 
 end

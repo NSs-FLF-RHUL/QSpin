@@ -30,21 +30,8 @@ u0_Stiff = [EoS_Stiff(TOV_Input.ρ0); 0.0]; # Initial conditions: central pressu
 tov! = QSpin.TOV.tov_eq!(EoS_inv_Stiff);
 # Sovling the TOV equation using the RK4 method with QSpin OdeSolve module for Stiff and Soft EoSs.
 
-@time sol_tov = QSpin.OdeSolve.evolve(
-    tov!,
-    u0_Stiff,
-    0.0,
-    TOV_Input.r_end,
-    ;
-    dt = TOV_Input.dr,
-    saveat = TOV_Input.Dr,
-    reltol = 1e-8,
-);
-ur = Array(sol_tov);
-r = sol_tov.t;
-Pr = ur[1, :];
-mr = ur[2, :];
-ρr = EoS_inv_Stiff.(Pr);
+@time Pr, mr, ρr, r, M, R =
+    QSpin.TOV.TOV_Solve_DP5(u0_Stiff, TOV_Input.dr, TOV_Input.Dr, 15e3, EoS_inv_Stiff)
 
 
 
@@ -101,7 +88,6 @@ end
 )
 Ωt = Array(sol);
 t = sol.t;
-
 
 plot(
     plot(
