@@ -24,7 +24,7 @@
 """
 module TOV
 
-#using Dierckx
+using Dierckx
 using ..OdeSolve: ode_rk4
 using ..OdeSolve: DESolve
 using ..Parameters: ParameterType

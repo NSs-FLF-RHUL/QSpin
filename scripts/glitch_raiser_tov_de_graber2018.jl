@@ -48,7 +48,7 @@ mr = ur[2, :];
 
 
 
-B_sf = 1e-3 * log.(ρr)/maximum(log.(ρr)); # Scaling B_sf with the local density profile
+B_sf = 1e-2 * (ρr)/maximum((ρr)); # Scaling B_sf with the local density profile
 B_sf[ρr .< 4e8] .= 0;
 Glitch_Raiser_Input = (
     B_core = 5e-4, # Mutual Friction Parameter
