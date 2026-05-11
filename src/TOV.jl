@@ -24,9 +24,7 @@
 """
 module TOV
 
-using Dierckx
 using ..OdeSolve: ode_rk4
-using ..OdeSolve: DESolve
 using ..OdeSolve: evolve
 using ..Parameters: ParameterType
 using ..PhysicalConstants: hbar, gravitational_constant, neutron_mass, speed_of_light_vacuum
