@@ -227,7 +227,7 @@ function TOV_Solve_rk4(
         ucurrent = ode_rk4(ucurrent, dr, r, TOV)
         r += dr
         step_number += 1
-        if sum(isnan.(ucurrent[:]))>0
+        if any(isnan, ucurrent)
             println(
                 "NaN detected in the field at radius ",
                 r,
