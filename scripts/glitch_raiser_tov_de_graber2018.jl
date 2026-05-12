@@ -2,7 +2,7 @@ using QSpin
 using QSpin.Parameters: ParameterType
 using QSpin.PhysicalConstants
 using Plots, LaTeXStrings
-import OrdinaryDiffEq as DE
+import DifferentialEquations as DE
 ħ = hbar;
 mn = neutron_mass;
 Msun = mass_sun;
@@ -31,7 +31,7 @@ tov! = QSpin.TOV.tov_eq!(EoS_inv_Stiff);
 # Sovling the TOV equation using the RK4 method with QSpin OdeSolve module for Stiff and Soft EoSs.
 
 @time Pr, mr, ρr, r, M, R =
-    QSpin.TOV.TOV_Solve_DP5(u0_Stiff, TOV_Input.dr, TOV_Input.Dr, 15e3, EoS_inv_Stiff)
+    QSpin.TOV.TOV_Solve(u0_Stiff, TOV_Input.dr, TOV_Input.Dr, 15e3, EoS_inv_Stiff)
 
 
 

@@ -28,7 +28,7 @@ using ..OdeSolve: ode_rk4
 using ..OdeSolve: evolve
 using ..Parameters: ParameterType
 using ..PhysicalConstants: hbar, gravitational_constant, neutron_mass, speed_of_light_vacuum
-import OrdinaryDiffEq as DE
+import DifferentialEquations as DE
 function tov_eq!(EoS_rho_from_P::Function)
     function tov_inner!(du, u, paras, r)
         P = u[1];
@@ -135,7 +135,7 @@ function EoS_two_component_polytrope(
 end
 
 
-function TOV_Solve_DP5(
+function TOV_Solve(
     u0::Union{AbstractArray,Array{Float64}},
     dr::Float64,
     Dr::Float64,
@@ -144,8 +144,11 @@ function TOV_Solve_DP5(
     solver_options...,
 )
     tov! = tov_eq!(EoS_inv);
+    condition(u, t, integrator) = u[1] < 0
+    affect!(integrator) = DE.terminate!(integrator)
+    cb = DE.DiscreteCallback(condition, affect!)
     sol_tov =
-        evolve(tov!, u0, 0.0, r_max, ; alg = DE.DP5(), dt = dr, saveat = Dr, reltol = 1e-8);
+        evolve(tov!, u0, 0.0, r_max, ; dt = dr, saveat = Dr, reltol = 1e-8, callback = cb);
     ur = Array(sol_tov);
     r = sol_tov.t;
     Pr = ur[1, :];
