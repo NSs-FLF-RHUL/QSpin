@@ -94,7 +94,7 @@ t = sol.t;
 plot(
     plot(
         t,
-        [Ωt[1, :] Ωt[2, :] Ωt[length(r)-1, :]],
+        [Ωt[1, :] Ωt[2, :] Ωt[length(TOV_sol.r)-1, :]],
         label = ["Crust" "Core" "Superfluid"],
         xlabel = "Time (s)",
         ylabel = L"\Omega\;(\mathrm{rad/s})",
