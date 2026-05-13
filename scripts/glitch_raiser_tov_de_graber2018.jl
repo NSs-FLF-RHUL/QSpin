@@ -32,16 +32,12 @@ u0_Stiff = [EoS_Stiff(TOV_Input.ρ0); 0.0]; # Initial conditions: central pressu
 tov! = QSpin.TOV.tov_eq!(EoS_inv_Stiff);
 # Sovling the TOV equation using the RK4 method with QSpin OdeSolve module for Stiff and Soft EoSs.
 
-@time Pr, mr, ρr, r, M, R =
+@time TOV_sol =
     QSpin.TOV.TOV_Solve(u0_Stiff, TOV_Input.dr, TOV_Input.Dr, 15e3, EoS_inv_Stiff)
 
-
-
-B_sf = 1e-2; # Scaling B_sf with the local density profile
-#B_sf[ρr[1:end-2] .< 4e8] .= 0;
 Glitch_Raiser_Input = (
     B_core = 5e-4, # Mutual Friction Parameter
-    B_sf = B_sf, # Mutual Friction Parameter
+    B_sf = 1e-2, # Mutual Friction Parameter
     Ω_crust = 70.34, # Initial angular velocity of the crust in rad/s
     Ω_sf = 70.34 + 6.3e-3, # Initial angular velocity of the superfluid in rad/s
     Ω_core = 70.34, # Initial angular velocity of the core in rad/s
@@ -52,8 +48,8 @@ Glitch_Raiser_Input = (
     Dt = 1, # Time interval for recording values in the glitch model in seconds
     t_start = 0.0, # Start time for the glitch model simulation in seconds
     t_end = 120.0, # End time for the glitch model simulation in seconds
-    ρr = ρr[1:(end-1)],
-    r = r[1:(end-1)],
+    ρr = TOV_sol.ρr[1:(end-1)],
+    r = TOV_sol.r[1:(end-1)],
 );
 
 function eom!(dΩ::AbstractArray, Ω::AbstractArray, Param::ParameterType, time::Float64)
@@ -78,7 +74,7 @@ end
 Ω0 = [
     Glitch_Raiser_Input.Ω_crust;
     Glitch_Raiser_Input.Ω_core;
-    Glitch_Raiser_Input.Ω_sf*ones(length(r)-1); # Adding small random perturbations to the superfluid angular velocity
+    Glitch_Raiser_Input.Ω_sf*ones(length(TOV_sol.r)-1); # Adding small random perturbations to the superfluid angular velocity
 ];
 
 @time sol = QSpin.OdeSolve.evolve(
@@ -107,7 +103,7 @@ plot(
     ),
     heatmap(
         t,
-        r[1:(end-1)]/1e3,
+        TOV_sol.r[1:(end-1)]/1e3,
         Ωt[3:end, :],
         framestyle = :box,
         xlabel = "Time (s)",
