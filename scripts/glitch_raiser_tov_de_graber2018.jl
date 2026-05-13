@@ -3,6 +3,8 @@ using QSpin.Parameters: ParameterType
 using QSpin.PhysicalConstants
 using Plots, LaTeXStrings
 import DifferentialEquations as DE
+using OrdinaryDiffEqSDIRK
+using OrdinaryDiffEqLowOrderRK
 ħ = hbar;
 mn = neutron_mass;
 Msun = mass_sun;
@@ -35,8 +37,8 @@ tov! = QSpin.TOV.tov_eq!(EoS_inv_Stiff);
 
 
 
-B_sf = 1e-2 * (ρr)/maximum((ρr)); # Scaling B_sf with the local density profile
-B_sf[ρr .< 4e8] .= 0;
+B_sf = 1e-2; # Scaling B_sf with the local density profile
+#B_sf[ρr[1:end-2] .< 4e8] .= 0;
 Glitch_Raiser_Input = (
     B_core = 5e-4, # Mutual Friction Parameter
     B_sf = B_sf, # Mutual Friction Parameter
@@ -50,17 +52,21 @@ Glitch_Raiser_Input = (
     Dt = 1, # Time interval for recording values in the glitch model in seconds
     t_start = 0.0, # Start time for the glitch model simulation in seconds
     t_end = 120.0, # End time for the glitch model simulation in seconds
-    ρr = ρr,
-    r = r,
+    ρr = ρr[1:(end-1)],
+    r = r[1:(end-1)],
 );
 
 function eom!(dΩ::AbstractArray, Ω::AbstractArray, Param::ParameterType, time::Float64)
     # dΩ_sf/dt
     Ω_sf = Ω[3:end];
     #Bsf = Param.B_sf * Param.ρr ./ maximum(Param.ρr); # Scaling B_sf with the local density profile
-    dΩ_sfdr = [diff(Ω_sf) ./ diff(r); 0.0];
-    dΩ[3:end] = Param.B_sf .* (2 * Ω_sf + r .* dΩ_sfdr) .* (Ω[1] .- Ω_sf);
-    dΩ_sf_net = 4 .* π .* sum(((r .^ 2) .* Param.ρr .* dΩ[3:end]) .* [diff(r); diff(r)[1]]);
+    dΩ_sfdr = [diff(Ω_sf) ./ diff(Param.r); 0.0];
+    dΩ[3:end] = Param.B_sf .* (2 * Ω_sf + Param.r .* dΩ_sfdr) .* (Ω[1] .- Ω_sf);
+    dΩ_sf_net =
+        4 .* π .* sum(
+            ((Param.r .^ 2) .* Param.ρr .* dΩ[3:end]) .*
+            [diff(Param.r); diff(Param.r)[end]],
+        );
     # dΩ_core/dt
     dΩ[2] = 2 * Param.B_core * Ω[2] * (Ω[1] - Ω[2]);
     # dΩ_crust/dt
@@ -72,7 +78,7 @@ end
 Ω0 = [
     Glitch_Raiser_Input.Ω_crust;
     Glitch_Raiser_Input.Ω_core;
-    Glitch_Raiser_Input.Ω_sf*ones(length(r)); # Adding small random perturbations to the superfluid angular velocity
+    Glitch_Raiser_Input.Ω_sf*ones(length(r)-1); # Adding small random perturbations to the superfluid angular velocity
 ];
 
 @time sol = QSpin.OdeSolve.evolve(
@@ -81,7 +87,7 @@ end
     0.0,
     Glitch_Raiser_Input.t_end,
     Glitch_Raiser_Input;
-    alg = DE.KenCarp47(),
+    alg = DE.Tsit5(),
     dt = Glitch_Raiser_Input.dt,
     saveat = Glitch_Raiser_Input.Dt,
     reltol = 1e-8,
@@ -92,7 +98,7 @@ t = sol.t;
 plot(
     plot(
         t,
-        [Ωt[1, :] Ωt[2, :] Ωt[1250, :]],
+        [Ωt[1, :] Ωt[2, :] Ωt[length(r)-1, :]],
         label = ["Crust" "Core" "Superfluid"],
         xlabel = "Time (s)",
         ylabel = L"\Omega\;(\mathrm{rad/s})",
@@ -101,7 +107,7 @@ plot(
     ),
     heatmap(
         t,
-        r/1e3,
+        r[1:(end-1)]/1e3,
         Ωt[3:end, :],
         framestyle = :box,
         xlabel = "Time (s)",

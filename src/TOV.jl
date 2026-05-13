@@ -29,6 +29,9 @@ using ..OdeSolve: evolve
 using ..Parameters: ParameterType
 using ..PhysicalConstants: hbar, gravitational_constant, neutron_mass, speed_of_light_vacuum
 import DifferentialEquations as DE
+using OrdinaryDiffEqSDIRK
+using OrdinaryDiffEqLowOrderRK
+
 function tov_eq!(EoS_rho_from_P::Function)
     function tov_inner!(du, u, paras, r)
         P = u[1];
@@ -147,119 +150,28 @@ function TOV_Solve(
     condition(u, t, integrator) = u[1] < 0
     affect!(integrator) = DE.terminate!(integrator)
     cb = DE.DiscreteCallback(condition, affect!)
-    sol_tov =
-        evolve(tov!, u0, 0.0, r_max, ; dt = dr, saveat = Dr, reltol = 1e-8, callback = cb);
+    sol_tov = evolve(
+        tov!,
+        u0,
+        0.0,
+        r_max,
+        ;
+        alg = OrdinaryDiffEqLowOrderRK.DP5(),
+        dt = dr,
+        saveat = Dr,
+        reltol = 1e-8,
+        callback = cb,
+    );
     ur = Array(sol_tov);
     r = sol_tov.t;
     Pr = ur[1, :];
     mr = ur[2, :];
-    R_index = findfirst(x->x<0, Pr)+1;
-    M = mr[R_index];
-    r = r[1:R_index];
-    Pr = Pr[1:R_index];
-    mr = mr[1:R_index];
+
     ρr = EoS_inv.(Pr);
-    R = r[R_index];
+    R = r[end];
+    M = mr[end];
     return Pr, mr, ρr, r, M, R
 end
-
-function TOV_Solve_rk4(
-    u0::Union{AbstractArray,Array{Float64}},
-    dr::Float64,
-    Dr::Float64,
-    r_end::Float64,
-    EoS_inv::Function,
-)
-    # Physical constants in SI units
-
-    """
-    Set up the TOV equation for a given inverse EoS function and physical constants.
-
-    # Arguments
-    - `EoS_inv::Function`: The inverse EoS function that gives density as
-    - 'u::AbstractArray': The current state of the system, where u[1] is pressure P and u[2] is enclosed mass m.
-    -'r::Float64': The current radius at which the TOV equation is being evaluated.
-
-    # Returns
-    - `tov_eq::Function`: A function of [dP/dr; dm/dr] for the TOV equation.
-
-    """
-    function TOV_Eq(Eos_inv::Function)
-        PhysConst = (
-            ħ = 1.0545718 * 1e-34, # m^2*kg / s
-            Msun = 1.9891 * 1e30,      # kg
-            c = 299792458,         # m / s
-            G = 6.67408 * 1e-11,   # m^3 / (kg * s^2)
-            kpc = 3.08567758 * 1e19, # m
-            eV = 1.782662 * 1e-36,  # kg
-            Gyear = 31556926 * 1e9,   # s
-            mn = 1.674927471 * 1e-27, # kg
-        )
-        function tov_eq(u::AbstractArray, r::Float64)
-            P = u[1];
-            m = u[2];
-            ρ = EoS_inv(P);
-            if r == 0.0
-                dPdr = 0;
-            else
-                dPdr =
-                    -PhysConst.G / r^2 *
-                    (ρ + P/PhysConst.c^2) *
-                    (m + 4*π*r^3*P/PhysConst.c^2) / (1 - 2*PhysConst.G*m/(r*PhysConst.c^2));
-            end
-            dmdr = 4*π*r^2*ρ;
-            return [dPdr; dmdr]
-        end
-        return tov_eq
-    end
-    TOV = TOV_Eq(EoS_inv);
-    ΔNr = floor(Int, Dr / dr)
-    Nr = floor(Int, r_end / Dr)
-    uall = zeros(eltype(u0), size(u0)..., Nr + 1)
-    dims = ndims(u0)
-    radial_dimension_index = dims + 1
-    selectdim(uall, radial_dimension_index, 1) .= u0
-    rspan = zeros(Nr + 1)
-
-    r = 0.0
-    ucurrent = u0
-    save_number = 1
-    step_number = 0
-
-    @inbounds while r < r_end
-        ucurrent = ode_rk4(ucurrent, dr, r, TOV)
-        r += dr
-        step_number += 1
-        if any(isnan, ucurrent)
-            println(
-                "NaN detected in the field at radius ",
-                r,
-                ". Radius Step could be too big.",
-            )
-            break
-        end
-        if mod(step_number, ΔNr) == 0
-            selectdim(uall, radial_dimension_index, save_number + 1) .= ucurrent
-            rspan[save_number+1] = r
-            save_number += 1
-        end
-    end
-
-    Pr = uall[1, :];
-    mr = uall[2, :];
-    ρr = zeros(length(rspan))
-    for rr = 1:length(rspan)
-        ρr[rr] = EoS_inv(Pr[rr]) # Density profile from the inverse EoS
-    end
-
-    R_index = findfirst(x->x<0, Pr)+1;
-    M = mr[R_index];
-    R = rspan[R_index];
-    return Pr, mr, ρr, M, R, rspan
-
-end
-
-
 
 
 end
