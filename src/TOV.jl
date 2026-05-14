@@ -142,6 +142,8 @@ $(TYPEDSIGNATURES)
 
 Solving the TOV equation for a given EoS and initial conditions using the `CommonSolve`  package, adapted in OdeSolve.jl of this package.
 
+Now it uses DP5 method, which is a 5th order explicit Runge-Kutta method with an embedded 4th order method for error estimation, suitable for non-stiff problems. For stiff problems, consider using `KenCarp4` or `Rodas5` methods from the `OrdinaryDiffEqSDIRK` package, and this method is also used in [TOVsolver_Julia](https://github.com/jskMNMGCH/TOVsolver_Julia).
+
 # Arguments
 - `u0::AbstractArray`: Initial conditions for the TOV equation, given as a vector of the form `[P(0), m(0)]`, where `P(0)`
 - 'dr::Float64`: Radial step size for the numerical solver.
