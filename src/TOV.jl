@@ -40,9 +40,9 @@ function tov_eq!(EoS_rho_from_P::Function)
             0.0
         else
             -gravitational_constant / r^2 *
-                (ρ + P/speed_of_light_vacuum^2) *
-                (m + 4*pi*r^3*P/speed_of_light_vacuum^2) /
-                (1 - 2*gravitational_constant*m/(r*speed_of_light_vacuum^2))
+            (ρ + P/speed_of_light_vacuum^2) *
+            (m + 4*pi*r^3*P/speed_of_light_vacuum^2) /
+            (1 - 2*gravitational_constant*m/(r*speed_of_light_vacuum^2))
         end
         du[2] = 4*pi*r^2*ρ
     end
@@ -153,15 +153,7 @@ function TOV_Solve(
     condition(u, t, integrator) = u[1] < 0
     affect!(integrator) = terminate!(integrator)
     cb = DiscreteCallback(condition, affect!)
-    sol_tov = evolve(
-        tov!,
-        u0,
-        0.0,
-        r_max;
-        alg,
-        callback = cb,
-        solver_options...
-    )
+    sol_tov = evolve(tov!, u0, 0.0, r_max; alg, callback = cb, solver_options...)
     ur = Array(sol_tov)
     r = sol_tov.t
     Pr = ur[1, :]
