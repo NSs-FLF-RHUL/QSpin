@@ -142,6 +142,10 @@ function TOV_Solve(
     Dr::Float64,
     r_max::Float64,
     EoS_inv::Function;
+    alg = OrdinaryDiffEqLowOrderRK.DP5(),
+    dt = dr,
+    saveat = Dr,
+    reltol = 1e-8,
     solver_options...,
 )
     tov! = tov_eq!(EoS_inv);
@@ -152,12 +156,8 @@ function TOV_Solve(
         tov!,
         u0,
         0.0,
-        r_max,
-        ;
-        alg = OrdinaryDiffEqLowOrderRK.DP5(),
-        dt = dr,
-        saveat = Dr,
-        reltol = 1e-8,
+        r_max;
+        alg,
         callback = cb,
     );
     ur = Array(sol_tov);
