@@ -159,6 +159,7 @@ function TOV_Solve(
         r_max;
         alg,
         callback = cb,
+        solver_options...
     );
     ur = Array(sol_tov);
     r = sol_tov.t;
