@@ -24,13 +24,10 @@
 """
 module TOV
 
-using ..OdeSolve: ode_rk4
 using ..OdeSolve: evolve
 using ..Parameters: ParameterType
 using ..PhysicalConstants: gravitational_constant, speed_of_light_vacuum
-import DifferentialEquations as DE
-using OrdinaryDiffEqSDIRK
-using OrdinaryDiffEqLowOrderRK
+using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK
 
 function tov_eq!(EoS_rho_from_P::Function)
     function tov_inner!(du, u, paras, r)

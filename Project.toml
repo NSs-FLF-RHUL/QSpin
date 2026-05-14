@@ -8,21 +8,15 @@ projects = ["docs", "scripts", "test"]
 
 [deps]
 CommonSolve = "38540f10-b2f7-11e9-35d8-d573e4eb0ff2"
-DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
-LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
-OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 OrdinaryDiffEqLowOrderRK = "1344f307-1e59-4825-a18e-ace9aa3fa4c6"
-OrdinaryDiffEqSDIRK = "2d112036-d095-4a1e-ab9a-08536f3ecdbf"
 SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
 
 [compat]
 CommonSolve = "0.2.6"
 DocStringExtensions = "0.9.5"
 FFTW = "1.10.0"
-LaTeXStrings = "1.4.0"
 OrdinaryDiffEqLowOrderRK = "2.1.0"
-OrdinaryDiffEqSDIRK = "2.1.0"
 SciMLBase = "3"
 julia = "1.12.4"

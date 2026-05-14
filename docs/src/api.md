@@ -7,5 +7,6 @@ Modules = [
   QSpin.Grids,
   QSpin.Hamiltonian,
   QSpin.OdeSolve,
+  QSpin.TOV,
 ]
 ```
