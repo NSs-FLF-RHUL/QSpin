@@ -1,26 +1,26 @@
 """
-    Sumbodule containing the helper fucntion for solvign the Tolman–Oppenheimer–Volkoff (TOV) equation, taht describes the equation of state for the neutron star interior under the non-relativistic approximation limit.
+Sumbodule containing the helper fucntion for solvign the Tolman–Oppenheimer–Volkoff (TOV) equation, taht describes the equation of state for the neutron star interior under the non-relativistic approximation limit.
 
-    The TOV equation is a ordinary differential equation of pressure as a function of radius r and is written by
+The TOV equation is a ordinary differential equation of pressure as a function of radius r and is written by
 
-    ``
-    \\frac{\\mathrm{d}P}{\\mathrm{d}r} = - \\frac{G}{r^2}
-    \\left[ \\rho(r) + \\frac{P(r)}{c^2} \\right]
-    \\left[ m(r) + 4\\pi r^3 \\frac{P(r)}{c^2} \\right]
-    \\left[ 1 - \\frac{2Gm(r)}{c^2 r} \\right]^{-1},
-    ``
+``
+\\frac{\\mathrm{d}P}{\\mathrm{d}r} = - \\frac{G}{r^2}
+\\left[ \\rho(r) + \\frac{P(r)}{c^2} \\right]
+\\left[ m(r) + 4\\pi r^3 \\frac{P(r)}{c^2} \\right]
+\\left[ 1 - \\frac{2Gm(r)}{c^2 r} \\right]^{-1},
+``
 
-    where ``G`` and ``c`` represent the gravitational constant and speed of light in vacuum, respectively.
+where ``G`` and ``c`` represent the gravitational constant and speed of light in vacuum, respectively.
 
-    It is coupled to the mass m(r) within radius r, which is given by
+It is coupled to the mass m(r) within radius r, which is given by
 
-    ``
-    \\frac{\\mathrm{d}m}{\\mathrm{d}r} = 4\\pi\\rho(r)r^2.
-    ``
+``
+\\frac{\\mathrm{d}m}{\\mathrm{d}r} = 4\\pi\\rho(r)r^2.
+``
 
-    where ρ is the density as a function of r and is assumeed to be spherically symmetric.
+where ρ is the density as a function of r and is assumeed to be spherically symmetric.
 
-    To solve the TOV equation, we need to specify an equation of state (EoS) that relates the pressure P to the density ρ, that is we must provide ``P = P(\\rho)`` (and the inverse). Here, to solve the TOV equation numerically, we use the vector presentation for the variables, `u = (P, m)`` and solving a first-order system ODE in ``u``.
+To solve the TOV equation, we need to specify an equation of state (EoS) that relates the pressure P to the density ρ, that is we must provide ``P = P(\\rho)`` (and the inverse). Here, to solve the TOV equation numerically, we use the vector presentation for the variables, `u = (P, m)`` and solving a first-order system ODE in ``u``.
 """
 module TOV
 
