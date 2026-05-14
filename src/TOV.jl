@@ -32,19 +32,18 @@ using SciMLBase: DiscreteCallback, terminate!
 
 function tov_eq!(EoS_rho_from_P::Function)
     function tov_inner!(du, u, paras, r)
-        P = u[1];
-        m = u[2];
-        ρ = EoS_rho_from_P(P);
-        if r == 0.0
-            du[1] = 0.0;
+        P = u[1]
+        m = u[2]
+        ρ = EoS_rho_from_P(P)
+        du[1] = if r == 0.0
+            0.0
         else
-            du[1] =
-                -gravitational_constant / r^2 *
+            -gravitational_constant / r^2 *
                 (ρ + P/speed_of_light_vacuum^2) *
                 (m + 4*pi*r^3*P/speed_of_light_vacuum^2) /
-                (1 - 2*gravitational_constant*m/(r*speed_of_light_vacuum^2));
+                (1 - 2*gravitational_constant*m/(r*speed_of_light_vacuum^2))
         end
-        du[2] = 4*pi*r^2*ρ;
+        du[2] = 4*pi*r^2*ρ
     end
     return tov_inner!
 end
@@ -101,33 +100,33 @@ function EoS_two_component_polytrope(
     ParamIn::ParameterType,
     report_transition_pressure::Bool = false,
 )
-    K_core = ParamIn.K_crust * ParamIn.ρ_b ^ (ParamIn.γ_crust - ParamIn.γ_core);
+    K_core = ParamIn.K_crust * ParamIn.ρ_b ^ (ParamIn.γ_crust - ParamIn.γ_core)
 
     function EoS_P_from_rho(ρ)
-        if ρ < 0
-            P = 0.0;
+        P = if ρ < 0
+            0.0
         elseif ρ <= ParamIn.ρ_b
-            P = ParamIn.K_crust * ρ .^ ParamIn.γ_crust;
+            ParamIn.K_crust * ρ .^ ParamIn.γ_crust
         else
-            P = K_core * ρ .^ ParamIn.γ_core;
+            K_core * ρ .^ ParamIn.γ_core
         end
-        return P;
+        return P
     end
 
     # Pressure at the crust-core transition for continuity check
-    P_b = EoS_P_from_rho(ParamIn.ρ_b);
+    P_b = EoS_P_from_rho(ParamIn.ρ_b)
 
     if report_transition_pressure
         println("Pressure at crust-core transition (Pb): ", P_b)
     end
 
     function EoS_rho_from_P(P)
-        if P < 0
-            ρ = 0.0;
+        ρ = if P < 0
+            0.0
         elseif P <= P_b
-            ρ = (P / ParamIn.K_crust) .^ (1/ParamIn.γ_crust);
+            (P / ParamIn.K_crust) .^ (1/ParamIn.γ_crust)
         else
-            ρ = (P / K_core) .^ (1/ParamIn.γ_core);
+            (P / K_core) .^ (1/ParamIn.γ_core)
         end
         return ρ
     end
@@ -148,7 +147,7 @@ function TOV_Solve(
     reltol = 1e-8,
     solver_options...,
 )
-    tov! = tov_eq!(EoS_inv);
+    tov! = tov_eq!(EoS_inv)
     condition(u, t, integrator) = u[1] < 0
     affect!(integrator) = terminate!(integrator)
     cb = DiscreteCallback(condition, affect!)
@@ -160,11 +159,11 @@ function TOV_Solve(
         alg,
         callback = cb,
         solver_options...
-    );
-    ur = Array(sol_tov);
-    r = sol_tov.t;
-    Pr = ur[1, :];
-    mr = ur[2, :];
+    )
+    ur = Array(sol_tov)
+    r = sol_tov.t
+    Pr = ur[1, :]
+    mr = ur[2, :]
 
     TOV_sol = (r = r, Pr = Pr, mr = mr, ρr = EoS_inv.(Pr), R = r[end], M = mr[end])
     return TOV_sol
