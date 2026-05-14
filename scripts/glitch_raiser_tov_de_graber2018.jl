@@ -83,7 +83,7 @@ end
     0.0,
     Glitch_Raiser_Input.t_end,
     Glitch_Raiser_Input;
-    alg = DE.Tsit5(),
+    alg = DE.Tsit5(), #KenCarp4() for stiff porblems, but may not be stable either.
     dt = Glitch_Raiser_Input.dt,
     saveat = Glitch_Raiser_Input.Dt,
     reltol = 1e-8,
