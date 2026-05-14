@@ -9,9 +9,9 @@ using ..Parameters: ParameterType
 """
 $(TYPEDSIGNATURES)
 
-Time-evolve an equation of motion using `OrdinaryDiffEq` (DE).
+Time-evolve an equation of motion using the `CommonSolve` package.
 
-This is a thin wrapper around `DE.ODEProblem` and `DE.solve`. The keyword arguments in
+This is a thin wrapper around `ODEProblem` and `solve` in the `CommonSolve` package. The keyword arguments in
 `solver_options` are handed directly to `DE.solve`. See
 [their documentation](https://docs.sciml.ai/DiffEqDocs/stable/basics/common_solver_opts/#solver_options)
 for the full range of options.
