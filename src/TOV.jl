@@ -28,6 +28,7 @@ using ..OdeSolve: evolve
 using ..Parameters: ParameterType
 using ..PhysicalConstants: gravitational_constant, speed_of_light_vacuum
 using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK
+using SciMLBase: DiscreteCallback, terminate!
 
 function tov_eq!(EoS_rho_from_P::Function)
     function tov_inner!(du, u, paras, r)
@@ -145,8 +146,8 @@ function TOV_Solve(
 )
     tov! = tov_eq!(EoS_inv);
     condition(u, t, integrator) = u[1] < 0
-    affect!(integrator) = DE.terminate!(integrator)
-    cb = DE.DiscreteCallback(condition, affect!)
+    affect!(integrator) = terminate!(integrator)
+    cb = DiscreteCallback(condition, affect!)
     sol_tov = evolve(
         tov!,
         u0,
