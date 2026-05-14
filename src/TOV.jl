@@ -165,7 +165,7 @@ function TOV_Solve(
     Pr = ur[1, :]
     mr = ur[2, :]
 
-    TOV_sol = (r = r, Pr = Pr, mr = mr, ρr = EoS_inv.(Pr), R = r[end], M = mr[end])
+    TOV_sol = (; r, Pr, mr, ρr = EoS_inv.(Pr), R = r[end], M = mr[end])
     return TOV_sol
 end
 
