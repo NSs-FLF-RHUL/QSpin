@@ -36,21 +36,14 @@ u0_Stiff = [EoS_Stiff(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressu
 u0_Soft = [EoS_Soft(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
 
 # Sovling the TOV equation using the RK4 method with QSpin OdeSolve module for Stiff and Soft EoSs.
-@time Pr_Stiff, mr_Stiff, ρr_Stiff, M_Stiff, R_Stiff, r = QSpin.TOV.TOV_Solve_rk4(
-    u0_Stiff,
-    Sim_Input.dr,
-    Sim_Input.Dr,
-    Sim_Input.r_end,
-    EoS_inv_Stiff,
-);
 
-@time Pr_Soft, mr_Soft, ρr_Soft, M_Soft, R_Soft = QSpin.TOV.TOV_Solve_rk4(
-    u0_Soft,
-    Sim_Input.dr,
-    Sim_Input.Dr,
-    Sim_Input.r_end,
-    EoS_inv_Soft,
-);
+
+@time TOV_sol_Stiff =
+    QSpin.TOV.TOV_Solve(u0_Stiff, TOV_Input.dr, TOV_Input.Dr, 15e3, EoS_inv_Stiff)
+
+@time TOV_sol_Soft =
+    QSpin.TOV.TOV_Solve(u0_Soft, TOV_Input.dr, TOV_Input.Dr, 15e3, EoS_inv_Soft)
+
 
 # Computing the M-R relation by varying the central density and solving the TOV equation for each case. The radius is defined by the first point that the pressure becomes negative.
 ρc_scan = exp10.(range(17.5, stop = 20, length = 150))
@@ -62,25 +55,25 @@ R_SoftScan = zeros(length(ρc_scan));
 for cc = 1:length(ρc_scan)
     ρc = ρc_scan[Int.(cc)];
 
-    Pr, mr, ρr, M, R = QSpin.TOV.TOV_Solve_rk4(
+    TOV_sol = QSpin.TOV.TOV_Solve(
         [EoS_Stiff(ρc); 0.0],
         Sim_Input.dr,
         Sim_Input.Dr,
         Sim_Input.r_end,
         EoS_inv_Stiff,
     );
-    M_StiffScan[Int.(cc)] = M
-    R_StiffScan[Int.(cc)] = R
+    M_StiffScan[Int.(cc)] = TOV_sol.M
+    R_StiffScan[Int.(cc)] = TOV_sol.R
     # println("Mass: ", M/PhysConst.Msun, " M_sun, Radius: ", R/1e3, " km")
-    Pr, mr, ρr, M, R = QSpin.TOV.TOV_Solve_rk4(
-        [EoS_Soft(ρc); 0.0],
+    TOV_sol = QSpin.TOV.TOV_Solve(
+        [EoS_Stiff(ρc); 0.0],
         Sim_Input.dr,
         Sim_Input.Dr,
         Sim_Input.r_end,
         EoS_inv_Soft,
     );
-    M_SoftScan[Int.(cc)] = M
-    R_SoftScan[Int.(cc)] = R
+    M_SoftScan[Int.(cc)] = TOV_sol.M
+    R_SoftScan[Int.(cc)] = TOV_sol.R
 end
 
 # Plotting
@@ -88,8 +81,8 @@ Pc_Stiff = EoS_Stiff(Sim_Input.ρ0) # Getting the reference core pressure for th
 Pc_Soft = EoS_Soft(Sim_Input.ρ0) # Getting the reference core pressure for the soft case.
 plot(
     plot(
-        r/1e3,
-        [Pr_Stiff/Pc_Stiff Pr_Soft/Pc_Soft],
+        TOV_sol_Stiff.r/1e3,
+        [TOV_sol_Stiff.Pr/Pc_Stiff TOV_sol_Soft.Pr/Pc_Soft],
         label = [string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.γ_core) string(
             L"\gamma_\mathrm{core}=",
             EoS_Param_Soft.γ_core,

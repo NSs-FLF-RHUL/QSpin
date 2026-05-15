@@ -170,7 +170,7 @@ function TOV_Solve(
     alg = OrdinaryDiffEqLowOrderRK.DP5(),
     dt = dr,
     saveat = Dr,
-    reltol = 1e-8,
+    reltol = 1e12,
     solver_options...,
 )
     tov! = tov_eq!(EoS_inv)
@@ -183,7 +183,8 @@ function TOV_Solve(
     Pr = ur[1, :]
     mr = ur[2, :]
 
-    TOV_sol = (; r, Pr, mr, ρr = EoS_inv.(Pr), R = r[end], M = mr[end])
+    R_index = findfirst(x->x<0, Pr);
+    TOV_sol = (; r, Pr, mr, ρr = EoS_inv.(Pr), R = r[R_index-1], M = mr[R_index-1])
     return TOV_sol
 end
 
