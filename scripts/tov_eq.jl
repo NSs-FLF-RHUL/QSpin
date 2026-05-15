@@ -2,6 +2,7 @@ using QSpin
 using QSpin.Parameters: ParameterType
 using QSpin.PhysicalConstants
 using Plots, LaTeXStrings
+import OrdinaryDiffEq as DE
 # This script is demonstrating how to solve the Tolman–Oppenheimer–Volkoff (TOV) equation for neutron stars using the QSpin package with the built-in TOV solver using Runge-Kutta 4th order method.
 # The parameters are chosen from https://github.com/vanessagraber/teaching_materials/blob/master/summerschool_CRAQ_2019/mass_radius_relations.ipynb.
 ħ = hbar;
@@ -22,7 +23,7 @@ EoS_Param_Soft = (
 # Simulation Input Parameters
 Sim_Input = (
     ρ0 = 1e15*1e3, # Initial central density in kg/m^3 (1e15 g/cm^3)
-    dr = 0.01*1e3, # Radial step in meters
+    dr = 0.005*1e3, # Radial step in meters
     Dr = 0.01*1e3, # Radial interval for recording values in meters
     r_end = 20e3, # Maximum radius to solve up to in meters
 );
@@ -38,39 +39,58 @@ u0_Soft = [EoS_Soft(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure
 # Sovling the TOV equation using the RK4 method with QSpin OdeSolve module for Stiff and Soft EoSs.
 
 
-@time TOV_sol_Stiff =
-    QSpin.TOV.TOV_Solve(u0_Stiff, TOV_Input.dr, TOV_Input.Dr, 15e3, EoS_inv_Stiff)
+@time TOV_sol_Stiff = QSpin.TOV.TOV_Solve(
+    u0_Stiff,
+    Sim_Input.dr,
+    Sim_Input.Dr,
+    15e3,
+    EoS_inv_Stiff;
+    alg = DE.Tsit5(),
+    reltol = 1e-12,
+)
 
-@time TOV_sol_Soft =
-    QSpin.TOV.TOV_Solve(u0_Soft, TOV_Input.dr, TOV_Input.Dr, 15e3, EoS_inv_Soft)
+@time TOV_sol_Soft = QSpin.TOV.TOV_Solve(
+    u0_Soft,
+    Sim_Input.dr,
+    Sim_Input.Dr,
+    15e3,
+    EoS_inv_Soft;
+    alg = DE.Tsit5(),
+    reltol = 1e-12,
+)
 
 
 # Computing the M-R relation by varying the central density and solving the TOV equation for each case. The radius is defined by the first point that the pressure becomes negative.
-ρc_scan = exp10.(range(17.5, stop = 20, length = 150))
+ρc_scan = exp10.(range(19.5, stop = 20, length = 150))
 M_StiffScan = zeros(length(ρc_scan));
 R_StiffScan = zeros(length(ρc_scan));
 M_SoftScan = zeros(length(ρc_scan));
 R_SoftScan = zeros(length(ρc_scan));
 
 for cc = 1:length(ρc_scan)
-    ρc = ρc_scan[Int.(cc)];
 
+    ρc = ρc_scan[Int.(cc)];
+    println(cc, ": Solving TOV for central density ρc = ", ρc/1e18, "1e18 kg/m^3")
     TOV_sol = QSpin.TOV.TOV_Solve(
         [EoS_Stiff(ρc); 0.0],
         Sim_Input.dr,
         Sim_Input.Dr,
         Sim_Input.r_end,
-        EoS_inv_Stiff,
+        EoS_inv_Stiff;
+        alg = DE.Tsit5(),
+        reltol = 1e-12,
     );
     M_StiffScan[Int.(cc)] = TOV_sol.M
     R_StiffScan[Int.(cc)] = TOV_sol.R
     # println("Mass: ", M/PhysConst.Msun, " M_sun, Radius: ", R/1e3, " km")
     TOV_sol = QSpin.TOV.TOV_Solve(
-        [EoS_Stiff(ρc); 0.0],
+        [EoS_Soft(ρc); 0.0],
         Sim_Input.dr,
         Sim_Input.Dr,
         Sim_Input.r_end,
-        EoS_inv_Soft,
+        EoS_inv_Soft;
+        alg = DE.Tsit5(),
+        reltol = 1e-12,
     );
     M_SoftScan[Int.(cc)] = TOV_sol.M
     R_SoftScan[Int.(cc)] = TOV_sol.R

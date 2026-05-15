@@ -170,14 +170,25 @@ function TOV_Solve(
     alg = OrdinaryDiffEqLowOrderRK.DP5(),
     dt = dr,
     saveat = Dr,
-    reltol = 1e12,
+    reltol = 1e-12,
     solver_options...,
 )
     tov! = tov_eq!(EoS_inv)
     condition(u, t, integrator) = u[1] < 0
     affect!(integrator) = terminate!(integrator)
     cb = DiscreteCallback(condition, affect!)
-    sol_tov = evolve(tov!, u0, 0.0, r_max; alg, callback = cb, solver_options...)
+    sol_tov = evolve(
+        tov!,
+        u0,
+        0.0,
+        r_max;
+        alg,
+        reltol,
+        callback = cb,
+        dt,
+        saveat,
+        solver_options...,
+    )
     ur = Array(sol_tov)
     r = sol_tov.t
     Pr = ur[1, :]
