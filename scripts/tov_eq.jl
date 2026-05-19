@@ -46,7 +46,8 @@ u0_Soft = [EoS_Soft(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure
     15e3,
     EoS_inv_Stiff;
     alg = DE.Tsit5(),
-    reltol = 1e-12,
+    reltol = 1e-8,
+    abstol = [1.0, 1e15],
 )
 
 @time TOV_sol_Soft = QSpin.TOV.TOV_Solve(
@@ -56,12 +57,13 @@ u0_Soft = [EoS_Soft(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure
     15e3,
     EoS_inv_Soft;
     alg = DE.Tsit5(),
-    reltol = 1e-12,
+    reltol = 1e-8,
+    abstol = [1.0, 1e15],
 )
 
 
 # Computing the M-R relation by varying the central density and solving the TOV equation for each case. The radius is defined by the first point that the pressure becomes negative.
-ρc_scan = exp10.(range(19.5, stop = 20, length = 150))
+ρc_scan = exp10.(range(17.5, stop = 20, length = 150))
 M_StiffScan = zeros(length(ρc_scan));
 R_StiffScan = zeros(length(ρc_scan));
 M_SoftScan = zeros(length(ρc_scan));
@@ -78,7 +80,8 @@ for cc = 1:length(ρc_scan)
         Sim_Input.r_end,
         EoS_inv_Stiff;
         alg = DE.Tsit5(),
-        reltol = 1e-12,
+        reltol = 1e-8,
+        abstol = [1.0, 1e15],
     );
     M_StiffScan[Int.(cc)] = TOV_sol.M
     R_StiffScan[Int.(cc)] = TOV_sol.R
@@ -90,7 +93,8 @@ for cc = 1:length(ρc_scan)
         Sim_Input.r_end,
         EoS_inv_Soft;
         alg = DE.Tsit5(),
-        reltol = 1e-12,
+        reltol = 1e-8,
+        abstol = [1.0, 1e15],
     );
     M_SoftScan[Int.(cc)] = TOV_sol.M
     R_SoftScan[Int.(cc)] = TOV_sol.R
