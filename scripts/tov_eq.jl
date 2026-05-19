@@ -103,55 +103,67 @@ end
 # Plotting
 Pc_Stiff = EoS_Stiff(Sim_Input.ρ0) # Getting the reference core pressure for the stiff case.
 Pc_Soft = EoS_Soft(Sim_Input.ρ0) # Getting the reference core pressure for the soft case.
-plot(
-    plot(
-        TOV_sol_Stiff.r/1e3,
-        [TOV_sol_Stiff.Pr/Pc_Stiff TOV_sol_Soft.Pr/Pc_Soft],
-        label = [string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.γ_core) string(
-            L"\gamma_\mathrm{core}=",
-            EoS_Param_Soft.γ_core,
-        )],
-        xlabel = "Radius (km)",
-        ylabel = L"P/P_c",
-        framestyle = :box,
-        linewidth = 2,
-    ),
-    plot(
-        r/1e3,
-        [mr_Stiff mr_Soft]/mass_sun,
-        label = [string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.γ_core) string(
-            L"\gamma_\mathrm{core}=",
-            EoS_Param_Soft.γ_core,
-        )],
-        xlabel = "Radius (m)",
-        ylabel = L"m/M_\odot",
-        framestyle = :box,
-        linewidth = 2,
-    ),
-    plot(
-        r/1e3,
-        [ρr_Stiff ρr_Soft]/1e18,
-        label = [string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.γ_core) string(
-            L"\gamma_\mathrm{core}=",
-            EoS_Param_Soft.γ_core,
-        )],
-        xlabel = "Radius (m)",
-        ylabel = L"\rho\;(\times10^{18}\;\textrm{kg/m}^3)",
-        framestyle = :box,
-        linewidth = 2,
-    ),
-    scatter(
-        [R_StiffScan R_SoftScan]/1e3,
-        [M_StiffScan M_SoftScan]/mass_sun;
-        zcolor = log.([ρc_scan ρc_scan])/log(10), # color the data by the core density
-        markershape = [:circle :diamond],
-        bg = :linen,
-        markersize = [2 2],
-        label = ["Stiff" "Soft"],
-        xlabel = "Radius (km)",
-        ylabel = L"\textrm{Mass}\;(M_\odot)",
-        framestyle = :box,
-        linewidth = 2,
-    ),
-    layout = (2, 2),
+
+
+plt1 = plot(
+    TOV_sol_Stiff.r/1e3,
+    TOV_sol_Stiff.Pr,
+    label = string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.γ_core),
+    xlabel = "Radius (km)",
+    ylabel = L"P/P_c",
+    framestyle = :box,
+    linewidth = 2,
 )
+plot!(
+    plt1,
+    TOV_sol_Soft.r/1e3,
+    TOV_sol_Soft.Pr,
+    label = string(L"\gamma_\mathrm{core}=", EoS_Param_Soft.γ_core),
+    linewidth = 2,
+)
+plt2 = plot(
+    TOV_sol_Stiff.r/1e3,
+    TOV_sol_Stiff.ρr,
+    label = string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.γ_core),
+    xlabel = "Radius (km)",
+    ylabel = L"\rho/\rho_c",
+    framestyle = :box,
+    linewidth = 2,
+)
+plot!(
+    plt2,
+    TOV_sol_Soft.r/1e3,
+    TOV_sol_Soft.ρr,
+    label = string(L"\gamma_\mathrm{core}=", EoS_Param_Soft.γ_core),
+    linewidth = 2,
+)
+plt3 = plot(
+    TOV_sol_Stiff.r/1e3,
+    TOV_sol_Stiff.mr,
+    label = string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.γ_core),
+    xlabel = "Radius (km)",
+    ylabel = L"\rho/\rho_c",
+    framestyle = :box,
+    linewidth = 2,
+)
+plot!(
+    plt3,
+    TOV_sol_Soft.r/1e3,
+    TOV_sol_Soft.mr,
+    label = string(L"\gamma_\mathrm{core}=", EoS_Param_Soft.γ_core),
+    linewidth = 2,
+)
+plt4 = scatter(
+    [R_StiffScan R_SoftScan]/1e3,
+    [M_StiffScan M_SoftScan]/mass_sun;
+    zcolor = log.([ρc_scan ρc_scan])/log(10), # color the data by the core density
+    markershape = [:circle :diamond],
+    bg = :linen,
+    markersize = [2 2],
+    label = ["Stiff" "Soft"],
+    xlabel = "Radius (km)",
+    ylabel = L"\textrm{Mass}\;(M_\odot)",
+    framestyle = :box,
+    linewidth = 2,
+)
+plot(plt1, plt2, plt3, plt4, layout = (2, 2))
