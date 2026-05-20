@@ -1,0 +1,46 @@
+import OrdinaryDiffEq as DE
+using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK
+using QSpin.TOV: EoS_two_component_polytrope, tov_eq!
+using QSpin.OdeSolve: evolve
+using QSpin.Parameters: ParameterType
+using SciMLBase: ODEProblem, DiscreteCallback, terminate!
+using QSpin.PhysicalConstants:
+    gravitational_constant, speed_of_light_vacuum, neutron_mass, hbar
+using Plots
+
+ħ = hbar;
+mn = neutron_mass;
+
+EoS_Param = (
+    K_crust = (3*π^2)^(2/3) * ħ^2 / (5*neutron_mass^(8/3)), # Polytropic constant for the crust
+    γ_crust = 5.0/3.0, # Polytropic index for the crust
+    γ_core = 3.0, # Polytropic index for the core
+    ρ_b = 3e14*1e3, # Transition density between crust and core in kg/m^3
+)
+
+# Simulation Input Parameters
+TOV_Sol_Input = (
+    ρ0 = 1e17*1e3, # Initial central density in kg/m^3 (1e15 g/cm^3)
+    dr = 0.01*1e3, # Radial step in meters
+    Dr = 0.01*1e3, # Radial interval for recording values in meters
+    r_end = 20e3, # Maximum radius to solve up to in meters
+);
+
+EoS, EoS_inv = EoS_two_component_polytrope(EoS_Param);
+u0 = [EoS(TOV_Sol_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
+tov! = tov_eq!(EoS_inv);
+
+condition(u, t, integrator) = u[1] < 0
+affect!(integrator) = terminate!(integrator)
+cb = DiscreteCallback(condition, affect!)
+
+problem = ODEProblem(tov!, u0, (0.0, TOV_Sol_Input.r_end); callback = cb)
+sol = DE.solve(problem, OrdinaryDiffEqLowOrderRK.DP5(); reltol = 1e-8, abstol = [1.0, 1e15])
+#sol = DE.solve(problem, DE.Tsit5(); reltol = 1e-12)
+
+ur = Array(sol)
+r = sol.t
+Pr = ur[1, :]
+mr = ur[2, :]
+ρr = EoS_inv.(Pr)
+plot(r, ρr)
