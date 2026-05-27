@@ -1,6 +1,6 @@
 module MFriction
 using JSON
-using DataInterpolations: CubicSpline
+using DataInterpolations
 using ..PhysicalConstants: hbar, neutron_mass, electron_volt, gravitational_constant
 
 
@@ -61,8 +61,8 @@ function VNparaGraber2018(file_path)
         (abs.(Ep * MeV) * δ ./ ρs / κ) .^ (1/2) .* a .^ 0.5 ./ ξ * 10^(7.5)
     Beb = Reb ./ (1 .+ Reb .^ 2)
     Bj = Rj ./ (1 .+ Rj .^ 2)
-    Beb_itp = CubicSpline(Beb, ρs)
-    Bj_itp = CubicSpline(Bj, ρs)
+    Beb_itp = CubicSpline(Beb, ρs; extrapolation = ExtrapolationType.Extension)
+    Bj_itp = CubicSpline(Bj, ρs; extrapolation = ExtrapolationType.Extension)
     output = (
         nb = nb,
         Z = Z,
