@@ -4,11 +4,6 @@ using DataInterpolations
 using DocStringExtensions: TYPEDSIGNATURES
 using ..PhysicalConstants: hbar, neutron_mass, electron_volt, gravitational_constant
 
-
-function ReadJSON(file_path)
-    return JSON.parsefile(file_path)
-end
-
 """
 $(TYPEDSIGNATURES)
 
@@ -30,7 +25,7 @@ function VNparaGraber2018(file_path)
     δ = 1e-2 # dimensionless coefficient for the pinning energy reduction due to vortex tension
     κ = hbar / neutron_mass * π  # SI units
 
-    data = ReadJSON(file_path)
+    data = JSON.parsefile(file_path)
     println("Successfully loaded JSON data!\n")
     nb = zeros(length(data)-1)
     Z = zeros(length(data)-1)
