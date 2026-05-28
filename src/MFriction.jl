@@ -8,6 +8,19 @@ function ReadJSON(file_path)
     return JSON.parsefile(file_path)
 end
 
+"""
+
+    This function reads in JSON data for a given file path and calculates the mutual friction parameters for a neutron star crust based on the Graber et al. 2018 model.
+    According to Graber et al. 2018, the mutual friction coefficients are calculated based on the superfluid density and other physical parameters.
+    The function returns a tuple containing the input parameters and the calculated mutual friction parameters, including the qubic spline interpolations for the mutual friction coefficients as functions of the superfluid density (in kg * m^-3, while the coverted input is in kg fm^-3).
+
+    VNparaGraber2018(file_path)
+
+    # Arguments
+    - 'output': A tuple containing the input parameters (in their original units from the input JSON file) and the calculated mutual friction parameters in array forms. The qubic spline interpolations for the mutual friction coefficients, B_EW and B_J, as functions of the superfluid density (in kg * m^-3, while the coverted input is in kg fm^-3) are included.
+"""
+
+
 function VNparaGraber2018(file_path)
 
     MeV = electron_volt * 1e6 # convert to kg * fm^2 / s^2
@@ -51,7 +64,7 @@ function VNparaGraber2018(file_path)
     A = Z .* (1 .+ 1 ./ x)
     Rws = (3*(N .+ Z) ./ (4 * π * nb * 1e-4)) .^ (1/3)
     n1 = 3/4/π ./ Rws .^ 3*1e6
-    ρs = ns * 1e-4 * neutron_mass * 1e45# in kg * fm^-3
+    ρs = ns * 1e-4 * neutron_mass * 1e45# in kg * m^-3
     Reb =
         2.8 * sqrt.(0.5 * neutron_mass/hbar) * sqrt.(abs.(Ep * MeV) * δ ./ ρs / κ) .* Rn ./
         a .^ (1.5) * 10^(7.5)
@@ -61,8 +74,18 @@ function VNparaGraber2018(file_path)
         (abs.(Ep * MeV) * δ ./ ρs / κ) .^ (1/2) .* a .^ 0.5 ./ ξ * 10^(7.5)
     Beb = Reb ./ (1 .+ Reb .^ 2)
     Bj = Rj ./ (1 .+ Rj .^ 2)
-    Beb_itp = CubicSpline(Beb, ρs; extrapolation = ExtrapolationType.Extension)
-    Bj_itp = CubicSpline(Bj, ρs; extrapolation = ExtrapolationType.Extension)
+    Beb_itp = CubicSpline(
+        Beb,
+        ρs;
+        extrapolation_right = ExtrapolationType.Extension,
+        extrapolation_left = ExtrapolationType.Constant,
+    )
+    Bj_itp = CubicSpline(
+        Bj,
+        ρs;
+        extrapolation_right = ExtrapolationType.Extension,
+        extrapolation_left = ExtrapolationType.Constant,
+    )
     output = (
         nb = nb,
         Z = Z,
