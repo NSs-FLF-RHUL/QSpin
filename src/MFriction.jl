@@ -77,15 +77,15 @@ function VNparaGraber2018(file_path)
         (abs.(Ep * MeV) * δ ./ ρs / κ) .^ (1/2) .* a .^ 0.5 ./ ξ * 10^(7.5)
     Beb = Reb ./ (1 .+ Reb .^ 2)
     Bj = Rj ./ (1 .+ Rj .^ 2)
-    Beb_itp = CubicSpline(
-        Beb,
-        ρs;
+    Beb_itp = QuadraticSpline(
+        log10.(Beb),
+        log10.(ρs);
         extrapolation_right = ExtrapolationType.Extension,
         extrapolation_left = ExtrapolationType.Constant,
     )
-    Bj_itp = CubicSpline(
-        Bj,
-        ρs;
+    Bj_itp = QuadraticSpline(
+        log10.(Bj),
+        log10.(ρs);
         extrapolation_right = ExtrapolationType.Extension,
         extrapolation_left = ExtrapolationType.Constant,
     )
