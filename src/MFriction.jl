@@ -22,8 +22,6 @@ The function returns a tuple containing the input parameters and the calculated 
 # Returns
 - 'output': A tuple containing the input parameters (in their original units from the input JSON file) and the calculated mutual friction parameters in array forms. The qubic spline interpolations for the mutual friction coefficients, B_EW and B_J, as functions of the superfluid density (in kg * m^-3, while the coverted input is in kg fm^-3) are included.
 """
-
-
 function VNparaGraber2018(file_path)
 
     MeV = electron_volt * 1e6 # convert to kg * fm^2 / s^2
