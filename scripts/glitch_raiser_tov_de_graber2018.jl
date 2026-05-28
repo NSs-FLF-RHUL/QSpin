@@ -3,7 +3,6 @@ using QSpin.Parameters: ParameterType
 using QSpin.PhysicalConstants
 using Plots, LaTeXStrings
 import DifferentialEquations as DE
-using OrdinaryDiffEqSDIRK
 using OrdinaryDiffEqLowOrderRK
 ħ = hbar;
 mn = neutron_mass;
