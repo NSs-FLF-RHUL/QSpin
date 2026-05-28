@@ -34,4 +34,4 @@ Manifest.toml
 /docs/build/
 outputs/**
 /local_tests/**
-/test/.DS_Store
+.DS_Store
