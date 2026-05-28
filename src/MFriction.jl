@@ -1,6 +1,7 @@
 module MFriction
 using JSON
 using DataInterpolations
+using DocStringExtensions: TYPEDSIGNATURES
 using ..PhysicalConstants: hbar, neutron_mass, electron_volt, gravitational_constant
 
 
@@ -9,15 +10,17 @@ function ReadJSON(file_path)
 end
 
 """
+$(TYPEDSIGNATURES)
 
-    This function reads in JSON data for a given file path and calculates the mutual friction parameters for a neutron star crust based on the Graber et al. 2018 model.
-    According to Graber et al. 2018, the mutual friction coefficients are calculated based on the superfluid density and other physical parameters.
-    The function returns a tuple containing the input parameters and the calculated mutual friction parameters, including the qubic spline interpolations for the mutual friction coefficients as functions of the superfluid density (in kg * m^-3, while the coverted input is in kg fm^-3).
+This function reads in JSON data for a given file path and calculates the mutual friction parameters for a neutron star crust based on the Graber et al. 2018 model.
+According to Graber et al. 2018, the mutual friction coefficients are calculated based on the superfluid density and other physical parameters.
+The function returns a tuple containing the input parameters and the calculated mutual friction parameters, including the qubic spline interpolations for the mutual friction coefficients as functions of the superfluid density (in kg * m^-3, while the coverted input is in kg fm^-3).
 
-    VNparaGraber2018(file_path)
+# Arguments
+- `file_path`: A string representing the path to the JSON file containing the input parameters for the mutual friction calculations. The JSON file should contain an array of objects, each representing a different region of the neutron star crust with specific parameters such as baryon number density (nb), proton number (Z), neutron number (N), proton fraction (x), superfluid density (ns), lattice spacing (a), nuclear radius (RN), and pinning energy parameters (Es, E1, DE, xi, Ep).
 
-    # Arguments
-    - 'output': A tuple containing the input parameters (in their original units from the input JSON file) and the calculated mutual friction parameters in array forms. The qubic spline interpolations for the mutual friction coefficients, B_EW and B_J, as functions of the superfluid density (in kg * m^-3, while the coverted input is in kg fm^-3) are included.
+# Returns
+- 'output': A tuple containing the input parameters (in their original units from the input JSON file) and the calculated mutual friction parameters in array forms. The qubic spline interpolations for the mutual friction coefficients, B_EW and B_J, as functions of the superfluid density (in kg * m^-3, while the coverted input is in kg fm^-3) are included.
 """
 
 
