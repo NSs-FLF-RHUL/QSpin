@@ -10,7 +10,6 @@ OrdinaryDiffEqLowOrderRK = "1344f307-1e59-4825-a18e-ace9aa3fa4c6"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 QSpin = "3f62d152-8970-4ff6-93e2-b431c80450c4"
 SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
-
 [sources]
 QSpin = {path = ".."}
 
