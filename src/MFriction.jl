@@ -1,6 +1,7 @@
 module MFriction
-using JSON
-using DataInterpolations
+
+using JSON: JSON
+using DataInterpolations: ExtrapolationType, QuadraticSpline
 using DocStringExtensions: TYPEDSIGNATURES
 using ..PhysicalConstants: hbar, neutron_mass, electron_volt, gravitational_constant
 
