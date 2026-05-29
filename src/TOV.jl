@@ -195,7 +195,14 @@ function TOV_Solve(
     mr = ur[2, :]
 
     R_index = findfirst(x->x<0, Pr)
-    TOV_sol = (; r, Pr, mr, ρr = EoS_inv.(Pr), R = r[R_index-1], M = mr[isnothing(R_index) ? end : (R_index -1)])
+    TOV_sol = (;
+        r,
+        Pr,
+        mr,
+        ρr = EoS_inv.(Pr),
+        R = r[R_index-1],
+        M = mr[isnothing(R_index) ? end : (R_index - 1)],
+    )
     return TOV_sol
 end
 
