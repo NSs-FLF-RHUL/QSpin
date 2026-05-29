@@ -22,7 +22,7 @@ EoS_Param_Stiff = (
 
 # Input Parameters for the TOV solver
 TOV_Input = (
-    ρ0 = 5e14*1e3, # Initial central density in kg/m^3 (1e15 g/cm^3)
+    ρ0 = 1e15*1e3, # Initial central density in kg/m^3 (1e15 g/cm^3)
     dr = 0.01*1e3, # Radial step in meters
     Dr = 0.01*1e3, # Radial interval for recording values in meters
     r_end = 15e3, # Maximum radius to solve up to in meters
@@ -53,7 +53,7 @@ Glitch_Raiser_Input = (
     dt = 1e-4, # Time step for the ODE solver in seconds
     Dt = 0.02, # Time interval for recording values in the glitch model in seconds
     t_start = 0.0, # Start time for the glitch model simulation in seconds
-    t_end = 30.0, # End time for the glitch model simulation in seconds
+    t_end = 120.0, # End time for the glitch model simulation in seconds
     ρr = TOV_sol.ρr[1:(end-1)],
     r = TOV_sol.r[1:(end-1)],
 );
@@ -99,7 +99,7 @@ t = sol.t;
 
 plt1 = plot(
     t,
-    [Ωt[1, :] Ωt[2, :] Ωt[length(TOV_sol.r)-1, :]],
+    [Ωt[1, :] Ωt[2, :] Ωt[length(TOV_sol.r)-75, :]],
     label = ["Crust" "Core" "Superfluid"],
     xlabel = "Time (s)",
     ylabel = L"\Omega\;(\mathrm{rad/s})",
@@ -114,7 +114,7 @@ plt2 = heatmap(
     framestyle = :box,
     xlabel = "Time (s)",
     ylabel = "Radius (km)",
-    ylims = (10, TOV_sol.R/1e3),
+    ylims = (12, TOV_sol.R/1e3),
 )
 
 ρc_scan = exp10.(range(13, stop = log10(2e17), length = 150)) # in kg * m^-3, which is equivalent to 1e-3 times the input in kg * fm^-3
