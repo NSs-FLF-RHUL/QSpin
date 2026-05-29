@@ -4,6 +4,10 @@ using QSpin.PhysicalConstants
 using Plots, LaTeXStrings
 import DifferentialEquations as DE
 using OrdinaryDiffEqLowOrderRK
+
+file_path = "scripts/mutual_friction_input.json"
+output = QSpin.MFriction.VNparaGraber2018(file_path)
+
 ħ = hbar;
 mn = neutron_mass;
 Msun = mass_sun;
@@ -18,7 +22,7 @@ EoS_Param_Stiff = (
 
 # Input Parameters for the TOV solver
 TOV_Input = (
-    ρ0 = 1e15*1e3, # Initial central density in kg/m^3 (1e15 g/cm^3)
+    ρ0 = 5e14*1e3, # Initial central density in kg/m^3 (1e15 g/cm^3)
     dr = 0.01*1e3, # Radial step in meters
     Dr = 0.01*1e3, # Radial interval for recording values in meters
     r_end = 15e3, # Maximum radius to solve up to in meters
@@ -34,9 +38,12 @@ tov! = QSpin.TOV.tov_eq!(EoS_inv_Stiff);
 @time TOV_sol =
     QSpin.TOV.TOV_Solve(u0_Stiff, TOV_Input.dr, TOV_Input.Dr, 15e3, EoS_inv_Stiff)
 
+yBew = exp10.(output.Beb_itp(log10.(TOV_sol.ρr)))
+yBj = exp10.(output.Bj_itp(log10.(TOV_sol.ρr)))
+
 Glitch_Raiser_Input = (
-    B_core = 5e-4, # Mutual Friction Parameter
-    B_sf = 1e-2, # Mutual Friction Parameter
+    B_core = 1e-2, # Mutual Friction Parameter
+    B_sf = yBj[1:(end-1)], # Mutual Friction Parameter
     Ω_crust = 70.34, # Initial angular velocity of the crust in rad/s
     Ω_sf = 70.34 + 6.3e-3, # Initial angular velocity of the superfluid in rad/s
     Ω_core = 70.34, # Initial angular velocity of the core in rad/s
@@ -44,9 +51,9 @@ Glitch_Raiser_Input = (
     I_core = 0.8 * 4.5e30, # Moment of inertia of the core in kg m
     N_ext = 0.0,
     dt = 1e-4, # Time step for the ODE solver in seconds
-    Dt = 1, # Time interval for recording values in the glitch model in seconds
+    Dt = 0.02, # Time interval for recording values in the glitch model in seconds
     t_start = 0.0, # Start time for the glitch model simulation in seconds
-    t_end = 120.0, # End time for the glitch model simulation in seconds
+    t_end = 30.0, # End time for the glitch model simulation in seconds
     ρr = TOV_sol.ρr[1:(end-1)],
     r = TOV_sol.r[1:(end-1)],
 );
@@ -90,23 +97,94 @@ end
 Ωt = Array(sol);
 t = sol.t;
 
-plot(
-    plot(
-        t,
-        [Ωt[1, :] Ωt[2, :] Ωt[length(TOV_sol.r)-1, :]],
-        label = ["Crust" "Core" "Superfluid"],
-        xlabel = "Time (s)",
-        ylabel = L"\Omega\;(\mathrm{rad/s})",
+plt1 = plot(
+    t,
+    [Ωt[1, :] Ωt[2, :] Ωt[length(TOV_sol.r)-1, :]],
+    label = ["Crust" "Core" "Superfluid"],
+    xlabel = "Time (s)",
+    ylabel = L"\Omega\;(\mathrm{rad/s})",
+    framestyle = :box,
+    linewidth = 2,
+)
+
+plt2 = heatmap(
+    t,
+    TOV_sol.r[1:(end-1)]/1e3,
+    Ωt[3:end, :],
+    framestyle = :box,
+    xlabel = "Time (s)",
+    ylabel = "Radius (km)",
+    ylims = (10, TOV_sol.R/1e3),
+)
+
+ρc_scan = exp10.(range(13, stop = log10(2e17), length = 150)) # in kg * m^-3, which is equivalent to 1e-3 times the input in kg * fm^-3
+yBewS = exp10.(output.Beb_itp(log10.(ρc_scan)))
+yBjS = exp10.(output.Bj_itp(log10.(ρc_scan)))
+plt3 = plot(
+    ρc_scan*1e-3,
+    yBewS,
+    ls = :dashdot,
+    lc = :blue,
+    linewidth = 2,
+    xaxis = (:log10, [3.5e11, 2e14]),
+    yaxis = (:log10, [1e-5, 1e-1]),
+    label = L"\textrm{(B)} \; \mathcal{B}_\mathrm{EB} \; \textrm{with }\; E_{p} ",
+)
+plot!(plt3, scatter!(output.ρs*1e-3, output.Beb, label = false, mc = :blue, lc = :blue))
+plot!(
+    plt3,
+    plot!(
+        ρc_scan*1e-3,
+        yBjS,
+        ls = :dash,
+        lc = RGB(0.94, 0.65, 0.25),
+        linewidth = 2,
+        xaxis = (:log10, [3.5e11, 2e14]),
+        yaxis = (:log10, [1e-5, 1e-1]),
+        label = L"\textrm{(C)} \; \mathcal{B}_\mathrm{J} \; \textrm{with }\; E_{p} ",
+    ),
+)
+plot!(
+    plt3,
+    scatter!(
+        output.ρs*1e-3,
+        output.Bj,
+        label = false,
+        mc = RGB(0.94, 0.65, 0.25),
+        lc = RGB(0.94, 0.65, 0.25),
+        framestyle = :box,
+        legend = :bottomleft,
+    ),
+)
+xlabel!(L"\rho_s \; (\textrm{g} \; \textrm{cm}^{-3})")
+ylabel!(L"\mathcal{B}")
+
+plt4 = plot(
+    TOV_sol.r/1e3,
+    yBew,
+    lc = :blue,
+    label = L"\mathcal{B}_{EW}",
+    xlabel = "Radius (km)",
+    ylabel = L"\mathcal{B}",
+    framestyle = :box,
+    linewidth = 2,
+    legend = :topleft,
+    yaxis = (:log10),
+)
+plot!(
+    plt4,
+    plot!(
+        TOV_sol.r/1e3,
+        yBj,
+        lc = RGB(0.94, 0.65, 0.25),
+        label = L"\mathcal{B}_{J}",
+        xlabel = "Radius (km)",
+        ylabel = L"\mathcal{B}",
         framestyle = :box,
         linewidth = 2,
+        legend = :topleft,
+        yaxis = (:log10),
     ),
-    heatmap(
-        t,
-        TOV_sol.r[1:(end-1)]/1e3,
-        Ωt[3:end, :],
-        framestyle = :box,
-        xlabel = "Time (s)",
-        ylabel = "Radius (km)",
-    ),
-    layout = (1, 2),
 )
+
+plot(plt1, plt2, plt3, plt4, layout = (2, 2))
