@@ -23,11 +23,8 @@ Mose Giordano ([m.giordano@ucl.ac.uk](m.giordano@ucl.ac.uk))
 ## Description
 
 QSpin contains multi-functional PDE solvers for quantum fluid systems.
-It is specifically designed for solving [Gross-Pitaevskii equation](https://iopscience.iop.org/article/10.3847/1538-4357/adc383), [Ginzburg-Landau model](https://www.mdpi.com/2218-1997/8/4/228), and similar non-linear Schrödinger equations for their stationary/equilibrium states and dynamics.
-The former is approached by the steepest descent and imaginary-time propagation methods.
-The time integration here is using Runge-Kutta methods, and adaptive time step is enable.
 
-Here we also include an example script for a neutron star glitch simulator, based on a three-component model, [Graber et al. (2018)](http://arxiv.org/abs/1804.02706), and a python version can be accessed at [glitchsim](https://github.com/NSs-FLF-RHUL/glitchsim.git), which is based on the Jupyter notebook in [glitchraiser](https://github.com/vanessagraber/glitchrises.git).
+It is made for solving nonlinear partial differential equations, specifically for neutron star simulations including [Gross-Pitaevskii equation](https://iopscience.iop.org/article/10.3847/1538-4357/adc383), [Ginzburg-Landau model](https://www.mdpi.com/2218-1997/8/4/228) for their steady states and dynamics, and three-component glitch model [Graber et al. (2018)](http://arxiv.org/abs/1804.02706) (a python version can be accessed at [glitchsim](https://github.com/NSs-FLF-RHUL/glitchsim.git), which is based on the Jupyter notebook in [glitchraiser](https://github.com/vanessagraber/glitchrises.git).).
 
 ## Getting Started
 
