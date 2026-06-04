@@ -113,4 +113,18 @@ function VNparaGraber2018(file_path)
     return output
 end
 
+function MutualFrictionCoefficients(Param, Beb_itp, Bj_itp; ρ_drip = 4e11, Rcci = 1e4)
+    log_ρs = log10.(Param.ρs)
+    Beb = 10 .^ (Beb_itp.(log_ρs))
+    Bj = 10 .^ (Bj_itp.(log_ρs))
+    Beb[Param.ρs .< ρ_drip] .= 0.0
+    Bj[Param.ρs .< ρ_drip] .= 0.0
+    Beb[Param.r .< Rcci] .= Param.Beb_core
+    Bj[Param.r .< Rcci] .= Param.Bj_core
+
+    Bs = (; Beb, Bj)
+    return Bs
+
+end
+
 end

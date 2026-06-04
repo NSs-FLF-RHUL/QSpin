@@ -38,12 +38,19 @@ tov! = QSpin.TOV.tov_eq!(EoS_inv_Stiff);
 @time TOV_sol =
     QSpin.TOV.TOV_Solve(u0_Stiff, TOV_Input.dr, TOV_Input.Dr, 15e3, EoS_inv_Stiff)
 
-yBew = exp10.(output.Beb_itp(log10.(TOV_sol.ρr)))
-yBj = exp10.(output.Bj_itp(log10.(TOV_sol.ρr)))
+Bs = QSpin.MFriction.MutualFrictionCoefficients(
+    (ρs = TOV_sol.ρr, r = TOV_sol.r, Beb_core = 1e-4, Bj_core = 1e-4),
+    output.Beb_itp,
+    output.Bj_itp;
+    Rcci = 1.2e4,
+)
+yBeb = Bs.Beb
+yBj = Bs.Bj
+
 
 Glitch_Raiser_Input = (
     B_core = 1e-2, # Mutual Friction Parameter
-    B_sf = yBj[1:(end-1)], # Mutual Friction Parameter
+    B_sf = yBeb[1:(end-1)], # Mutual Friction Parameter
     Ω_crust = 70.34, # Initial angular velocity of the crust in rad/s
     Ω_sf = 70.34 + 6.3e-3, # Initial angular velocity of the superfluid in rad/s
     Ω_core = 70.34, # Initial angular velocity of the core in rad/s
@@ -114,7 +121,7 @@ plt2 = heatmap(
     framestyle = :box,
     xlabel = "Time (s)",
     ylabel = "Radius (km)",
-    ylims = (12, TOV_sol.R/1e3),
+    ylims = (10, TOV_sol.R/1e3),
 )
 
 ρc_scan = exp10.(range(13, stop = log10(2e17), length = 150)) # in kg * m^-3, which is equivalent to 1e-3 times the input in kg * fm^-3
@@ -160,8 +167,8 @@ xlabel!(L"\rho_s \; (\textrm{g} \; \textrm{cm}^{-3})")
 ylabel!(L"\mathcal{B}")
 
 plt4 = plot(
-    TOV_sol.r/1e3,
-    yBew,
+    TOV_sol.r[TOV_sol.ρr .>= 4e11]/1e3,
+    yBeb[TOV_sol.ρr .>= 4e11],
     lc = :blue,
     label = L"\mathcal{B}_{EW}",
     xlabel = "Radius (km)",
@@ -174,8 +181,8 @@ plt4 = plot(
 plot!(
     plt4,
     plot!(
-        TOV_sol.r/1e3,
-        yBj,
+        TOV_sol.r[TOV_sol.ρr .>= 4e11]/1e3,
+        yBj[TOV_sol.ρr .>= 4e11],
         lc = RGB(0.94, 0.65, 0.25),
         label = L"\mathcal{B}_{J}",
         xlabel = "Radius (km)",

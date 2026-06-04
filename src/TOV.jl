@@ -49,6 +49,75 @@ function tov_eq!(EoS_rho_from_P::Function)
     return tov_inner!
 end
 
+"""
+
+$(TYPEDSIGNATURES)
+
+Solving the TOV equation for a given EoS and initial conditions using the `CommonSolve`  package, adapted in OdeSolve.jl of this package.
+
+Now it uses DP5 method, which is a 5th order explicit Runge-Kutta method with an embedded 4th order method for error estimation, suitable for non-stiff problems. For stiff problems, consider using `KenCarp4` or `Rodas5` methods from the `OrdinaryDiffEqSDIRK` package, and this method is also used in [TOVsolver_Julia](https://github.com/jskMNMGCH/TOVsolver_Julia).
+
+# Arguments
+- `u0::AbstractArray`: Initial conditions for the TOV equation, given as a vector of the form `[P(0), m(0)]`, where `P(0)`
+- 'dr::Float64`: Radial step size for the numerical solver.
+- `Dr::Float64`: Radial interval for recording values of the solution.
+- `r_max::Float64`: Maximum radius to solve up to.
+- `EoS_inv::Function`: Inverse EoS function that takes pressure as input and returns density, i.e., `EoS_inv(P) = ρ`.
+- `solver_options...`: Additional keyword arguments to pass to the ODE solver.
+
+# Returns
+- `TOV_sol::NamedTuple`: A named tuple containing the solution of the TOV equation, with the following fields:
+    - `r`: Radial coordinates at which the solution is evaluated.
+    - `Pr`: Pressure as a function of radius.
+    - `mr`: Enclosed mass as a function of radius.
+    - `ρr`: Density as a function of radius, obtained by applying the inverse EoS to the pressure solution.
+    - `R`: The radius of the star, defined as the radius at which the pressure drops to zero.
+    - `M`: The total mass of the star, defined as the enclosed mass at the radius `R`.
+"""
+function TOV_Solve(
+    u0::Union{AbstractArray,Array{Float64}},
+    dr::Float64,
+    Dr::Float64,
+    r_max::Float64,
+    EoS_inv::Function;
+    alg = OrdinaryDiffEqLowOrderRK.DP5(),
+    dt = dr,
+    saveat = Dr,
+    reltol = 1e-12,
+    solver_options...,
+)
+    tov! = tov_eq!(EoS_inv)
+    condition(u, t, integrator) = u[1] < 0
+    affect!(integrator) = terminate!(integrator)
+    cb = DiscreteCallback(condition, affect!)
+    sol_tov = evolve(
+        tov!,
+        u0,
+        0.0,
+        r_max;
+        alg,
+        reltol,
+        callback = cb,
+        dt,
+        saveat,
+        solver_options...,
+    )
+    ur = Array(sol_tov)
+    r = sol_tov.t
+    Pr = ur[1, :]
+    mr = ur[2, :]
+
+    R_index = findfirst(x->x<0, Pr)
+    TOV_sol = (;
+        r,
+        Pr,
+        mr,
+        ρr = EoS_inv.(Pr),
+        R = r[R_index-1],
+        M = mr[isnothing(R_index) ? end : (R_index - 1)],
+    )
+    return TOV_sol
+end
 
 """
 $(TYPEDSIGNATURES)
@@ -136,75 +205,7 @@ function EoS_two_component_polytrope(
     return EoS_P_from_rho, EoS_rho_from_P
 end
 
-"""
 
-$(TYPEDSIGNATURES)
-
-Solving the TOV equation for a given EoS and initial conditions using the `CommonSolve`  package, adapted in OdeSolve.jl of this package.
-
-Now it uses DP5 method, which is a 5th order explicit Runge-Kutta method with an embedded 4th order method for error estimation, suitable for non-stiff problems. For stiff problems, consider using `KenCarp4` or `Rodas5` methods from the `OrdinaryDiffEqSDIRK` package, and this method is also used in [TOVsolver_Julia](https://github.com/jskMNMGCH/TOVsolver_Julia).
-
-# Arguments
-- `u0::AbstractArray`: Initial conditions for the TOV equation, given as a vector of the form `[P(0), m(0)]`, where `P(0)`
-- 'dr::Float64`: Radial step size for the numerical solver.
-- `Dr::Float64`: Radial interval for recording values of the solution.
-- `r_max::Float64`: Maximum radius to solve up to.
-- `EoS_inv::Function`: Inverse EoS function that takes pressure as input and returns density, i.e., `EoS_inv(P) = ρ`.
-- `solver_options...`: Additional keyword arguments to pass to the ODE solver.
-
-# Returns
-- `TOV_sol::NamedTuple`: A named tuple containing the solution of the TOV equation, with the following fields:
-    - `r`: Radial coordinates at which the solution is evaluated.
-    - `Pr`: Pressure as a function of radius.
-    - `mr`: Enclosed mass as a function of radius.
-    - `ρr`: Density as a function of radius, obtained by applying the inverse EoS to the pressure solution.
-    - `R`: The radius of the star, defined as the radius at which the pressure drops to zero.
-    - `M`: The total mass of the star, defined as the enclosed mass at the radius `R`.
-"""
-function TOV_Solve(
-    u0::Union{AbstractArray,Array{Float64}},
-    dr::Float64,
-    Dr::Float64,
-    r_max::Float64,
-    EoS_inv::Function;
-    alg = OrdinaryDiffEqLowOrderRK.DP5(),
-    dt = dr,
-    saveat = Dr,
-    reltol = 1e-12,
-    solver_options...,
-)
-    tov! = tov_eq!(EoS_inv)
-    condition(u, t, integrator) = u[1] < 0
-    affect!(integrator) = terminate!(integrator)
-    cb = DiscreteCallback(condition, affect!)
-    sol_tov = evolve(
-        tov!,
-        u0,
-        0.0,
-        r_max;
-        alg,
-        reltol,
-        callback = cb,
-        dt,
-        saveat,
-        solver_options...,
-    )
-    ur = Array(sol_tov)
-    r = sol_tov.t
-    Pr = ur[1, :]
-    mr = ur[2, :]
-
-    R_index = findfirst(x->x<0, Pr)
-    TOV_sol = (;
-        r,
-        Pr,
-        mr,
-        ρr = EoS_inv.(Pr),
-        R = r[R_index-1],
-        M = mr[isnothing(R_index) ? end : (R_index - 1)],
-    )
-    return TOV_sol
-end
 
 
 end
