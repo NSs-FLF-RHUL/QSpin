@@ -167,10 +167,10 @@ xlabel!(L"\rho_s \; (\textrm{g} \; \textrm{cm}^{-3})")
 ylabel!(L"\mathcal{B}")
 
 plt4 = plot(
-    TOV_sol.r[TOV_sol.ρr .>= 4e11]/1e3,
-    yBeb[TOV_sol.ρr .>= 4e11],
+    TOV_sol.r[TOV_sol.ρr .>= 4e14]/1e3,
+    yBeb[TOV_sol.ρr .>= 4e14],
     lc = :blue,
-    label = L"\mathcal{B}_{EW}",
+    label = L"\mathcal{B}_{EB}",
     xlabel = "Radius (km)",
     ylabel = L"\mathcal{B}",
     framestyle = :box,
@@ -181,8 +181,8 @@ plt4 = plot(
 plot!(
     plt4,
     plot!(
-        TOV_sol.r[TOV_sol.ρr .>= 4e11]/1e3,
-        yBj[TOV_sol.ρr .>= 4e11],
+        TOV_sol.r[TOV_sol.ρr .>= 4e14]/1e3,
+        yBj[TOV_sol.ρr .>= 4e14],
         lc = RGB(0.94, 0.65, 0.25),
         label = L"\mathcal{B}_{J}",
         xlabel = "Radius (km)",
