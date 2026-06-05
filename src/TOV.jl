@@ -206,6 +206,46 @@ function EoS_two_component_polytrope(
 end
 
 
+function EoS_NegeleVautherin1973(
+    report_transition_pressure::Bool = false,
+    ;
+    ci = [
+        -4.0,
+        2.8822899e-1,
+        5.9150523e-1,
+        9.0185940e-2,
+        -1.1025614e-1,
+        2.9377479e-2,
+        -3.2618465e-3,
+        1.3543555e-4,
+    ],
+)
+    function EoS_P_from_rho(ρ)
+        nb = ρ / (neutron_mass * 1e3); # in the unit of g/cm^3
+        nb_scaled = nb * 1e-35
+        x = log.(nb_scaled)
+        energy_sum = zeros(size(nb))
+        pressure_sum = zeros(size(nb))
+        for j = 2:length(ci)
+            i = j - 1
+            energy_sum .+= ci[j] * x .^ (i-1)
+            pressure_sum .+= (i-1) * ci[j] * x .^ (i-2)
+        end
+        return (nb) .* pressure_sum .* exp.(energy_sum) * 1e6 * electron_volt * 1e7 # Convert to MeV fm^-3
+    end
 
+    function EoS_rho_from_P(P)
+        ρ = zeros(size(P))
+        print(typeof(ρ))
+        for i = 1:length(P)
+            inv_val = find_zero(y -> EoS_P_from_rho(y) - P[i], 3e11)
+            println(typeof(inv_val))
+            ρ[i] = inv_val[1];
+        end
+        print(typeof(ρ))
+        return ρ
+    end
+    return EoS_P_from_rho, EoS_rho_from_P
+end
 
 end
