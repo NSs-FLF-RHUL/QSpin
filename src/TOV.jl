@@ -238,7 +238,6 @@ function EoS_NegeleVautherin1973(
         ρ = zeros(size(P))
         for i = 1:length(P)
             inv_val = find_zero(y -> EoS_P_from_rho(y) - P[i], 3e11)
-            println(typeof(inv_val))
             ρ[i] = inv_val[1];
         end
         return ρ
