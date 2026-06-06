@@ -1,6 +1,6 @@
 import OrdinaryDiffEq as DE
 using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK
-using QSpin.TOV: EoS_two_component_polytrope, tov_eq!
+using QSpin.TOV: EoS_two_component_polytrope, tov_eq!, EoS_NegeleVautherin1973
 using QSpin.OdeSolve: evolve
 using QSpin.Parameters: ParameterType
 using SciMLBase: ODEProblem, DiscreteCallback, terminate!
@@ -26,7 +26,8 @@ TOV_Sol_Input = (
     r_end = 20e3, # Maximum radius to solve up to in meters
 );
 
-EoS, EoS_inv = EoS_two_component_polytrope(EoS_Param);
+#EoS, EoS_inv = EoS_two_component_polytrope(EoS_Param);
+EoS, EoS_inv = EoS_NegeleVautherin1973();
 u0 = [EoS(TOV_Sol_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
 tov! = tov_eq!(EoS_inv);
 
