@@ -1,6 +1,6 @@
 import OrdinaryDiffEq as DE
 using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK
-using QSpin.TOV: EoS_two_component_polytrope, tov_eq!, EoS_NegeleVautherin1973
+using QSpin.TOV: EoS_two_component_polytrope, tov_eq!, EoS_NegeleVautherin1973, EoS_GCA2018
 using QSpin.OdeSolve: evolve
 using QSpin.Parameters: ParameterType
 using SciMLBase: ODEProblem, DiscreteCallback, terminate!
@@ -20,14 +20,15 @@ EoS_Param = (
 
 # Simulation Input Parameters
 TOV_Sol_Input = (
-    ρ0 = 1e17*1e3, # Initial central density in kg/m^3 (1e15 g/cm^3)
-    dr = 0.01*1e3, # Radial step in meters
-    Dr = 0.01*1e3, # Radial interval for recording values in meters
-    r_end = 20e3, # Maximum radius to solve up to in meters
+    ρ0 = 5e14, # Initial central density in kg/m^3 (1e15 g/cm^3)
+    dr = 0.01*1e5, # Radial step in meters
+    Dr = 0.01*1e5, # Radial interval for recording values in meters
+    r_end = 20e5, # Maximum radius to solve up to in meters
 );
 
-#EoS, EoS_inv = EoS_two_component_polytrope(EoS_Param);
+EoS, EoS_inv = EoS_two_component_polytrope(EoS_Param);
 EoS, EoS_inv = EoS_NegeleVautherin1973();
+EoS, EoS_inv = EoS_GCA2018();
 u0 = [EoS(TOV_Sol_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
 tov! = tov_eq!(EoS_inv);
 

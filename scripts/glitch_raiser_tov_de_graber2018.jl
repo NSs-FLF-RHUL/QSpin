@@ -30,6 +30,7 @@ TOV_Input = (
 
 # Fucntion Setup for inverse EoS and TOV equation for the solver
 EoS_Stiff, EoS_inv_Stiff = QSpin.TOV.EoS_two_component_polytrope(EoS_Param_Stiff);
+#EoS, EoS_inv = QSpin.TOV.EoS_GCA2018();
 # Setting up initial condition accordingly to the EoS for a given central density ρ0.
 u0_Stiff = [EoS_Stiff(TOV_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
 tov! = QSpin.TOV.tov_eq!(EoS_inv_Stiff);
