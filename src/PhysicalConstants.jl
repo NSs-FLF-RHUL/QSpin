@@ -43,4 +43,16 @@ const neutron_mass = 1.66053906892e-27
 # 1 yr ~ 3e7 seconds, so 1 Gyr ~ 3e16 seconds?
 const gyr = 3.1556926e9
 
+
+# Unit Converters for SI and CGS units for commonly used NS parameters in the literature
+
+const kg2g = 1e3
+const g2kg = 1e-3
+const cm2m = 1e-2
+const m2cm = 1e2
+const fm2m = 1e-15
+const m2fm = 1e15
+const dyne2N = 1e-5
+const N2dyne = 1e5
+
 end
