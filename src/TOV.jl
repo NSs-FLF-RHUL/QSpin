@@ -273,7 +273,7 @@ function EoS_GCA2018(
         -3.2618465e-3,
         1.3543555e-4,
     ],
-    ρ_drip = 4.3e11, # in g/m^3,
+    ρ_drip = 4.e11, # in g/m^3,
     Ye = 0.4,
 )
     ħ = hbar * 1e3 * 1e4; # convert to g * cm^2 / s
