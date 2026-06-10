@@ -8,27 +8,27 @@ using QSpin.PhysicalConstants:
     gravitational_constant, speed_of_light_vacuum, neutron_mass, hbar
 using Plots
 
-ħ = hbar;
-mn = neutron_mass;
+ħ = hbar * 1e3 * 1e4; # convert to g * cm^2 / s
+mn = neutron_mass * 1e3; # convert to g
 
 EoS_Param = (
-    K_crust = (3*π^2)^(2/3) * ħ^2 / (5*neutron_mass^(8/3)), # Polytropic constant for the crust
+    K_crust = (3*π^2)^(2/3) * ħ^2 / (5*mn^(8/3)), # Polytropic constant for the crust
     γ_crust = 5.0/3.0, # Polytropic index for the crust
     γ_core = 3.0, # Polytropic index for the core
-    ρ_b = 3e14*1e3, # Transition density between crust and core in kg/m^3
+    ρ_b = 3e14, # Transition density between crust and core in kg/m^3
 )
 
 # Simulation Input Parameters
 TOV_Sol_Input = (
-    ρ0 = 5e14, # Initial central density in kg/m^3 (1e15 g/cm^3)
-    dr = 0.01*1e5, # Radial step in meters
-    Dr = 0.01*1e5, # Radial interval for recording values in meters
-    r_end = 20e5, # Maximum radius to solve up to in meters
+    ρ0 = 1e15, # Initial central density in (1g/cm^3)
+    dr = 0.01*1e5, # Radial step in cm
+    Dr = 0.01*1e5, # Radial interval for recording values in cm
+    r_end = 20*1e3*1e2, # Maximum radius to solve up to in cm
 );
 
 EoS, EoS_inv = EoS_two_component_polytrope(EoS_Param);
-EoS, EoS_inv = EoS_NegeleVautherin1973();
-EoS, EoS_inv = EoS_GCA2018();
+#EoS, EoS_inv = EoS_NegeleVautherin1973();
+#EoS, EoS_inv = EoS_GCA2018();
 u0 = [EoS(TOV_Sol_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
 tov! = tov_eq!(EoS_inv);
 

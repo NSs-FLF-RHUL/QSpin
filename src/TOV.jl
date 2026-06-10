@@ -10,7 +10,7 @@ The TOV equation is a ordinary differential equation of pressure as a function o
 \\left[ 1 - \\frac{2Gm(r)}{c^2 r} \\right]^{-1},
 ``
 
-where ``G`` and ``c`` represent the gravitational constant and speed of light in vacuum, respectively.
+where ``G`` and ``c`` represent the gravitational constant and speed of light in vacuum, respectively, in the CGS units.
 
 It is coupled to the mass m(r) within radius r, which is given by
 
@@ -33,6 +33,11 @@ using DocStringExtensions: TYPEDSIGNATURES
 using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK
 using SciMLBase: DiscreteCallback, terminate!
 
+ħ = hbar * 1e3 * 1e4; # convert to g * cm^2 / s
+mn = neutron_mass * 1e3; # convert to g
+c0 = speed_of_light_vacuum * 1e2; # convert to cm/s
+Gn = gravitational_constant * 1e3 * 1e6; # convert to cm^3 / g / s^2
+
 function tov_eq!(EoS_rho_from_P::Function)
     function tov_inner!(du, u, paras, r)
         P = u[1]
@@ -41,10 +46,7 @@ function tov_eq!(EoS_rho_from_P::Function)
         du[1] = if r == 0.0
             0.0
         else
-            -gravitational_constant / r^2 *
-            (ρ + P/speed_of_light_vacuum^2) *
-            (m + 4*pi*r^3*P/speed_of_light_vacuum^2) /
-            (1 - 2*gravitational_constant*m/(r*speed_of_light_vacuum^2))
+            -Gn / r^2 * (ρ + P/c0^2) * (m + 4*pi*r^3*P/c0^2) / (1 - 2*Gn*m/(r*c0^2))
         end
         du[2] = 4*pi*r^2*ρ
     end
@@ -211,6 +213,7 @@ end
 function EoS_NegeleVautherin1973(
     report_transition_pressure::Bool = false,
     ;
+    # Everything here are converted to cgs unit, and the EoS is given in the form of P(ρ) and ρ(P).
     ci = [
         -4.0,
         2.8822899e-1,
@@ -276,14 +279,11 @@ function EoS_GCA2018(
     ρ_drip = 4.e11, # in g/m^3,
     Ye = 0.4,
 )
-    ħ = hbar * 1e3 * 1e4; # convert to g * cm^2 / s
-    mn = neutron_mass * 1e3; # convert to g
-    c = speed_of_light_vacuum
     function EoS_P_from_rho(ρ)
         P = if ρ < 0
             0.0
         elseif ρ < ρ_drip
-            ħ * c * (3 * π^2 * Ye * ρ / (mn * 1e3))^(4/3) / 12 / π^2
+            ħ * c0 * (3 * π^2 * Ye * ρ / (mn * 1e3))^(4/3) / 12 / π^2
         else
             nb = ρ / (neutron_mass * 1e3); # in the unit of g/cm^3
             nb_scaled = nb * 1e-35
@@ -305,7 +305,7 @@ function EoS_GCA2018(
         ρ = if P < 0
             0.0
         elseif P < EoS_P_from_rho(ρ_drip)
-            (12 * π^2 * P / ħ / c)^(3/4) * (mn * 1e3) / (3 * π^2 * Ye)
+            (12 * π^2 * P / ħ / c0)^(3/4) * (mn * 1e3) / (3 * π^2 * Ye)
         else
             find_zero(y -> EoS_P_from_rho(y) - P, 5e11)
         end
