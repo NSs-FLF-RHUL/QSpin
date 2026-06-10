@@ -36,7 +36,7 @@ using SciMLBase: DiscreteCallback, terminate!
 ħ = hbar * 1e3 * 1e4; # convert to g * cm^2 / s
 mn = neutron_mass * 1e3; # convert to g
 c0 = speed_of_light_vacuum * 1e2; # convert to cm/s
-Gn = gravitational_constant * 1e3 * 1e6; # convert to cm^3 / g / s^2
+Gn = gravitational_constant * 1e3; # convert to cm^3 / g / s^2
 
 function tov_eq!(EoS_rho_from_P::Function)
     function tov_inner!(du, u, paras, r)

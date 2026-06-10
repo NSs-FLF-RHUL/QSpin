@@ -23,7 +23,7 @@ TOV_Sol_Input = (
     ρ0 = 1e15, # Initial central density in (1g/cm^3)
     dr = 0.01*1e5, # Radial step in cm
     Dr = 0.01*1e5, # Radial interval for recording values in cm
-    r_end = 20*1e3*1e2, # Maximum radius to solve up to in cm
+    r_end = 20*1e5, # Maximum radius to solve up to in cm
 );
 
 EoS, EoS_inv = EoS_two_component_polytrope(EoS_Param);
@@ -37,7 +37,8 @@ affect!(integrator) = terminate!(integrator)
 cb = DiscreteCallback(condition, affect!)
 
 problem = ODEProblem(tov!, u0, (0.0, TOV_Sol_Input.r_end); callback = cb)
-sol = DE.solve(problem, OrdinaryDiffEqLowOrderRK.DP5(); reltol = 1e-8, abstol = [1.0, 1e15])
+sol =
+    DE.solve(problem, OrdinaryDiffEqLowOrderRK.DP5(); reltol = 1e-12, abstol = [1.0, 1e15])
 #sol = DE.solve(problem, DE.Tsit5(); reltol = 1e-12)
 
 ur = Array(sol)
@@ -45,4 +46,4 @@ r = sol.t
 Pr = ur[1, :]
 mr = ur[2, :]
 ρr = EoS_inv.(Pr)
-plot(r, ρr)
+plot(r*1e-5, ρr)
