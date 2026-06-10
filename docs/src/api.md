@@ -8,5 +8,6 @@ Modules = [
   QSpin.Hamiltonian,
   QSpin.OdeSolve,
   QSpin.TOV,
+  QSpin.TOV.EquationOfState,
 ]
 ```

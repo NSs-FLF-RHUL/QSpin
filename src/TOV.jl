@@ -32,6 +32,8 @@ using DocStringExtensions: TYPEDSIGNATURES
 using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK
 using SciMLBase: DiscreteCallback, terminate!
 
+include("EquationOfState.jl")
+
 """
 
 $(TYPEDSIGNATURES)
