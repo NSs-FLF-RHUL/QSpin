@@ -4,7 +4,7 @@ Submodule containing the helper function for solving the Tolman-Oppenheimer-Volk
 The TOV equation is a ordinary differential equation of pressure as a function of radius r and is written by
 
 ``
-\\frac{\\mathrm{d}P}{\\mathrm{d}r} = - \\frac{G}{r^2}
+\\frac{ \\mathrm{d}P}{\\mathrm{d}r} = - \\frac{G}{r^2}
 \\left[ \\rho(r) + \\frac{P(r)}{c^2} \\right]
 \\left[ m(r) + 4\\pi r^3 \\frac{P(r)}{c^2} \\right]
 \\left[ 1 - \\frac{2Gm(r)}{c^2 r} \\right]^{-1},
@@ -18,9 +18,9 @@ It is coupled to the mass m(r) within radius r, which is given by
 \\frac{\\mathrm{d}m}{\\mathrm{d}r} = 4\\pi\\rho(r)r^2.
 ``
 
-where ``\rho`` is the density as a function of r and is assumed to be spherically symmetric.
+where ``\\rho`` is the density as a function of r and is assumed to be spherically symmetric.
 
-To solve the TOV equation, we need to specify an equation of state (EoS) that relates the pressure P to the density ``\rho``, that is we must provide ``P = P(\\rho)`` (and the inverse). Here, to solve the TOV equation numerically, we use the vector presentation for the variables, `u = (P, m)`` and solving a first-order system ODE in ``u``.
+To solve the TOV equation, we need to specify an equation of state (EoS) that relates the pressure P to the density ``\\rho``, that is we must provide ``P = P(\\rho)`` (and the inverse). Here, to solve the TOV equation numerically, we use the vector presentation for the variables, ``u = (P, m)`` and solving a first-order system ODE in ``u``.
 """
 module TOV
 
@@ -32,20 +32,32 @@ using DocStringExtensions: TYPEDSIGNATURES
 using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK
 using SciMLBase: DiscreteCallback, terminate!
 
+"""
+
+$(TYPEDSIGNATURES)
+
+Returns a function that evaluates the RHS of the TOV equations, given an equation of state function.
+
+# Arguments
+- `EoS_rho_from_P::Function`: Single-argument (inverse) equation-of-state function that maps density (``\\rho``) to pressure (``P``).
+
+# Returns
+- `tov_inner!::Function`: Callable as `tov_inner!(du, u, params, r)` that evaluates the RHS of the TOV equations, writing the result to `du`.
+"""
 function tov_eq!(EoS_rho_from_P::Function)
-    function tov_inner!(du, u, paras, r)
+    function tov_inner!(du, u, params, r)
         P = u[1]
         m = u[2]
-        ρ = EoS_rho_from_P(P)
+        rho = EoS_rho_from_P(P)
         du[1] = if r == 0.0
             0.0
         else
             -gravitational_constant / r^2 *
-            (ρ + P/speed_of_light_vacuum^2) *
+            (rho + P/speed_of_light_vacuum^2) *
             (m + 4*pi*r^3*P/speed_of_light_vacuum^2) /
             (1 - 2*gravitational_constant*m/(r*speed_of_light_vacuum^2))
         end
-        du[2] = 4*pi*r^2*ρ
+        du[2] = 4*pi*r^2*rho
     end
     return tov_inner!
 end
@@ -54,16 +66,16 @@ end
 
 $(TYPEDSIGNATURES)
 
-Solving the TOV equation for a given EoS and initial conditions using the `CommonSolve`  package, adapted in OdeSolve.jl of this package.
+Solve the TOV equation for given equation(s) of state and initial condition(s), wrapping `QSpin.OdeSolve.evolve`.
 
-Now it uses DP5 method, which is a 5th order explicit Runge-Kutta method with an embedded 4th order method for error estimation, suitable for non-stiff problems. For stiff problems, consider using `KenCarp4` or `Rodas5` methods from the `OrdinaryDiffEqSDIRK` package, and this method is also used in [TOVsolver_Julia](https://github.com/jskMNMGCH/TOVsolver_Julia).
+By default, the solver employs the DP5 method, which is a 5th order explicit Runge-Kutta method with an embedded 4th order method for error estimation, suitable for non-stiff problems. For stiff problems, consider using `KenCarp4` or `Rodas5` methods from the `OrdinaryDiffEqSDIRK` package.
 
 # Arguments
-- `u0::AbstractArray`: Initial conditions for the TOV equation, given as a vector of the form `[P(0), m(0)]`, where `P(0)`
-- 'dr::Float64`: Radial step size for the numerical solver.
+- `u0::AbstractArray`: Initial conditions for the TOV equation, given as a vector of the form `[P(0), m(0)]`.
+- `dr::Float64`: Radial step size for the numerical solver.
 - `Dr::Float64`: Radial interval for recording values of the solution.
 - `r_max::Float64`: Maximum radius to solve up to.
-- `EoS_inv::Function`: Inverse EoS function that takes pressure as input and returns density, i.e., `EoS_inv(P) = ρ`.
+- `EoS_inv::Function`: Single-argument (inverse) equation-of-state function that maps density (``\\rho``) to pressure (``P``).
 - `solver_options...`: Additional keyword arguments to pass to the ODE solver.
 
 # Returns
@@ -76,7 +88,7 @@ Now it uses DP5 method, which is a 5th order explicit Runge-Kutta method with an
     - `M`: The total mass of the star, defined as the enclosed mass at the radius `R`.
 """
 function TOV_Solve(
-    u0::Union{AbstractArray,Array{Float64}},
+    u0::AbstractArray,
     dr::Float64,
     Dr::Float64,
     r_max::Float64,
