@@ -9,6 +9,8 @@ include("PhysicalConstants.jl")
 include("OdeSolve.jl")
 include("Grids.jl")
 include("Hamiltonian.jl")
-include("TOV.jl")
+
+# TOV module
+include("TOV/TOV.jl")
 
 end

@@ -2,8 +2,6 @@ using DocStringExtensions: TYPEDSIGNATURES
 using Roots: find_zero
 using ....Parameters: ParameterType
 
-export EoS_two_component_polytrope
-
 """
 $(TYPEDSIGNATURES)
 

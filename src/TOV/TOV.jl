@@ -32,7 +32,8 @@ using DocStringExtensions: TYPEDSIGNATURES
 using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK
 using SciMLBase: DiscreteCallback, terminate!
 
-include("EquationOfState.jl")
+# Include the equations of state module as a submodule of the TOV module
+include("EoS/EquationOfState.jl")
 
 """
 
