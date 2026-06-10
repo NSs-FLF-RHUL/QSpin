@@ -26,24 +26,38 @@ TOV_Sol_Input = (
     r_end = 20*1e5, # Maximum radius to solve up to in cm
 );
 
-EoS, EoS_inv = EoS_two_component_polytrope(EoS_Param);
+#EoS, EoS_inv = EoS_two_component_polytrope(EoS_Param);
 #EoS, EoS_inv = EoS_NegeleVautherin1973();
-#EoS, EoS_inv = EoS_GCA2018();
+EoS, EoS_inv = EoS_GCA2018();
 u0 = [EoS(TOV_Sol_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
 tov! = tov_eq!(EoS_inv);
 
-condition(u, t, integrator) = u[1] < 0
-affect!(integrator) = terminate!(integrator)
-cb = DiscreteCallback(condition, affect!)
+#condition(u, t, integrator) = u[1] < 0
+#affect!(integrator) = terminate!(integrator)
+#cb = DiscreteCallback(condition, affect!)
 
-problem = ODEProblem(tov!, u0, (0.0, TOV_Sol_Input.r_end); callback = cb)
-sol =
-    DE.solve(problem, OrdinaryDiffEqLowOrderRK.DP5(); reltol = 1e-12, abstol = [1.0, 1e15])
+#problem = ODEProblem(tov!, u0, (0.0, TOV_Sol_Input.r_end); callback = cb)
+#sol =
+#    DE.solve(problem, OrdinaryDiffEqLowOrderRK.DP5(); reltol = 1e-12, abstol = [1.0, 1e15])
 #sol = DE.solve(problem, DE.Tsit5(); reltol = 1e-12)
 
-ur = Array(sol)
-r = sol.t
-Pr = ur[1, :]
-mr = ur[2, :]
-ρr = EoS_inv.(Pr)
-plot(r*1e-5, ρr)
+#ur = Array(sol)
+#r = sol.t
+#Pr = ur[1, :]
+#mr = ur[2, :]
+#ρr = EoS_inv.(Pr)
+
+TOV_sol = QSpin.TOV.TOV_Solve(
+    [EoS(TOV_Sol_Input.ρ0); 0.0],
+    TOV_Sol_Input.dr,
+    TOV_Sol_Input.Dr,
+    TOV_Sol_Input.r_end,
+    EoS_inv;
+    alg = DE.Tsit5(),
+    reltol = 1e-8,
+    abstol = [1.0, 1e15],
+);
+
+
+
+plot(TOV_sol.r*1e-5, TOV_sol.ρr)
