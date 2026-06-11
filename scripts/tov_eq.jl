@@ -49,8 +49,7 @@ u0_Soft = [EoS_Soft(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure
     reltol = 1e-8,
     abstol = [1.0, 1e15],
 )
-
-@time TOV_sol_Soft = QSpin.TOV.TOV_Solve(
+@time TOV_sol_Soft = TOV_Solve(
     u0_Soft,
     Sim_Input.dr,
     Sim_Input.Dr,
@@ -61,8 +60,8 @@ u0_Soft = [EoS_Soft(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure
     abstol = [1.0, 1e15],
 )
 
-
-# Computing the M-R relation by varying the central density and solving the TOV equation for each case. The radius is defined by the first point that the pressure becomes negative.
+# Compute the M-R relation by varying the central density, and solving the TOV equation for each case.
+# The radius is defined by the first point that the pressure becomes negative.
 ρc_scan = exp10.(range(17.5, stop = 20, length = 150))
 M_StiffScan = zeros(length(ρc_scan));
 R_StiffScan = zeros(length(ρc_scan));
@@ -70,10 +69,10 @@ M_SoftScan = zeros(length(ρc_scan));
 R_SoftScan = zeros(length(ρc_scan));
 
 for cc = 1:length(ρc_scan)
-
     ρc = ρc_scan[Int.(cc)];
     println(cc, ": Solving TOV for central density ρc = ", ρc/1e18, "1e18 kg/m^3")
-    TOV_sol = QSpin.TOV.TOV_Solve(
+
+    TOV_sol = TOV_Solve(
         [EoS_Stiff(ρc); 0.0],
         Sim_Input.dr,
         Sim_Input.Dr,
@@ -85,8 +84,8 @@ for cc = 1:length(ρc_scan)
     );
     M_StiffScan[Int.(cc)] = TOV_sol.M
     R_StiffScan[Int.(cc)] = TOV_sol.R
-    # println("Mass: ", M/PhysConst.Msun, " M_sun, Radius: ", R/1e3, " km")
-    TOV_sol = QSpin.TOV.TOV_Solve(
+
+    TOV_sol = TOV_Solve(
         [EoS_Soft(ρc); 0.0],
         Sim_Input.dr,
         Sim_Input.Dr,
@@ -100,10 +99,11 @@ for cc = 1:length(ρc_scan)
     R_SoftScan[Int.(cc)] = TOV_sol.R
 end
 
-# Plotting
-Pc_Stiff = EoS_Stiff(Sim_Input.ρ0) # Getting the reference core pressure for the stiff case.
-Pc_Soft = EoS_Soft(Sim_Input.ρ0) # Getting the reference core pressure for the soft case.
+# Create plots to display the results.
 
+# Fetch reference core pressure Pc
+Pc_Stiff = EoS_Stiff(Sim_Input.ρ0)
+Pc_Soft = EoS_Soft(Sim_Input.ρ0)
 
 plt1 = plot(
     TOV_sol_Stiff.r/1e3,
