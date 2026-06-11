@@ -25,6 +25,7 @@ To solve the TOV equation, we need to specify an equation of state (EoS) that re
 module TOV
 
 using ..OdeSolve: evolve
+using ..Parameters: ParameterType
 using ..PhysicalConstants: gravitational_constant, speed_of_light_vacuum
 using DocStringExtensions: TYPEDSIGNATURES
 using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK
@@ -61,6 +62,33 @@ function tov_eq!(EoS_rho_from_P::Function)
         du[2] = 4*pi*r^2*rho
     end
     return tov_inner!
+end
+
+"""
+
+$(TYPEDSIGNATURES)
+
+Returns a function that evaluates the RHS of the dimensionless TOV equations, given an equation of state function.
+
+# Arguments
+- `EoS_rho_from_P::Function`: Single-argument (inverse) equation-of-state function that maps dimensionless density (``\\rho``) to dimensionless pressure (``P``).
+
+# Returns
+- `dimensionless_TOV_inner!::Function`: Callable as `dimensionless_TOV_inner!(du, u, params, r)` that evaluates the RHS of the dimensionless TOV equations, writing the result to `du`.
+"""
+function dimensionless_TOV(EoS_rho_from_P::Function)
+    function dimensionless_TOV_inner!(du, u, params, r)
+        P = u[1]
+        m = u[2]
+        rho = EoS_rho_from_P(P)
+        du[1] = if r == 0.0
+            0.0
+        else
+            - (rho + P) * (m + 4*pi*r^3*P) / (r * (r - 2*m))
+        end
+        du[2] = 3*pi*r^2*rho
+    end
+    return dimensionless_TOV_inner!
 end
 
 """
