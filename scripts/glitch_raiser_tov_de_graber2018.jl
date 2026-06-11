@@ -1,5 +1,8 @@
 using QSpin
 using QSpin.Parameters: ParameterType
+using QSpin.TOV: TOV_Solve
+using QSpin.TOV.EquationOfState: EoS_two_component_polytrope
+
 using QSpin.PhysicalConstants
 using Plots, LaTeXStrings
 import DifferentialEquations as DE
@@ -23,21 +26,21 @@ EoS_Param_Stiff = (
 # Input Parameters for the TOV solver
 TOV_Input = (
     ρ0 = 1e15*1e3, # Initial central density in kg/m^3 (1e15 g/cm^3)
-    dr = 0.01*1e3, # Radial step in meters
+    dr = 0.005*1e3, # Radial step in meters
     Dr = 0.01*1e3, # Radial interval for recording values in meters
-    r_end = 15e3, # Maximum radius to solve up to in meters
+    r_end = 25e3, # Maximum radius to solve up to in meters
 );
 
 # Fucntion Setup for inverse EoS and TOV equation for the solver
-EoS_Stiff, EoS_inv_Stiff = QSpin.TOV.EoS_two_component_polytrope(EoS_Param_Stiff);
+EoS_Stiff, EoS_inv_Stiff = EoS_two_component_polytrope(EoS_Param_Stiff);
 #EoS, EoS_inv = QSpin.TOV.EoS_GCA2018();
 # Setting up initial condition accordingly to the EoS for a given central density ρ0.
 u0_Stiff = [EoS_Stiff(TOV_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
-tov! = QSpin.TOV.tov_eq!(EoS_inv_Stiff);
+
 # Sovling the TOV equation using the RK4 method with QSpin OdeSolve module for Stiff and Soft EoSs.
 
 @time TOV_sol =
-    QSpin.TOV.TOV_Solve(u0_Stiff, TOV_Input.dr, TOV_Input.Dr, 15e3, EoS_inv_Stiff)
+    QSpin.TOV.TOV_Solve(u0_Stiff, TOV_Input.dr, TOV_Input.Dr, 25e3, EoS_inv_Stiff)
 
 Bs = QSpin.MFriction.MutualFrictionCoefficients(
     (ρs = TOV_sol.ρr, r = TOV_sol.r, Beb_core = 1e-4, Bj_core = 1e-4),
@@ -50,7 +53,7 @@ yBj = Bs.Bj
 
 
 Glitch_Raiser_Input = (
-    B_core = 1e-2, # Mutual Friction Parameter
+    B_core = 5e-4, # Mutual Friction Parameter
     B_sf = yBeb[1:(end-1)], # Mutual Friction Parameter
     Ω_crust = 70.34, # Initial angular velocity of the crust in rad/s
     Ω_sf = 70.34 + 6.3e-3, # Initial angular velocity of the superfluid in rad/s
@@ -58,8 +61,8 @@ Glitch_Raiser_Input = (
     I_crust = 4.5e30, # Moment of inertia of the crust in kg m^2
     I_core = 0.8 * 4.5e30, # Moment of inertia of the core in kg m
     N_ext = 0.0,
-    dt = 1e-4, # Time step for the ODE solver in seconds
-    Dt = 0.02, # Time interval for recording values in the glitch model in seconds
+    dt = 1e-6, # Time step for the ODE solver in seconds
+    Dt = 0.1, # Time interval for recording values in the glitch model in seconds
     t_start = 0.0, # Start time for the glitch model simulation in seconds
     t_end = 120.0, # End time for the glitch model simulation in seconds
     ρr = TOV_sol.ρr[1:(end-1)],
@@ -100,7 +103,7 @@ end
     alg = DE.Tsit5(), #KenCarp4() for stiff porblems, but may not be stable either.
     dt = Glitch_Raiser_Input.dt,
     saveat = Glitch_Raiser_Input.Dt,
-    reltol = 1e-8,
+    reltol = 1e-14,
 )
 Ωt = Array(sol);
 t = sol.t;
