@@ -25,7 +25,6 @@ To solve the TOV equation, we need to specify an equation of state (EoS) that re
 module TOV
 
 using ..OdeSolve: evolve
-using ..Parameters: ParameterType
 using ..PhysicalConstants: gravitational_constant, speed_of_light_vacuum
 using DocStringExtensions: TYPEDSIGNATURES
 using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK
@@ -120,39 +119,39 @@ This function, given the value for any **one** of the characteristic lengths, re
 - `::NamedTuple`: Map of characteristic lengths `R`, `M`, `Q`, `Rho` to their values.
 """
 function characteristic_lengths_TOV(;
-    length::float = nothing,
-    mass::float = nothing,
-    pressure::float = nothing,
-    density::float = nothing,
+    length::Union{Number,Nothing} = nothing,
+    mass::Union{Number,Nothing} = nothing,
+    pressure::Union{Number,Nothing} = nothing,
+    density::Union{Number,Nothing} = nothing,
 )
-    RMQRho = [length, mass, pressure, density]
-    RMQRho_given = isnothing.(RMQRho)
+    RMQRho = [length, mass, pressure, density];
+    RMQRho_given = .!isnothing.(RMQRho);
 
     if sum(RMQRho_given) != 1
         throw("Multiple, or no, length scales provided.")
     end
 
     # Compute the value of R, if it was not the scale given.
-    if RMQRho_given[1]
-        RMQRho[0] = RMQRho[1] * speed_of_light_vacuum^2 / gravitational_constant
-    elseif RMQRho_given[2]
-        RMQRho[0] = sqrt(gravitational_constant / RMQRho[2])
+    if RMQRho_given[2]
+        RMQRho[1] = RMQRho[2] * speed_of_light_vacuum^2 / gravitational_constant
     elseif RMQRho_given[3]
-        RMQRho[0] = sqrt(gravitational_constant / RMQRho[3]) / speed_of_light_vacuum
+        RMQRho[1] = sqrt(gravitational_constant / RMQRho[3])
+    elseif RMQRho_given[4]
+        RMQRho[1] = sqrt(gravitational_constant / RMQRho[4]) / speed_of_light_vacuum
     end
 
     # Now that R is necessarily defined, compute the missing length scales.
-    if !RMQRho_given[1]
-        RMQRho[1] = gravitational_constant * RMQRho[0] / speed_of_light_vacuum^2
-    end
     if !RMQRho_given[2]
-        RMQRho[2] = gravitational_constant / RMQRho[0]^2
+        RMQRho[2] = gravitational_constant * RMQRho[1] / speed_of_light_vacuum^2
     end
     if !RMQRho_given[3]
-        RMQRho[3] = gravitational_constant / (speed_of_light_vacuum * RMQRho[0])^2
+        RMQRho[3] = gravitational_constant / RMQRho[1]^2
+    end
+    if !RMQRho_given[4]
+        RMQRho[4] = gravitational_constant / (speed_of_light_vacuum * RMQRho[1])^2
     end
 
-    return (R = RMQRho[0], M = RMQRho[1], Q = RMQRho[2], Rho = RMQRho[3])
+    return (R = RMQRho[1], M = RMQRho[2], Q = RMQRho[3], Rho = RMQRho[4])
 end
 
 """
