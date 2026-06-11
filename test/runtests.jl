@@ -16,5 +16,5 @@ end
 end
 
 @testset "TOV Module" begin
-    include("tov/dimensionless_lengths.jl")
+    include("tov/tov.jl")
 end
