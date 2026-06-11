@@ -44,4 +44,14 @@
         @test_throws "Multiple, or no, length scales provided." characteristic_lengths_TOV()
     end
 
+    @testset "Using c = G = 1 units" begin
+        for R in [1.0, 2.0]
+            output = characteristic_lengths_TOV(; length = R, c = 1.0, G = 1.0)
+            @test isapprox(output.R, R)
+            @test isapprox(output.M, R)
+            @test isapprox(output.Q, 1.0/R^2)
+            @test isapprox(output.Rho, 1.0/R^2)
+        end
+    end
+
 end

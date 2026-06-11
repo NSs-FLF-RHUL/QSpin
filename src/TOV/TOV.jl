@@ -109,11 +109,15 @@ where ``\\hat{\\cdot}`` denotes the corresponding dimensionless field, ``G`` is 
 
 This function, given the value for any **one** of the characteristic lengths, returns a `NamedTuple` that specifies the values of all the characteristic lengths. Passing in multiple characteristic lengths, or none, will result in an error (even in the case when the characteristic lengths that are passed are consistent with each other).
 
+The values for ``c`` and ``G`` may also be specified to the function. This should be done when wanting to use a non-SI-unit system, for example CGS or ``c = 1`` units.
+
 # Arguments
-- `length::float`: Characteristic length for the space dimension, equal to ``R``.
-- `mass::float`: Characteristic length for the mass dimension, equal to ``\\frac{GR}{c^2}``.
-- `pressure::float`: Characteristic length for the pressure field, equal to ``\\frac{G}{R^2}``.
-- `density::float`: Characteristic length for the density field, equal to ``\\frac{G}{c^2 R^2}``.
+- `length::Number`: Characteristic length for the space dimension, equal to ``R``.
+- `mass::Number`: Characteristic length for the mass dimension, equal to ``\\frac{GR}{c^2}``.
+- `pressure::Number`: Characteristic length for the pressure field, equal to ``\\frac{G}{R^2}``.
+- `density::Number`: Characteristic length for the density field, equal to ``\\frac{G}{c^2 R^2}``.
+- `c::Number`: Speed of light in vacuum. Defaults to value in SI units, ``\\approx 3\times 10^8``.
+- `G::Number`: Gravitational constant. Defaults to value in SI units, ``\\approx 6.7\times 10^{-11}``.
 
 # Returns
 - `::NamedTuple`: Map of characteristic lengths `R`, `M`, `Q`, `Rho` to their values.
@@ -123,6 +127,8 @@ function characteristic_lengths_TOV(;
     mass::Union{Number,Nothing} = nothing,
     pressure::Union{Number,Nothing} = nothing,
     density::Union{Number,Nothing} = nothing,
+    c::Number = speed_of_light_vacuum,
+    G::Number = gravitational_constant,
 )
     RMQRho = [length, mass, pressure, density];
     RMQRho_given = .!isnothing.(RMQRho);
@@ -133,22 +139,22 @@ function characteristic_lengths_TOV(;
 
     # Compute the value of R, if it was not the scale given.
     if RMQRho_given[2]
-        RMQRho[1] = RMQRho[2] * speed_of_light_vacuum^2 / gravitational_constant
+        RMQRho[1] = RMQRho[2] * c^2 / G
     elseif RMQRho_given[3]
-        RMQRho[1] = sqrt(gravitational_constant / RMQRho[3])
+        RMQRho[1] = sqrt(G / RMQRho[3])
     elseif RMQRho_given[4]
-        RMQRho[1] = sqrt(gravitational_constant / RMQRho[4]) / speed_of_light_vacuum
+        RMQRho[1] = sqrt(G / RMQRho[4]) / c
     end
 
     # Now that R is necessarily defined, compute the missing length scales.
     if !RMQRho_given[2]
-        RMQRho[2] = gravitational_constant * RMQRho[1] / speed_of_light_vacuum^2
+        RMQRho[2] = G * RMQRho[1] / c^2
     end
     if !RMQRho_given[3]
-        RMQRho[3] = gravitational_constant / RMQRho[1]^2
+        RMQRho[3] = G / RMQRho[1]^2
     end
     if !RMQRho_given[4]
-        RMQRho[4] = gravitational_constant / (speed_of_light_vacuum * RMQRho[1])^2
+        RMQRho[4] = G / (c * RMQRho[1])^2
     end
 
     return (R = RMQRho[1], M = RMQRho[2], Q = RMQRho[3], Rho = RMQRho[4])
