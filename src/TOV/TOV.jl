@@ -116,8 +116,8 @@ The values for ``c`` and ``G`` may also be specified to the function. This shoul
 - `mass::Number`: Characteristic length for the mass dimension, equal to ``\\frac{GR}{c^2}``.
 - `pressure::Number`: Characteristic length for the pressure field, equal to ``\\frac{G}{R^2}``.
 - `density::Number`: Characteristic length for the density field, equal to ``\\frac{G}{c^2 R^2}``.
-- `c::Number`: Speed of light in vacuum. Defaults to value in SI units, ``\\approx 3\times 10^8``.
-- `G::Number`: Gravitational constant. Defaults to value in SI units, ``\\approx 6.7\times 10^{-11}``.
+- `c::Number`: Speed of light in vacuum. Defaults to value in SI units, ``\\approx 3\\times 10^8``.
+- `G::Number`: Gravitational constant. Defaults to value in SI units, ``\\approx 6.7\\times 10^{-11}``.
 
 # Returns
 - `::NamedTuple`: Map of characteristic lengths `R`, `M`, `Q`, `Rho` to their values.
