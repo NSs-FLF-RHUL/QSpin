@@ -1,25 +1,32 @@
+#=
+This script demonstrates how to solve the Tolman-Oppenheimer-Volkoff (TOV) equation for neutron stars using the `QSpin` package.
+See the documentation for the `QSpin.TOV` for more information.
+
+The parameters, and equation of state, are chosen from https://github.com/vanessagraber/teaching_materials/blob/master/summerschool_CRAQ_2019/mass_radius_relations.ipynb.
+=#
+
 using QSpin
 using QSpin.Parameters: ParameterType
-using QSpin.PhysicalConstants
+using QSpin.PhysicalConstants: hbar, neutron_mass, mass_sun
+using QSpin.TOV: TOV_Solve
+using QSpin.TOV.EquationOfState: EoS_two_component_polytrope
 using Plots, LaTeXStrings
 import OrdinaryDiffEq as DE
-# This script is demonstrating how to solve the Tolman–Oppenheimer–Volkoff (TOV) equation for neutron stars using the QSpin package with the built-in TOV solver using Runge-Kutta 4th order method.
-# The parameters are chosen from https://github.com/vanessagraber/teaching_materials/blob/master/summerschool_CRAQ_2019/mass_radius_relations.ipynb.
-ħ = hbar;
-mn = neutron_mass;
+
 # Polytropic EoS parameters
 EoS_Param_Stiff = (
-    K_crust = (3*π^2)^(2/3) * ħ^2 / (5*mn^(8/3)), # Polytropic constant for the crust
-    γ_crust = 5.0/3.0, # Polytropic index for the crust
-    γ_core = 3.0, # Polytropic index for the core
-    ρ_b = 3e14*1e3, # Transition density between crust and core in kg/m^3
+    K_crust = (3*π^2)^(2/3) * hbar^2 / (5*neutron_mass^(8/3)),
+    γ_crust = 5.0/3.0,
+    γ_core = 3.0,
+    ρ_b = 3e14*1e3,
 )
 EoS_Param_Soft = (
-    K_crust = (3*π^2)^(2/3) * ħ^2 / (5*mn^(8/3)), # Polytropic constant for the crust
-    γ_crust = 5.0/3.0, # Polytropic index for the crust
-    γ_core = 5.0/2.0, # Polytropic index for the core
-    ρ_b = 3e14*1e3, # Transition density between crust and core in kg/m^3
+    K_crust = (3*π^2)^(2/3) * hbar^2 / (5*neutron_mass^(8/3)),
+    γ_crust = 5.0/3.0,
+    γ_core = 5.0/2.0,
+    ρ_b = 3e14*1e3,
 )
+
 # Simulation Input Parameters
 Sim_Input = (
     ρ0 = 1e15*1e3, # Initial central density in kg/m^3 (1e15 g/cm^3)
@@ -28,18 +35,16 @@ Sim_Input = (
     r_end = 20e3, # Maximum radius to solve up to in meters
 );
 
-# Fucntion Setup for inverse EoS and TOV equation for the solver
-EoS_Stiff, EoS_inv_Stiff = QSpin.TOV.EoS_two_component_polytrope(EoS_Param_Stiff);
-EoS_Soft, EoS_inv_Soft = QSpin.TOV.EoS_two_component_polytrope(EoS_Param_Soft);
+# Function Setup for inverse EoS and TOV equation for the solver
+EoS_Stiff, EoS_inv_Stiff = EoS_two_component_polytrope(EoS_Param_Stiff);
+EoS_Soft, EoS_inv_Soft = EoS_two_component_polytrope(EoS_Param_Soft);
 
-# Setting up initial condition accordingly to the EoS for a given central density ρ0.
-u0_Stiff = [EoS_Stiff(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
-u0_Soft = [EoS_Soft(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
+# Setup initial condition; central pressure and enclosed mass
+u0_Stiff = [EoS_Stiff(Sim_Input.ρ0); 0.0];
+u0_Soft = [EoS_Soft(Sim_Input.ρ0); 0.0];
 
-# Sovling the TOV equation using the RK4 method with QSpin OdeSolve module for Stiff and Soft EoSs.
-
-
-@time TOV_sol_Stiff = QSpin.TOV.TOV_Solve(
+# Solve the TOV equation using `QSpin` for the stiff and soft EoSs.
+@time TOV_sol_Stiff = TOV_Solve(
     u0_Stiff,
     Sim_Input.dr,
     Sim_Input.Dr,
