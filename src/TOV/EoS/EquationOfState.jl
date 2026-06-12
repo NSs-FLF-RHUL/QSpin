@@ -30,6 +30,9 @@ using QSpin.TOV: characteristic_lengths_TOV
 
 char_lengths = characteristic_lengths_TOV(; length = 1.0)
 nd_EoS_P_from_rho, nd_EoS_rho_from_P = nondimensional_EoS(char_lengths, builder, args...; kwargs...)
+# Or alternatively, one can pass the already-built functions directly.
+EoS_P_from_rho, EoS_rho_from_P = builder(args...; kwargs...)
+nd_EoS_P_from_rho, nd_EoS_rho_from_P = nondimensional_EoS(char_lengths, EoS_P_from_rho, EoS_rho_from_P)
 ```
 
 # Arguments
@@ -43,20 +46,38 @@ nd_EoS_P_from_rho, nd_EoS_rho_from_P = nondimensional_EoS(char_lengths, builder,
 - `EoS_rho_from_P::Function`: Dimensionless density, evaluated as a function of dimensionless pressure. ``\\hat{\\rho}(\\hat{P})`` as a function called with `(P,)`
 """
 function nondimensional_EoS(
+    characteristic_lengths::NamedTuple;
+    EoS_P_from_rho::Union{Function,Nothing} = nothing,
+    EoS_rho_from_P::Union{Function,Nothing} = nothing,
+)
+    Q = characteristic_lengths.Q
+    Rho = characteristic_lengths.Rho
+
+    nondim_Eos_P_from_rho = if !isnothing(EoS_P_from_rho)
+        rho -> EoS_P_from_rho(rho * Rho) / Q
+    else
+        nothing
+    end
+    nondim_EoS_rho_from_P = if !isnothing(EoS_rho_from_P)
+        P -> EoS_rho_from_P(P * Q) / Rho
+    else
+        nothing
+    end
+
+    return nondim_Eos_P_from_rho, nondim_EoS_rho_from_P
+end
+function nondimensional_EoS(
     characteristic_lengths::NamedTuple,
     builder::Function,
     args...;
     kwargs...,
 )
     EoS_P_from_rho, EoS_rho_from_P = builder(args...; kwargs...)
-
-    Q = characteristic_lengths.Q
-    Rho = characteristic_lengths.Rho
-
-    nondim_Eos_P_from_rho = rho -> EoS_P_from_rho(rho * Rho) / Q
-    nondim_EoS_rho_from_P = P -> EoS_rho_from_P(P * Q) / Rho
-
-    return nondim_Eos_P_from_rho, nondim_EoS_rho_from_P
+    return nondimensional_EoS(
+        characteristic_lengths;
+        EoS_P_from_rho = EoS_P_from_rho,
+        EoS_rho_from_P = EoS_rho_from_P,
+    )
 end
 
 end

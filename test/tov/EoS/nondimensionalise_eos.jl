@@ -44,4 +44,36 @@
             backward.(dimensionless_range * r_eq_1_lengths.Q) / r_eq_1_lengths.Rho,
         )
     end
+
+    @testset "Can directly pass the EoS functions" begin
+        forward, backward = simple_builder()
+        nd_forward, nd_backward = nondimensional_EoS(
+            r_eq_1_lengths;
+            EoS_P_from_rho = forward,
+            EoS_rho_from_P = backward,
+        )
+
+        @test isapprox(
+            nd_forward.(dimensionless_range),
+            forward.(dimensionless_range * r_eq_1_lengths.Rho) / r_eq_1_lengths.Q,
+        )
+        @test isapprox(
+            nd_backward.(dimensionless_range),
+            backward.(dimensionless_range * r_eq_1_lengths.Q) / r_eq_1_lengths.Rho,
+        )
+    end
+
+    @testset "Nothing returns in missing slots" begin
+        forward, backward = simple_builder()
+
+        @test all(isnothing.(nondimensional_EoS(r_eq_1_lengths)))
+
+        nothing_forward, nd_backward =
+            nondimensional_EoS(r_eq_1_lengths; EoS_rho_from_P = backward)
+        nd_forward, nothing_backward =
+            nondimensional_EoS(r_eq_1_lengths; EoS_P_from_rho = forward)
+
+        @test isnothing(nothing_forward) && !isnothing(nd_backward)
+        @test !isnothing(nd_forward) && isnothing(nothing_backward)
+    end
 end
