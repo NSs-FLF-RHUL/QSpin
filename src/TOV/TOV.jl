@@ -273,32 +273,33 @@ function solve_TOV(
     cb = DiscreteCallback(condition, affect!)
 
     # Non-dimensionalise inputs
-    u0 = u0 ./ [char_lengths.Q; char_lengths.M]
-    dr = dr / char_lengths.R
-    Dr = Dr / char_lengths.R
-    r_max = r_max / char_lengths.R
+    nd_u0 = u0 ./ [char_lengths.Q; char_lengths.M]
+    nd_dr = dr / char_lengths.R
+    nd_Dr = Dr / char_lengths.R
+    nd_r_max = r_max / char_lengths.R
 
-    nd_EoS_rho_from_P =
+    _, nd_EoS_rho_from_P =
         EquationOfState.nondimensional_EoS(char_lengths; EoS_rho_from_P = EoS_rho_from_P)
     tov! = dimensionless_TOV(nd_EoS_rho_from_P)
 
     # Evolve dimensionless equation
     sol_tov = evolve(
         tov!,
-        u0,
+        nd_u0,
         0.0,
-        r_max;
+        nd_r_max;
         alg = alg,
         callback = cb,
-        dt = dr,
-        saveat = Dr,
+        dt = nd_dr,
+        saveat = nd_Dr,
         solver_options...,
     )
+    println(length(sol_tov.t))
 
     # Re-dimensionalise
-    r = char_lengths.R * sol_tov.t
-    Pr = char_lengths.Q * sol_tov[1, :]
-    mr = char_lengths.M * sol_tov[2, :]
+    r = char_lengths.R .* sol_tov.t
+    Pr = char_lengths.Q .* sol_tov[1, :]
+    mr = char_lengths.M .* sol_tov[2, :]
 
     R_index = findfirst(x->x<0, Pr)
     TOV_sol = (;

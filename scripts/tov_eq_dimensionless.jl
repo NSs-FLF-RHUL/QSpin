@@ -8,7 +8,7 @@ The parameters, and equation of state, are chosen from https://github.com/vaness
 using QSpin
 using QSpin.Parameters: ParameterType
 using QSpin.PhysicalConstants: hbar, neutron_mass, mass_sun
-using QSpin.TOV: TOV_Solve
+using QSpin.TOV: characteristic_lengths_TOV, solve_TOV
 using QSpin.TOV.EquationOfState: EoS_two_component_polytrope
 using Plots, LaTeXStrings
 import OrdinaryDiffEq as DE
@@ -43,26 +43,26 @@ EoS_Soft, EoS_inv_Soft = EoS_two_component_polytrope(EoS_Param_Soft);
 u0_Stiff = [EoS_Stiff(Sim_Input.ρ0); 0.0];
 u0_Soft = [EoS_Soft(Sim_Input.ρ0); 0.0];
 
+char_lengths = characteristic_lengths_TOV(; density = Sim_Input.ρ0)
+println(char_lengths)
 # Solve the TOV equation using `QSpin` for the stiff and soft EoSs.
-@time TOV_sol_Stiff = TOV_Solve(
+@time TOV_sol_Stiff = solve_TOV(
     u0_Stiff,
     Sim_Input.dr,
     Sim_Input.Dr,
     15e3,
+    char_lengths,
     EoS_inv_Stiff;
     alg = DE.Tsit5(),
-    reltol = 1e-8,
-    abstol = [1.0, 1e15],
 )
-@time TOV_sol_Soft = TOV_Solve(
+@time TOV_sol_Soft = solve_TOV(
     u0_Soft,
     Sim_Input.dr,
     Sim_Input.Dr,
     15e3,
+    char_lengths,
     EoS_inv_Soft;
     alg = DE.Tsit5(),
-    reltol = 1e-8,
-    abstol = [1.0, 1e15],
 )
 
 # Compute the M-R relation by varying the central density, and solving the TOV equation for each case.
@@ -75,30 +75,34 @@ R_SoftScan = zeros(length(ρc_scan));
 
 for cc = 1:length(ρc_scan)
     ρc = ρc_scan[Int.(cc)];
-    println(cc, ": Solving TOV for central density ρc = ", ρc/1e18, "1e18 kg/m^3")
 
-    TOV_sol = TOV_Solve(
-        [EoS_Stiff(ρc); 0.0],
+    P0_Stiff = EoS_Stiff(ρc);
+    P0_Soft = EoS_Soft(ρc);
+    stiff_lengths = characteristic_lengths_TOV(; pressure = P0_Stiff)
+    soft_lengths = characteristic_lengths_TOV(; pressure = P0_Soft)
+
+    println(cc, ": Solving TOV for central density ρc = ", ρc/1e18, " 1e18 kg/m^3")
+
+    TOV_sol = solve_TOV(
+        [P0_Stiff; 0.0],
         Sim_Input.dr,
         Sim_Input.Dr,
         Sim_Input.r_end,
+        stiff_lengths,
         EoS_inv_Stiff;
         alg = DE.Tsit5(),
-        reltol = 1e-8,
-        abstol = [1.0, 1e15],
     );
     M_StiffScan[Int.(cc)] = TOV_sol.M
     R_StiffScan[Int.(cc)] = TOV_sol.R
 
-    TOV_sol = TOV_Solve(
-        [EoS_Soft(ρc); 0.0],
+    TOV_sol = solve_TOV(
+        [P0_Soft; 0.0],
         Sim_Input.dr,
         Sim_Input.Dr,
         Sim_Input.r_end,
+        soft_lengths,
         EoS_inv_Soft;
         alg = DE.Tsit5(),
-        reltol = 1e-8,
-        abstol = [1.0, 1e15],
     );
     M_SoftScan[Int.(cc)] = TOV_sol.M
     R_SoftScan[Int.(cc)] = TOV_sol.R
@@ -147,7 +151,7 @@ plt3 = plot(
     TOV_sol_Stiff.mr,
     label = string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.γ_core),
     xlabel = "Radius (km)",
-    ylabel = L"\rho/\rho_c",
+    ylabel = L"m(r)",
     framestyle = :box,
     linewidth = 2,
 )
@@ -172,4 +176,4 @@ plt4 = scatter(
     linewidth = 2,
 )
 fig = plot(plt1, plt2, plt3, plt4, layout = (2, 2))
-savefig(fig, "outputs/dimensionfull.pdf")
+savefig(fig, "outputs/dimensionless.pdf")
