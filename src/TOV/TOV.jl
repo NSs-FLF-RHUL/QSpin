@@ -64,6 +64,8 @@ function tov_eq!(EoS_rho_from_P::Function)
     return tov_inner!
 end
 
+
+
 function TOV_ref_units(; units::Union{String} = "CGS", rho_ref::Float64 = 2.8e14)
     if units == "CGS"
         println(" CGS unit")
@@ -77,10 +79,10 @@ function TOV_ref_units(; units::Union{String} = "CGS", rho_ref::Float64 = 2.8e14
     else
         error(" !!!! Non-Supported Units !!!!")
     end
-    L_ref = c0 / sqrt(G0*rho_ref)
-    P_ref = rho_ref * c0^2
-    M_ref = rho_ref * L_ref^3
-    tovUnits = (; L_ref, P_ref, M_ref, rho_ref)
+    length_ref = c0 / sqrt(G0*rho_ref)
+    pressure_ref = rho_ref * c0^2
+    mass_ref = rho_ref * length_ref^3
+    tovUnits = (; length_ref, pressure_ref, mass_ref, rho_ref)
     return tovUnits
 end
 """
@@ -96,7 +98,9 @@ Returns a function that evaluates the RHS of the dimensionless TOV equations, gi
 - `tov_dimless_inner!::Function`: Callable as `tov_dimless!(du, u, params, r)` that evaluates the RHS of the dimensionless TOV equations, writing the result to `du`.
 """
 function tov_eq_dimless!(EoS_rho_from_P::Function; Units::Union{String} = "CGS")
-    P_ref, rho_ref = TOV_ref_units(units = Units)
+    tovUnits = TOV_ref_units(units = Units)
+    P_ref = tovUnits.pressure_ref;
+    rho_ref = tovUnits.rho_ref;
     function tov_dimless_inner!(du, u, params::ParameterType, r)
         P = u[1]
         m = u[2]
@@ -191,7 +195,7 @@ function TOV_Solve_dimensionless(
     alg = OrdinaryDiffEqLowOrderRK.DP5(),
     dt = dr,
     saveat = Dr,
-    reltol = 1e-12,
+    reltol = 1e-8,
     solver_options...,
 )
     tov! = tov_eq_dimless!(EoS_inv)
