@@ -66,9 +66,11 @@ end
 
 function TOV_ref_units(; units::Union{String} = "CGS", rho_ref::Float64 = 2.8e14)
     if units == "CGS"
+        println(" CGS unit")
         G0 = gravitational_constant * 1e3
         c0 = speed_of_light_vacuum * 1e2
     elseif units == "SI"
+        println(" SI unit")
         G0 = gravitational_constant
         c0 = speed_of_light_vacuum
         rho_ref = rho_ref * 1e3
@@ -78,9 +80,9 @@ function TOV_ref_units(; units::Union{String} = "CGS", rho_ref::Float64 = 2.8e14
     L_ref = c0 / sqrt(G0*rho_ref)
     P_ref = rho_ref * c0^2
     M_ref = rho_ref * L_ref^3
-    return P_ref, rho_ref, L_ref, M_ref
+    tovUnits = (; L_ref, P_ref, M_ref, rho_ref)
+    return tovUnits
 end
-
 """
 
 $(TYPEDSIGNATURES)
@@ -93,8 +95,8 @@ Returns a function that evaluates the RHS of the dimensionless TOV equations, gi
 # Returns
 - `tov_dimless_inner!::Function`: Callable as `tov_dimless!(du, u, params, r)` that evaluates the RHS of the dimensionless TOV equations, writing the result to `du`.
 """
-function tov_eq_dimless!(EoS_rho_from_P::Function; units::Union{String,Nothing} = "CGS")
-    P_ref, rho_ref = TOV_ref_units(units)
+function tov_eq_dimless!(EoS_rho_from_P::Function; Units::Union{String} = "CGS")
+    P_ref, rho_ref = TOV_ref_units(units = Units)
     function tov_dimless_inner!(du, u, params::ParameterType, r)
         P = u[1]
         m = u[2]
@@ -178,6 +180,52 @@ function TOV_Solve(
     return TOV_sol
 end
 
+
+function TOV_Solve_dimensionless(
+    u0::AbstractArray,
+    dr::Float64,
+    Dr::Float64,
+    r_beg::Float64,
+    r_max::Float64,
+    EoS_inv::Function;
+    alg = OrdinaryDiffEqLowOrderRK.DP5(),
+    dt = dr,
+    saveat = Dr,
+    reltol = 1e-12,
+    solver_options...,
+)
+    tov! = tov_eq_dimless!(EoS_inv)
+    condition(u, t, integrator) = u[1] < 0
+    affect!(integrator) = terminate!(integrator)
+    cb = DiscreteCallback(condition, affect!)
+    sol_tov = evolve(
+        tov!,
+        u0,
+        r_beg,
+        r_max;
+        alg,
+        reltol,
+        callback = cb,
+        dt,
+        saveat,
+        solver_options...,
+    )
+    ur = Array(sol_tov)
+    r = sol_tov.t
+    Pr = ur[1, :]
+    mr = ur[2, :]
+
+    R_index = findfirst(x->x<0, Pr)
+    TOV_sol = (;
+        r,
+        Pr,
+        mr,
+        ρr = EoS_inv.(Pr),
+        R = r[isnothing(R_index) ? end : (R_index - 1)],
+        M = mr[isnothing(R_index) ? end : (R_index - 1)],
+    )
+    return TOV_sol
+end
 
 
 
