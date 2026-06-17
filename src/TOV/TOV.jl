@@ -25,6 +25,7 @@ To solve the TOV equation, we need to specify an equation of state (EoS) that re
 module TOV
 
 using ..OdeSolve: evolve
+using ..Parameters: ParameterType
 using ..PhysicalConstants: gravitational_constant, speed_of_light_vacuum
 using DocStringExtensions: TYPEDSIGNATURES
 using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK
@@ -61,6 +62,50 @@ function tov_eq!(EoS_rho_from_P::Function)
         du[2] = 4*pi*r^2*rho
     end
     return tov_inner!
+end
+
+function TOV_ref_units(; units::Union{String} = "CGS", rho_ref::Float64 = 2.8e14)
+    if units == "CGS"
+        G0 = gravitational_constant * 1e3
+        c0 = speed_of_light_vacuum * 1e2
+    elseif units == "SI"
+        G0 = gravitational_constant
+        c0 = speed_of_light_vacuum
+        rho_ref = rho_ref * 1e3
+    else
+        error(" !!!! Non-Supported Units !!!!")
+    end
+    L_ref = c0 / sqrt(G0*rho_ref)
+    P_ref = rho_ref * c0^2
+    M_ref = rho_ref * L_ref^3
+    return P_ref, rho_ref, L_ref, M_ref
+end
+
+"""
+
+$(TYPEDSIGNATURES)
+
+Returns a function that evaluates the RHS of the dimensionless TOV equations, given an equation of state function.
+
+# Arguments
+- `EoS_rho_from_P::Function`: Single-argument (inverse) equation-of-state function that maps dimensionless density (``\\hat{\\rho}``) to dimensionless pressure (``\\hat{P}``).
+
+# Returns
+- `tov_dimless_inner!::Function`: Callable as `tov_dimless!(du, u, params, r)` that evaluates the RHS of the dimensionless TOV equations, writing the result to `du`.
+"""
+function tov_eq_dimless!(EoS_rho_from_P::Function; units::Union{String,Nothing} = "CGS")
+    P_ref, rho_ref = TOV_ref_units(units)
+    function tov_dimless_inner!(du, u, params::ParameterType, r)
+        P = u[1]
+        m = u[2]
+        rho = EoS_rho_from_P(P*P_ref) / rho_ref
+        du[1] = if r == 0.0
+            0.0
+        else
+            -1 / r^2 * (rho + P) * (m + 4*pi*r^3*P) / (1 - 2*m/r)
+        end
+        du[2] = 4*pi*r^2*rho
+    end
 end
 
 """
@@ -132,5 +177,9 @@ function TOV_Solve(
     )
     return TOV_sol
 end
+
+
+
+
 
 end
