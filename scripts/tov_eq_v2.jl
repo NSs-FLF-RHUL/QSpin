@@ -9,25 +9,31 @@ The parameters, and equation of state, are chosen from https://github.com/vaness
 using QSpin
 using QSpin.Parameters: ParameterType
 using QSpin.TOV: TOV_Solve_dimensionless, TOV_ref_units
-using QSpin.TOV.EquationOfState: EoS_GCA2018
-using QSpin.PhysicalConstants: neutron_mass, mass_sun
+using QSpin.TOV.EquationOfState: EoS_GCA2018, EoS_two_component_polytrope
+using QSpin.PhysicalConstants: neutron_mass, mass_sun, hbar
 using Plots, LaTeXStrings
 import OrdinaryDiffEq as DE
 using OrdinaryDiffEqLowOrderRK
 tovUnits = TOV_ref_units()
 
 Sim_Input = (
-    ρ0 = 0.08*(1e39)*neutron_mass*1e3 / tovUnits.rho_ref, # Initial central density in g/cm^3, above 1e15 seems to be unstable
+    ρ0 = 3e14 / tovUnits.rho_ref, # Initial central density in g/cm^3, above 1e15 seems to be unstable
     dr = 0.0005*1e5/tovUnits.length_ref, # Radial step in cm
     Dr = 0.01*1e5/tovUnits.length_ref, # Radial interval for recording values in cm
     r_end = 20e5/tovUnits.length_ref, # Maximum radius to solve up to in cm
     r_beg = 0.e5/tovUnits.length_ref,
 );
 
-# Function Setup for inverse EoS and TOV equation for the solver
-EoS, EoS_inv = EoS_GCA2018();
+# Polytropic EoS parameters
+EoS_Param_Stiff = (
+    K_crust = (3*π^2)^(2/3) * hbar^2 / (5*neutron_mass^(8/3)),
+    γ_crust = 5.0/3.0,
+    γ_core = 3.0,
+    ρ_b = 3e14*1e3,
+)
 
-# Setup initial condition; central pressure and enclosed mass
+EoS, EoS_inv = EoS_two_component_polytrope(EoS_Param_Stiff);
+
 u0 = [EoS(Sim_Input.ρ0*tovUnits.rho_ref;)/tovUnits.pressure_ref; 0.0];
 
 # Solve the TOV equation using `QSpin` for the stiff and soft EoSs.

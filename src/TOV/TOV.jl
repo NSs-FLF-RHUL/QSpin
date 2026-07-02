@@ -195,7 +195,7 @@ function TOV_Solve_dimensionless(
     alg = OrdinaryDiffEqLowOrderRK.DP5(),
     dt = dr,
     saveat = Dr,
-    reltol = 1e-8,
+    reltol = 1e-12,
     solver_options...,
 )
     tov! = tov_eq_dimless!(EoS_inv)
