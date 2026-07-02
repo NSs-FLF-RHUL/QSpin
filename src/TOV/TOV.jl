@@ -101,7 +101,7 @@ function tov_eq_dimless!(EoS_rho_from_P::Function; Units::Union{String} = "CGS")
     tovUnits = TOV_ref_units(units = Units)
     P_ref = tovUnits.pressure_ref;
     rho_ref = tovUnits.rho_ref;
-    function tov_dimless_inner!(du, u, params::ParameterType, r)
+    function tov_dimless_inner!(du, u, params, r)
         P = u[1]
         m = u[2]
         rho = EoS_rho_from_P(P*P_ref) / rho_ref
@@ -112,6 +112,7 @@ function tov_eq_dimless!(EoS_rho_from_P::Function; Units::Union{String} = "CGS")
         end
         du[2] = 4*pi*r^2*rho
     end
+    return tov_dimless_inner!
 end
 
 """
