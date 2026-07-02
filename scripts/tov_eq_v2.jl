@@ -17,13 +17,15 @@ using OrdinaryDiffEqLowOrderRK
 tovUnits = TOV_ref_units()
 
 Sim_Input = (
-    ρ0 = 1e15 / tovUnits.rho_ref, # Initial central density in g/cm^3, above 1e15 seems to be unstable
-    dr = 0.0005*1e5/tovUnits.length_ref, # Radial step in cm
-    Dr = 0.01*1e5/tovUnits.length_ref, # Radial interval for recording values in cm
+    ρ0 = 6.5e14 / tovUnits.rho_ref, # Initial central density in g/cm^3, above 1e15 seems to be unstable
+    dr = 0.0001*1e5/tovUnits.length_ref, # Radial step in cm
+    Dr = 0.005*1e5/tovUnits.length_ref, # Radial interval for recording values in cm
     r_end = 20e5/tovUnits.length_ref, # Maximum radius to solve up to in cm
     r_beg = 0.e5/tovUnits.length_ref,
 );
 
+# Calling EoS_GCA2018
+EoS, EoS_inv = EoS_GCA2018();
 # Polytropic EoS parameters
 EoS_Param_Stiff = (
     K_crust = (3*π^2)^(2/3) * (hbar*1e7)^2 / (5*(neutron_mass*1e3)^(8/3)),
@@ -31,8 +33,7 @@ EoS_Param_Stiff = (
     γ_core = 3.0,
     ρ_b = 3e14,
 )
-
-EoS, EoS_inv = EoS_two_component_polytrope(EoS_Param_Stiff);
+#EoS, EoS_inv = EoS_two_component_polytrope(EoS_Param_Stiff);
 
 u0 = [EoS(Sim_Input.ρ0*tovUnits.rho_ref)/tovUnits.pressure_ref; 0.0];
 tov! = tov_eq_dimless!(EoS_inv);
@@ -49,7 +50,7 @@ r = sol.t
 Pr = ur[1, :]
 mr = ur[2, :]
 ρr = EoS_inv.(Pr*tovUnits.pressure_ref)
-plot(r, ρr)
+plot(r*tovUnits.length_ref*1e-5, ρr)
 
 
 #plot(TOV_sol.r*tovUnits.length_ref*1e-5, TOV_sol.Pr*tovUnits.pressure_ref)
