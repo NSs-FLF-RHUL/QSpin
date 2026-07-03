@@ -33,45 +33,23 @@ using SciMLBase: DiscreteCallback, terminate!
 # Include the equations of state module as a submodule of the TOV module
 include("EoS/EquationOfState.jl")
 
-"""
 
-$(TYPEDSIGNATURES)
 
-Returns a function that evaluates the RHS of the TOV equations, given an equation of state function.
 
-# Arguments
-- `EoS_rho_from_P::Function`: Single-argument (inverse) equation-of-state function that maps density (``\\rho``) to pressure (``P``).
 
-# Returns
-- `tov_inner!::Function`: Callable as `tov_inner!(du, u, params, r)` that evaluates the RHS of the TOV equations, writing the result to `du`.
-"""
-function tov_eq!(EoS_rho_from_P::Function)
-    function tov_inner!(du, u, params, r)
-        P = u[1]
-        m = u[2]
-        rho = EoS_rho_from_P(P)
-        du[1] = if r == 0.0
-            0.0
-        else
-            -gravitational_constant / r^2 *
-            (rho + P/speed_of_light_vacuum^2) *
-            (m + 4*pi*r^3*P/speed_of_light_vacuum^2) /
-            (1 - 2*gravitational_constant*m/(r*speed_of_light_vacuum^2))
-        end
-        du[2] = 4*pi*r^2*rho
+
+function TOV_ref_units(;
+    units::Union{String} = "CGS",
+    rho_ref::Float64 = 2.8e14,
+    print_units::Bool = false,
+)
+    if print_units
+        println("  ", units, " unit")
     end
-    return tov_inner!
-end
-
-
-
-function TOV_ref_units(; units::Union{String} = "CGS", rho_ref::Float64 = 2.8e14)
     if units == "CGS"
-        println(" CGS unit")
         G0 = gravitational_constant * 1e3
         c0 = speed_of_light_vacuum * 1e2
     elseif units == "SI"
-        println(" SI unit")
         G0 = gravitational_constant
         c0 = speed_of_light_vacuum
         rho_ref = rho_ref * 1e3
@@ -84,34 +62,45 @@ function TOV_ref_units(; units::Union{String} = "CGS", rho_ref::Float64 = 2.8e14
     tovUnits = (; length_ref, pressure_ref, mass_ref, rho_ref)
     return tovUnits
 end
+
 """
 
 $(TYPEDSIGNATURES)
 
-Returns a function that evaluates the RHS of the dimensionless TOV equations, given an equation of state function.
+Returns a function that evaluates the RHS of the TOV equation in dimensionless or dimensional form, given an equation of state function.
 
 # Arguments
-- `EoS_rho_from_P::Function`: Single-argument (inverse) equation-of-state function that maps dimensionless density (``\\hat{\\rho}``) to dimensionless pressure (``\\hat{P}``).
+- `EoS_rho_from_P::Function`: Single-argument (inverse) equation-of-state function that maps density (``\\rho``) to pressure (``P``).
 
 # Returns
-- `tov_dimless_inner!::Function`: Callable as `tov_dimless!(du, u, params, r)` that evaluates the RHS of the dimensionless TOV equations, writing the result to `du`.
+- `tov_inner!::Function`: Callable as `tov_inner!(du, u, params, r)` that evaluates the RHS of the TOV equations, writing the result to `du`.
 """
-function tov_eq_dimless!(EoS_rho_from_P::Function; Units::Union{String} = "CGS")
-    tovUnits = TOV_ref_units(units = Units)
-    P_ref = tovUnits.pressure_ref;
-    rho_ref = tovUnits.rho_ref;
-    function tov_dimless_inner!(du, u, params, r)
+function tov_eq!(EoS_rho_from_P::Function; Dim::Bool = false, Units::Union{String} = "CGS")
+    if Dim == false
+        tovUnits = TOV_ref_units(units = Units)
+        P_ref = tovUnits.pressure_ref;
+        rho_ref = tovUnits.rho_ref;
+        c0 = 1
+        G0 = 1
+    else
+        P_ref = 1.0
+        rho_ref = 1.0
+        c0 = speed_of_light_vacuum
+        G0 = gravitational_constant
+    end
+
+    function tov_inner!(du, u, params, r)
         P = u[1]
         m = u[2]
         rho = EoS_rho_from_P(P*P_ref) / rho_ref
         du[1] = if r == 0.0
             0.0
         else
-            -1 / r^2 * (rho + P) * (m + 4*pi*r^3*P) / (1 - 2*m/r)
+            -G0 / r^2 * (rho + P/c0^2) * (m + 4*pi*r^3*P/c0^2) / (1 - 2*G0*m/(r*c0^2))
         end
         du[2] = 4*pi*r^2*rho
     end
-    return tov_dimless_inner!
+    return tov_inner!
 end
 
 """
@@ -143,62 +132,17 @@ function TOV_Solve(
     u0::AbstractArray,
     dr::Float64,
     Dr::Float64,
+    r_beg::Float64,
     r_max::Float64,
     EoS_inv::Function;
+    Dim::Bool = false,
+    Units::Union{String} = "CGS",
     alg = OrdinaryDiffEqLowOrderRK.DP5(),
     dt = dr,
-    saveat = Dr,
     reltol = 1e-12,
     solver_options...,
 )
     tov! = tov_eq!(EoS_inv)
-    condition(u, t, integrator) = u[1] < 0
-    affect!(integrator) = terminate!(integrator)
-    cb = DiscreteCallback(condition, affect!)
-    sol_tov = evolve(
-        tov!,
-        u0,
-        0.0,
-        r_max;
-        alg,
-        reltol,
-        callback = cb,
-        dt,
-        saveat,
-        solver_options...,
-    )
-    ur = Array(sol_tov)
-    r = sol_tov.t
-    Pr = ur[1, :]
-    mr = ur[2, :]
-
-    R_index = findfirst(x->x<0, Pr)
-    TOV_sol = (;
-        r,
-        Pr,
-        mr,
-        ρr = EoS_inv.(Pr),
-        R = r[R_index-1],
-        M = mr[isnothing(R_index) ? end : (R_index - 1)],
-    )
-    return TOV_sol
-end
-
-
-function TOV_Solve_dimensionless(
-    u0::AbstractArray,
-    dr::Float64,
-    Dr::Float64,
-    r_beg::Float64,
-    r_max::Float64,
-    EoS_inv::Function;
-    alg = OrdinaryDiffEqLowOrderRK.DP5(),
-    dt = dr,
-    saveat = Dr,
-    reltol = 1e-12,
-    solver_options...,
-)
-    tov! = tov_eq_dimless!(EoS_inv)
     condition(u, t, integrator) = u[1] < 0
     affect!(integrator) = terminate!(integrator)
     cb = DiscreteCallback(condition, affect!)
@@ -211,7 +155,7 @@ function TOV_Solve_dimensionless(
         reltol,
         callback = cb,
         dt,
-        saveat,
+        saveat = Dr,
         solver_options...,
     )
     ur = Array(sol_tov)
