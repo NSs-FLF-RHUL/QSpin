@@ -196,7 +196,6 @@ function TOV_Solve_dimensionless(
     EoS_inv::Function;
     alg = OrdinaryDiffEqLowOrderRK.DP5(),
     dt = dr,
-    saveat = Dr,
     reltol = 1e-12,
     r_max::Float64 = 20e5, # 20 km in cm
     solver_options...,
@@ -204,6 +203,9 @@ function TOV_Solve_dimensionless(
     # Building the dimensionless TOV equation function using the provided inverse EoS function
     tov! = tov_eq_dimless!(EoS_inv);
     tovUnits = TOV_ref_units();
+    dt = dt / tovUnits.length_ref;
+    Dr = Dr / tovUnits.length_ref;
+    r_beg = r_beg / tovUnits.length_ref;
     r_max = r_max / tovUnits.length_ref;
     condition(u, t, integrator) = u[1] < 0
     affect!(integrator) = terminate!(integrator)

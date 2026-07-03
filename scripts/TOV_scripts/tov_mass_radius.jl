@@ -51,9 +51,9 @@ u0_Soft = [EoS_Soft(Sim_Input.ρ0)/tovUnits.pressure_ref; 0.0];
 # Solving the TOV equation for the stiff EoS with the same input parameters.
 @time TOV_sol_Stiff = TOV_Solve_dimensionless(
     u0_Stiff,
-    Sim_Input.dr/tovUnits.length_ref,
-    Sim_Input.Dr/tovUnits.length_ref,
-    Sim_Input.r_beg/tovUnits.length_ref,
+    Sim_Input.dr,
+    Sim_Input.Dr,
+    Sim_Input.r_beg,
     EoS_inv_Stiff;
     alg = OrdinaryDiffEqLowOrderRK.DP5(),
     reltol = 1e-15,
@@ -62,9 +62,9 @@ u0_Soft = [EoS_Soft(Sim_Input.ρ0)/tovUnits.pressure_ref; 0.0];
 # Solving the TOV equation for the soft EoS with the same input parameters.
 @time TOV_sol_Soft = TOV_Solve_dimensionless(
     u0_Soft,
-    Sim_Input.dr/tovUnits.length_ref,
-    Sim_Input.Dr/tovUnits.length_ref,
-    Sim_Input.r_beg/tovUnits.length_ref,
+    Sim_Input.dr,
+    Sim_Input.Dr,
+    Sim_Input.r_beg,
     EoS_inv_Soft;
     alg = OrdinaryDiffEqLowOrderRK.DP5(),
     reltol = 1e-15,
@@ -83,9 +83,9 @@ for cc = 1:length(ρc_scan)
     println(cc, ": Solving TOV eq. for central density ρc = ", ρc/1e14, "1e14 g/cm^3")
     TOV_sol = TOV_Solve_dimensionless(
         [EoS_Stiff(ρc)/tovUnits.pressure_ref; 0.0],
-        Sim_Input.dr/tovUnits.length_ref,
-        Sim_Input.Dr/tovUnits.length_ref,
-        Sim_Input.r_beg/tovUnits.length_ref,
+        Sim_Input.dr,
+        Sim_Input.Dr,
+        Sim_Input.r_beg,
         EoS_inv_Stiff;
         alg = OrdinaryDiffEqLowOrderRK.DP5(),
         reltol = 1e-15,
@@ -95,9 +95,9 @@ for cc = 1:length(ρc_scan)
 
     TOV_sol = TOV_Solve_dimensionless(
         [EoS_Soft(ρc)/tovUnits.pressure_ref; 0.0],
-        Sim_Input.dr/tovUnits.length_ref,
-        Sim_Input.Dr/tovUnits.length_ref,
-        Sim_Input.r_beg/tovUnits.length_ref,
+        Sim_Input.dr,
+        Sim_Input.Dr,
+        Sim_Input.r_beg,
         EoS_inv_Soft;
         alg = DE.Tsit5(),#OrdinaryDiffEqLowOrderRK.DP5(),
         reltol = 1e-15,
