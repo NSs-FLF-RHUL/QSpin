@@ -76,7 +76,7 @@ function TOV_ref_units(; units::Union{String} = "CGS", rho_ref::Float64 = 2.8e14
         c0 = speed_of_light_vacuum
         rho_ref = rho_ref * 1e3
     else
-        error(" !!!! Non-Supported Units !!!!")
+        error("Unsupported units '$(units)'.  Only supported units are 'CGS' and 'SI'")
     end
     length_ref = c0 / sqrt(G0*rho_ref)
     pressure_ref = rho_ref * c0^2
