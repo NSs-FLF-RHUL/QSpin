@@ -69,11 +69,11 @@ end
 
 function TOV_ref_units(; units::Union{String} = "CGS", rho_ref::Float64 = 2.8e14)
     if units == "CGS"
-        println(" CGS unit")
+        #println(" CGS unit")
         G0 = gravitational_constant * 1e3
         c0 = speed_of_light_vacuum * 1e2
     elseif units == "SI"
-        println(" SI unit")
+        #println(" SI unit")
         G0 = gravitational_constant
         c0 = speed_of_light_vacuum
         rho_ref = rho_ref * 1e3
@@ -193,23 +193,24 @@ function TOV_Solve_dimensionless(
     dr::Float64,
     Dr::Float64,
     r_beg::Float64,
-    r_max::Float64,
     EoS_inv::Function;
     alg = OrdinaryDiffEqLowOrderRK.DP5(),
     dt = dr,
     saveat = Dr,
     reltol = 1e-12,
+    r_max::Float64 = 20e5, # 20 km in cm
     solver_options...,
 )
     # Building the dimensionless TOV equation function using the provided inverse EoS function
     tov! = tov_eq_dimless!(EoS_inv);
-    tovUnits = TOV_ref_units()
+    tovUnits = TOV_ref_units();
+    r_max = r_max / tovUnits.length_ref;
     condition(u, t, integrator) = u[1] < 0
     affect!(integrator) = terminate!(integrator)
     cb = DiscreteCallback(condition, affect!)
 
     problem = ODEProblem(tov!, u0, (r_beg, r_max); callback = cb)
-    sol = DE.solve(problem, OrdinaryDiffEqLowOrderRK.DP5(); reltol = 1e-12)
+    sol = DE.solve(problem, OrdinaryDiffEqLowOrderRK.DP5(); saveat = Dr, reltol = 1e-12)
 
     ur = Array(sol)
     r = sol.t
