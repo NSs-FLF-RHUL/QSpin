@@ -2,7 +2,7 @@
 Defines a number of fundamental physical constants for use in simulations.
 """
 module PhysicalConstants
-import PhysicalConstants.CODATA2022:
+using PhysicalConstants.CODATA2022:
     NewtonianConstantOfGravitation,
     SpeedOfLightInVacuum,
     PlanckConstant,
