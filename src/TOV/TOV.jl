@@ -222,7 +222,7 @@ function TOV_Solve_dimensionless(
         r,
         Pr,
         mr,
-        ρr = EoS_inv.(Pr),
+        ρr = EoS_inv.(Pr*tovUnits.pressure_ref),
         R = r[isnothing(R_index) ? end : (R_index - 1)],
         M = mr[isnothing(R_index) ? end : (R_index - 1)],
     )

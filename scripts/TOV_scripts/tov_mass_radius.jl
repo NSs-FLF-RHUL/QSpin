@@ -69,6 +69,43 @@ u0_Soft = [EoS_Soft(Sim_Input.ρ0*tovUnits.rho_ref)/tovUnits.pressure_ref; 0.0];
     reltol = 1e-15,
 )
 
+# Compute the M-R relation by varying the central density, and solving the TOV equation for each case.
+# The radius is defined by the first point that the pressure becomes negative.
+ρc_scan = exp10.(range(14, stop = 20, length = 150))
+M_StiffScan = zeros(length(ρc_scan));
+R_StiffScan = zeros(length(ρc_scan));
+M_SoftScan = zeros(length(ρc_scan));
+R_SoftScan = zeros(length(ρc_scan));
+
+for cc = 1:length(ρc_scan)
+    ρc = ρc_scan[Int.(cc)];
+    println(cc, ": Solving TOV for central density ρc = ", ρc/1e18, "1e18 kg/m^3")
+    TOV_sol = TOV_Solve_dimensionless(
+        [EoS_Stiff(ρc)/tovUnits.pressure_ref; 0.0],
+        Sim_Input.dr,
+        Sim_Input.Dr,
+        Sim_Input.r_beg,
+        EoS_inv_Stiff;
+        alg = OrdinaryDiffEqLowOrderRK.DP5(),
+        reltol = 1e-15,
+    )
+    M_StiffScan[Int.(cc)] = TOV_sol.M
+    R_StiffScan[Int.(cc)] = TOV_sol.R
+
+    TOV_sol = TOV_Solve_dimensionless(
+        [EoS_Soft(ρc)/tovUnits.pressure_ref; 0.0],
+        Sim_Input.dr,
+        Sim_Input.Dr,
+        Sim_Input.r_beg,
+        EoS_inv_Soft;
+        alg = OrdinaryDiffEqLowOrderRK.DP5(),
+        reltol = 1e-15,
+    )
+    M_SoftScan[Int.(cc)] = TOV_sol.M
+    R_SoftScan[Int.(cc)] = TOV_sol.R
+end
+
+# Plotting two primary stiff and soft examples
 Pc_Stiff = EoS_Stiff(Sim_Input.ρ0*tovUnits.rho_ref)
 Pc_Soft = EoS_Soft(Sim_Input.ρ0*tovUnits.rho_ref)
 plt1 = plot(
@@ -87,3 +124,50 @@ plot!(
     label = string(L"\gamma_\mathrm{core}=", EoS_Param_Soft.γ_core),
     linewidth = 2,
 )
+plt2 = plot(
+    TOV_sol_Stiff.r*tovUnits.length_ref/1e5,
+    TOV_sol_Stiff.ρr/tovUnits.rho_ref/Sim_Input.ρ0,
+    label = string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.γ_core),
+    xlabel = "Radius (km)",
+    ylabel = L"\rho/\rho_c",
+    framestyle = :box,
+    linewidth = 2,
+)
+plot!(
+    plt2,
+    TOV_sol_Soft.r*tovUnits.length_ref/1e5,
+    TOV_sol_Soft.ρr/tovUnits.rho_ref/Sim_Input.ρ0,
+    label = string(L"\gamma_\mathrm{core}=", EoS_Param_Soft.γ_core),
+    linewidth = 2,
+)
+plt3 = plot(
+    TOV_sol_Stiff.r*tovUnits.length_ref/1e5,
+    TOV_sol_Stiff.mr*tovUnits.mass_ref*1e-3/mass_sun,
+    label = string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.γ_core),
+    xlabel = "Radius (km)",
+    ylabel = L"M/M_\odot",
+    framestyle = :box,
+    linewidth = 2,
+)
+plot!(
+    plt3,
+    TOV_sol_Soft.r*tovUnits.length_ref/1e5,
+    TOV_sol_Soft.mr*tovUnits.mass_ref*1e-3/mass_sun,
+    label = string(L"\gamma_\mathrm{core}=", EoS_Param_Soft.γ_core),
+    linewidth = 2,
+)
+plt4 = scatter(
+    [R_StiffScan R_SoftScan]*tovUnits.length_ref/1e5,
+    [M_StiffScan M_SoftScan]*tovUnits.mass_ref*1e-3/mass_sun,
+    ;
+    zcolor = log.([ρc_scan ρc_scan])/log(10), # color the data by the core density
+    markershape = [:circle :diamond],
+    bg = :linen,
+    markersize = [2 2],
+    label = ["Stiff" "Soft"],
+    xlabel = "Radius (km)",
+    ylabel = L"\textrm{Mass}\;(M_\odot)",
+    framestyle = :box,
+    linewidth = 2,
+)
+plot(plt1, plt2, plt3, plt4, layout = (2, 2))
