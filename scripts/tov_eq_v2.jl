@@ -17,7 +17,7 @@ using OrdinaryDiffEqLowOrderRK
 tovUnits = TOV_ref_units()
 
 Sim_Input = (
-    ρ0 = 6.5e14 / tovUnits.rho_ref, # Initial central density in g/cm^3, above 1e15 seems to be unstable
+    ρ0 = 5e14 / tovUnits.rho_ref, # Initial central density in g/cm^3, above 1e15 seems to be unstable
     dr = 0.0001*1e5/tovUnits.length_ref, # Radial step in cm
     Dr = 0.005*1e5/tovUnits.length_ref, # Radial interval for recording values in cm
     r_end = 20e5/tovUnits.length_ref, # Maximum radius to solve up to in cm

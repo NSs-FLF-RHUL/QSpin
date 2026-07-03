@@ -29,7 +29,8 @@ using ..Parameters: ParameterType
 using ..PhysicalConstants: gravitational_constant, speed_of_light_vacuum
 using DocStringExtensions: TYPEDSIGNATURES
 using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK
-using SciMLBase: DiscreteCallback, terminate!
+using SciMLBase: DiscreteCallback, terminate!, ODEProblem
+import OrdinaryDiffEq as DE
 
 # Include the equations of state module as a submodule of the TOV module
 include("EoS/EquationOfState.jl")
@@ -152,6 +153,7 @@ function TOV_Solve(
     reltol = 1e-12,
     solver_options...,
 )
+    # Building the TOV equation function using the provided inverse EoS function
     tov! = tov_eq!(EoS_inv)
     condition(u, t, integrator) = u[1] < 0
     affect!(integrator) = terminate!(integrator)
@@ -199,27 +201,21 @@ function TOV_Solve_dimensionless(
     reltol = 1e-12,
     solver_options...,
 )
-    tov! = tov_eq_dimless!(EoS_inv)
+    # Building the dimensionless TOV equation function using the provided inverse EoS function
+    tov! = tov_eq_dimless!(EoS_inv);
+    tovUnits = TOV_ref_units()
     condition(u, t, integrator) = u[1] < 0
     affect!(integrator) = terminate!(integrator)
     cb = DiscreteCallback(condition, affect!)
-    sol_tov = evolve(
-        tov!,
-        u0,
-        r_beg,
-        r_max;
-        alg,
-        reltol,
-        callback = cb,
-        dt,
-        saveat,
-        solver_options...,
-    )
-    ur = Array(sol_tov)
-    r = sol_tov.t
+
+    problem = ODEProblem(tov!, u0, (r_beg, r_max); callback = cb)
+    sol = DE.solve(problem, OrdinaryDiffEqLowOrderRK.DP5(); reltol = 1e-12)
+
+    ur = Array(sol)
+    r = sol.t
     Pr = ur[1, :]
     mr = ur[2, :]
-
+    ρr = EoS_inv.(Pr*tovUnits.pressure_ref)
     R_index = findfirst(x->x<0, Pr)
     TOV_sol = (;
         r,

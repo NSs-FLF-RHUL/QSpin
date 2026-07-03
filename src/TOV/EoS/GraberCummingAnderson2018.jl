@@ -57,7 +57,7 @@ function EoS_GCA2018(
         elseif P < EoS_P_from_rho(ρ_drip)
             (12 * π^2 * P / ħ / c)^(3/4) * (mn * 1e3) / (3 * π^2 * Ye)
         else
-            find_zero(y -> EoS_P_from_rho(y) - P, 5e11)
+            find_zero(y -> EoS_P_from_rho(y) - P, 5e13)
         end
         return ρ
     end
