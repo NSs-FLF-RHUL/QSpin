@@ -33,10 +33,10 @@ EoS_Param_Soft = (
 )
 
 Sim_Input = (
-    ρ0 = 1e15 / tovUnits.rho_ref, # Initial central density in g/cm^3, above 1e15 seems to be unstable
-    dr = 0.1/tovUnits.length_ref, # Radial step in cm
-    Dr = 1e2/tovUnits.length_ref, # Radial interval for recording values in cm
-    r_beg = 0.e5/tovUnits.length_ref,
+    ρ0 = 1e15, # Initial central density in g/cm^3, above 1e15 seems to be unstable
+    dr = 0.1, # Radial step in cm
+    Dr = 1e2, # Radial interval for recording values in cm
+    r_beg = 0.0,
 );
 
 # Function Setup for inverse EoS and TOV equation for the solver
@@ -45,15 +45,15 @@ EoS_Soft, EoS_inv_Soft = EoS_two_component_polytrope(EoS_Param_Soft);
 
 # Getting two primary examples for the same input parameters but different EoSs.
 ## Setup initial condition; central pressure and enclosed mass
-u0_Stiff = [EoS_Stiff(Sim_Input.ρ0*tovUnits.rho_ref)/tovUnits.pressure_ref; 0.0];
-u0_Soft = [EoS_Soft(Sim_Input.ρ0*tovUnits.rho_ref)/tovUnits.pressure_ref; 0.0];
+u0_Stiff = [EoS_Stiff(Sim_Input.ρ0)/tovUnits.pressure_ref; 0.0];
+u0_Soft = [EoS_Soft(Sim_Input.ρ0)/tovUnits.pressure_ref; 0.0];
 
 # Solving the TOV equation for the stiff EoS with the same input parameters.
 @time TOV_sol_Stiff = TOV_Solve_dimensionless(
     u0_Stiff,
-    Sim_Input.dr,
-    Sim_Input.Dr,
-    Sim_Input.r_beg,
+    Sim_Input.dr/tovUnits.length_ref,
+    Sim_Input.Dr/tovUnits.length_ref,
+    Sim_Input.r_beg/tovUnits.length_ref,
     EoS_inv_Stiff;
     alg = OrdinaryDiffEqLowOrderRK.DP5(),
     reltol = 1e-15,
@@ -62,9 +62,9 @@ u0_Soft = [EoS_Soft(Sim_Input.ρ0*tovUnits.rho_ref)/tovUnits.pressure_ref; 0.0];
 # Solving the TOV equation for the soft EoS with the same input parameters.
 @time TOV_sol_Soft = TOV_Solve_dimensionless(
     u0_Soft,
-    Sim_Input.dr,
-    Sim_Input.Dr,
-    Sim_Input.r_beg,
+    Sim_Input.dr/tovUnits.length_ref,
+    Sim_Input.Dr/tovUnits.length_ref,
+    Sim_Input.r_beg/tovUnits.length_ref,
     EoS_inv_Soft;
     alg = OrdinaryDiffEqLowOrderRK.DP5(),
     reltol = 1e-15,
@@ -83,9 +83,9 @@ for cc = 1:length(ρc_scan)
     println(cc, ": Solving TOV eq. for central density ρc = ", ρc/1e14, "1e14 g/cm^3")
     TOV_sol = TOV_Solve_dimensionless(
         [EoS_Stiff(ρc)/tovUnits.pressure_ref; 0.0],
-        Sim_Input.dr,
-        Sim_Input.Dr,
-        Sim_Input.r_beg,
+        Sim_Input.dr/tovUnits.length_ref,
+        Sim_Input.Dr/tovUnits.length_ref,
+        Sim_Input.r_beg/tovUnits.length_ref,
         EoS_inv_Stiff;
         alg = OrdinaryDiffEqLowOrderRK.DP5(),
         reltol = 1e-15,
@@ -95,9 +95,9 @@ for cc = 1:length(ρc_scan)
 
     TOV_sol = TOV_Solve_dimensionless(
         [EoS_Soft(ρc)/tovUnits.pressure_ref; 0.0],
-        Sim_Input.dr,
-        Sim_Input.Dr,
-        Sim_Input.r_beg,
+        Sim_Input.dr/tovUnits.length_ref,
+        Sim_Input.Dr/tovUnits.length_ref,
+        Sim_Input.r_beg/tovUnits.length_ref,
         EoS_inv_Soft;
         alg = DE.Tsit5(),#OrdinaryDiffEqLowOrderRK.DP5(),
         reltol = 1e-15,
@@ -107,8 +107,8 @@ for cc = 1:length(ρc_scan)
 end
 
 # Plotting two primary stiff and soft examples
-Pc_Stiff = EoS_Stiff(Sim_Input.ρ0*tovUnits.rho_ref)
-Pc_Soft = EoS_Soft(Sim_Input.ρ0*tovUnits.rho_ref)
+Pc_Stiff = EoS_Stiff(Sim_Input.ρ0)
+Pc_Soft = EoS_Soft(Sim_Input.ρ0)
 plt1 = plot(
     TOV_sol_Stiff.r/1e5,
     TOV_sol_Stiff.Pr/Pc_Stiff,
