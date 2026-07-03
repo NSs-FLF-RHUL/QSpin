@@ -25,17 +25,14 @@ To solve the TOV equation, we need to specify an equation of state (EoS) that re
 module TOV
 
 using ..OdeSolve: evolve
+using ..Parameters: ParameterType
 using ..PhysicalConstants: gravitational_constant, speed_of_light_vacuum
 using DocStringExtensions: TYPEDSIGNATURES
 using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK
-using SciMLBase: DiscreteCallback, terminate!
-
+using SciMLBase: DiscreteCallback, terminate!, ODEProblem
+import OrdinaryDiffEq as DE
 # Include the equations of state module as a submodule of the TOV module
 include("EoS/EquationOfState.jl")
-
-
-
-
 
 
 function TOV_ref_units(;
@@ -133,42 +130,37 @@ function TOV_Solve(
     dr::Float64,
     Dr::Float64,
     r_beg::Float64,
-    r_max::Float64,
     EoS_inv::Function;
-    Dim::Bool = false,
-    Units::Union{String} = "CGS",
     alg = OrdinaryDiffEqLowOrderRK.DP5(),
     dt = dr,
     reltol = 1e-12,
+    r_max::Float64 = 20e5, # 20 km in cm
     solver_options...,
 )
-    tov! = tov_eq!(EoS_inv)
+    # Building the dimensionless TOV equation function using the provided inverse EoS function
+    tov! = tov_eq!(EoS_inv);
+    tovUnits = TOV_ref_units();
+    dt = dt / tovUnits.length_ref;
+    Dr = Dr / tovUnits.length_ref;
+    r_beg = r_beg / tovUnits.length_ref;
+    r_max = r_max / tovUnits.length_ref;
     condition(u, t, integrator) = u[1] < 0
     affect!(integrator) = terminate!(integrator)
     cb = DiscreteCallback(condition, affect!)
-    sol_tov = evolve(
-        tov!,
-        u0,
-        r_beg,
-        r_max;
-        alg,
-        reltol,
-        callback = cb,
-        dt,
-        saveat = Dr,
-        solver_options...,
-    )
-    ur = Array(sol_tov)
-    r = sol_tov.t
-    Pr = ur[1, :]
-    mr = ur[2, :]
+    problem = ODEProblem(tov!, u0, (0.0, r_max); callback = cb)
+    sol = DE.solve(problem, OrdinaryDiffEqLowOrderRK.DP5(); saveat = Dr, reltol = 1e-12)
 
+    ur = Array(sol)
+    r = sol.t * tovUnits.length_ref
+    Pr = ur[1, :] * tovUnits.pressure_ref
+    mr = ur[2, :] * tovUnits.mass_ref
+    ρr = EoS_inv.(Pr)
     R_index = findfirst(x->x<0, Pr)
     TOV_sol = (;
         r,
         Pr,
         mr,
-        ρr = EoS_inv.(Pr),
+        ρr,
         R = r[isnothing(R_index) ? end : (R_index - 1)],
         M = mr[isnothing(R_index) ? end : (R_index - 1)],
     )
