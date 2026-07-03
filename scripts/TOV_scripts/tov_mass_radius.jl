@@ -34,7 +34,7 @@ EoS_Param_Soft = (
 
 Sim_Input = (
     ρ0 = 1e15 / tovUnits.rho_ref, # Initial central density in g/cm^3, above 1e15 seems to be unstable
-    dr = 10/tovUnits.length_ref, # Radial step in cm
+    dr = 0.1/tovUnits.length_ref, # Radial step in cm
     Dr = 1e2/tovUnits.length_ref, # Radial interval for recording values in cm
     r_beg = 0.e5/tovUnits.length_ref,
 );
@@ -57,6 +57,7 @@ u0_Soft = [EoS_Soft(Sim_Input.ρ0*tovUnits.rho_ref)/tovUnits.pressure_ref; 0.0];
     EoS_inv_Stiff;
     alg = OrdinaryDiffEqLowOrderRK.DP5(),
     reltol = 1e-15,
+    abstol = [1.0, 1e15],
 )
 # Solving the TOV equation for the soft EoS with the same input parameters.
 @time TOV_sol_Soft = TOV_Solve_dimensionless(
@@ -71,7 +72,7 @@ u0_Soft = [EoS_Soft(Sim_Input.ρ0*tovUnits.rho_ref)/tovUnits.pressure_ref; 0.0];
 
 # Compute the M-R relation by varying the central density, and solving the TOV equation for each case.
 # The radius is defined by the first point that the pressure becomes negative.
-ρc_scan = exp10.(range(14, stop = 20, length = 150))
+ρc_scan = exp10.(range(14.5, stop = 17, length = 150))
 M_StiffScan = zeros(length(ρc_scan));
 R_StiffScan = zeros(length(ρc_scan));
 M_SoftScan = zeros(length(ρc_scan));
@@ -79,7 +80,7 @@ R_SoftScan = zeros(length(ρc_scan));
 
 for cc = 1:length(ρc_scan)
     ρc = ρc_scan[Int.(cc)];
-    println(cc, ": Solving TOV for central density ρc = ", ρc/1e18, "1e18 kg/m^3")
+    println(cc, ": Solving TOV eq. for central density ρc = ", ρc/1e14, "1e14 g/cm^3")
     TOV_sol = TOV_Solve_dimensionless(
         [EoS_Stiff(ρc)/tovUnits.pressure_ref; 0.0],
         Sim_Input.dr,
@@ -98,7 +99,7 @@ for cc = 1:length(ρc_scan)
         Sim_Input.Dr,
         Sim_Input.r_beg,
         EoS_inv_Soft;
-        alg = OrdinaryDiffEqLowOrderRK.DP5(),
+        alg = DE.Tsit5(),#OrdinaryDiffEqLowOrderRK.DP5(),
         reltol = 1e-15,
     )
     M_SoftScan[Int.(cc)] = TOV_sol.M
@@ -109,8 +110,8 @@ end
 Pc_Stiff = EoS_Stiff(Sim_Input.ρ0*tovUnits.rho_ref)
 Pc_Soft = EoS_Soft(Sim_Input.ρ0*tovUnits.rho_ref)
 plt1 = plot(
-    TOV_sol_Stiff.r*tovUnits.length_ref/1e5,
-    TOV_sol_Stiff.Pr*tovUnits.pressure_ref/Pc_Stiff,
+    TOV_sol_Stiff.r/1e5,
+    TOV_sol_Stiff.Pr/Pc_Stiff,
     label = string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.γ_core),
     xlabel = "Radius (km)",
     ylabel = L"P/P_c",
@@ -119,13 +120,13 @@ plt1 = plot(
 )
 plot!(
     plt1,
-    TOV_sol_Soft.r*tovUnits.length_ref/1e5,
-    TOV_sol_Soft.Pr*tovUnits.pressure_ref/Pc_Soft,
+    TOV_sol_Soft.r/1e5,
+    TOV_sol_Soft.Pr/Pc_Soft,
     label = string(L"\gamma_\mathrm{core}=", EoS_Param_Soft.γ_core),
     linewidth = 2,
 )
 plt2 = plot(
-    TOV_sol_Stiff.r*tovUnits.length_ref/1e5,
+    TOV_sol_Stiff.r/1e5,
     TOV_sol_Stiff.ρr/tovUnits.rho_ref/Sim_Input.ρ0,
     label = string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.γ_core),
     xlabel = "Radius (km)",
@@ -135,14 +136,14 @@ plt2 = plot(
 )
 plot!(
     plt2,
-    TOV_sol_Soft.r*tovUnits.length_ref/1e5,
+    TOV_sol_Soft.r/1e5,
     TOV_sol_Soft.ρr/tovUnits.rho_ref/Sim_Input.ρ0,
     label = string(L"\gamma_\mathrm{core}=", EoS_Param_Soft.γ_core),
     linewidth = 2,
 )
 plt3 = plot(
-    TOV_sol_Stiff.r*tovUnits.length_ref/1e5,
-    TOV_sol_Stiff.mr*tovUnits.mass_ref*1e-3/mass_sun,
+    TOV_sol_Stiff.r/1e5,
+    TOV_sol_Stiff.mr*1e-3/mass_sun,
     label = string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.γ_core),
     xlabel = "Radius (km)",
     ylabel = L"M/M_\odot",
@@ -151,14 +152,14 @@ plt3 = plot(
 )
 plot!(
     plt3,
-    TOV_sol_Soft.r*tovUnits.length_ref/1e5,
-    TOV_sol_Soft.mr*tovUnits.mass_ref*1e-3/mass_sun,
+    TOV_sol_Soft.r/1e5,
+    TOV_sol_Soft.mr*1e-3/mass_sun,
     label = string(L"\gamma_\mathrm{core}=", EoS_Param_Soft.γ_core),
     linewidth = 2,
 )
 plt4 = scatter(
-    [R_StiffScan R_SoftScan]*tovUnits.length_ref/1e5,
-    [M_StiffScan M_SoftScan]*tovUnits.mass_ref*1e-3/mass_sun,
+    [R_StiffScan R_SoftScan]/1e5,
+    [M_StiffScan M_SoftScan]*1e-3/mass_sun,
     ;
     zcolor = log.([ρc_scan ρc_scan])/log(10), # color the data by the core density
     markershape = [:circle :diamond],

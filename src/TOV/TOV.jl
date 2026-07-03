@@ -213,16 +213,16 @@ function TOV_Solve_dimensionless(
     sol = DE.solve(problem, OrdinaryDiffEqLowOrderRK.DP5(); saveat = Dr, reltol = 1e-12)
 
     ur = Array(sol)
-    r = sol.t
-    Pr = ur[1, :]
-    mr = ur[2, :]
-    ρr = EoS_inv.(Pr*tovUnits.pressure_ref)
+    r = sol.t * tovUnits.length_ref
+    Pr = ur[1, :] * tovUnits.pressure_ref
+    mr = ur[2, :] * tovUnits.mass_ref
+    ρr = EoS_inv.(Pr)
     R_index = findfirst(x->x<0, Pr)
     TOV_sol = (;
         r,
         Pr,
         mr,
-        ρr = EoS_inv.(Pr*tovUnits.pressure_ref),
+        ρr,
         R = r[isnothing(R_index) ? end : (R_index - 1)],
         M = mr[isnothing(R_index) ? end : (R_index - 1)],
     )
