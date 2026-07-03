@@ -25,7 +25,6 @@ To solve the TOV equation, we need to specify an equation of state (EoS) that re
 module TOV
 
 using ..OdeSolve: evolve
-using ..Parameters: ParameterType
 using ..PhysicalConstants: gravitational_constant, speed_of_light_vacuum
 using DocStringExtensions: TYPEDSIGNATURES
 using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK
