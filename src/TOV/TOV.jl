@@ -89,7 +89,7 @@ function tov_eq!(
     units::Union{String} = "CGS",
     rho_ref::Float64 = 2.8e14,
 )
-    tovUnits = TOV_ref_units(units = units, rho_ref = rho_ref)
+    tovUnits = TOV_ref_units(input_units = units, rho_ref = rho_ref)
     P_ref = tovUnits.pressure_ref;
     rho_ref = tovUnits.rho_ref;
     G0 = tovUnits.G0;
@@ -171,9 +171,9 @@ function TOV_Solve(
         solver_options...,
     )
     ur = Array(sol_tov)
-    r = sol_tov.t
-    Pr = ur[1, :]
-    mr = ur[2, :]
+    r = sol_tov.t * tovUnits.length_ref
+    Pr = ur[1, :] * tovUnits.pressure_ref
+    mr = ur[2, :] * tovUnits.mass_ref
 
     R_index = findfirst(x->x<0, Pr)
     TOV_sol = (;
@@ -184,6 +184,7 @@ function TOV_Solve(
         R = r[R_index-1],
         M = mr[isnothing(R_index) ? end : (R_index - 1)],
     )
+
     return TOV_sol
 end
 

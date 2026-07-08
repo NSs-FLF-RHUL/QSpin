@@ -8,20 +8,18 @@ The parameters, and equation of state, are chosen from https://github.com/vaness
 
 using QSpin
 using QSpin.Parameters: ParameterType
-using QSpin.TOV: TOV_Solve_dimensionless, TOV_ref_units, tov_eq_dimless!
+using QSpin.TOV: TOV_Solve_dimensionless, TOV_ref_units, tov_eq!
 using QSpin.TOV.EquationOfState: EoS_GCA2018, EoS_two_component_polytrope
 using QSpin.PhysicalConstants: neutron_mass, mass_sun, hbar
 using Plots, LaTeXStrings
-import OrdinaryDiffEq as DE
+import CommonSolve as DE
 using OrdinaryDiffEqLowOrderRK
-tovUnits = TOV_ref_units()
 
 Sim_Input = (
-    ρ0 = 5e14 / tovUnits.rho_ref, # Initial central density in g/cm^3, above 1e15 seems to be unstable
-    dr = 0.0001*1e5/tovUnits.length_ref, # Radial step in cm
-    Dr = 0.005*1e5/tovUnits.length_ref, # Radial interval for recording values in cm
-    r_end = 20e5/tovUnits.length_ref, # Maximum radius to solve up to in cm
-    r_beg = 0.e5/tovUnits.length_ref,
+    ρ0 = 5e14, # Initial central density in g/cm^3, above 1e15 seems to be unstable
+    dr = 0.0001*1e5, # Radial step in cm
+    Dr = 0.005*1e5, # Radial interval for recording values in cm
+    r_beg = 0.e5,
 );
 
 # Calling EoS_GCA2018
@@ -34,22 +32,26 @@ EoS_Param_Stiff = (
     ρ_b = 3e14,
 )
 #EoS, EoS_inv = EoS_two_component_polytrope(EoS_Param_Stiff);
-
+tovUnits = TOV_ref_units()
 u0 = [EoS(Sim_Input.ρ0*tovUnits.rho_ref)/tovUnits.pressure_ref; 0.0];
-tov! = tov_eq_dimless!(EoS_inv);
+# Building the dimensionless TOV equation function using the provided inverse EoS function
+tov! = tov_eq!(EoS_inv);
+tovUnits = TOV_ref_units();
+dt = Sim_Input.dr / tovUnits.length_ref;
+Dr = Sim_Input.Dr / tovUnits.length_ref;
+r_beg = Sim_Input.r_beg / tovUnits.length_ref;
+r_max = 20*1e3*1e2 / tovUnits.length_ref;
+# Callback setup to terminate the integration when the pressure drops below zero
 condition(u, t, integrator) = u[1] < 0
 affect!(integrator) = terminate!(integrator)
 cb = DiscreteCallback(condition, affect!)
 
-problem = ODEProblem(tov!, u0, (0.0, Sim_Input.r_end); callback = cb)
-sol = DE.solve(problem, OrdinaryDiffEqLowOrderRK.DP5(); reltol = 1e-12)
-#sol = DE.solve(problem, DE.Tsit5(); reltol = 1e-12)
-
-ur = Array(sol)
-r = sol.t
-Pr = ur[1, :]
-mr = ur[2, :]
-ρr = EoS_inv.(Pr*tovUnits.pressure_ref)
+sol_tov =
+    evolve(tov!, u0, 0.0, r_max; alg, reltol, callback = cb, dt, saveat, solver_options...)
+ur = Array(sol_tov)
+r = sol_tov.t * tovUnits.length_ref
+Pr = ur[1, :] * tovUnits.pressure_ref
+mr = ur[2, :] * tovUnits.mass_ref
 plot(r*tovUnits.length_ref*1e-5, ρr)
 
 
