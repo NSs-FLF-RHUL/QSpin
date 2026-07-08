@@ -31,6 +31,7 @@ using DocStringExtensions: TYPEDSIGNATURES
 using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK
 using SciMLBase: DiscreteCallback, terminate!, ODEProblem
 import OrdinaryDiffEq as DE
+
 # Include the equations of state module as a submodule of the TOV module
 include("EoS/EquationOfState.jl")
 
@@ -44,9 +45,11 @@ function TOV_ref_units(;
         println("  ", units, " unit")
     end
     if units == "CGS"
+        #println(" CGS unit")
         G0 = gravitational_constant * 1e3
         c0 = speed_of_light_vacuum * 1e2
     elseif units == "SI"
+        #println(" SI unit")
         G0 = gravitational_constant
         c0 = speed_of_light_vacuum
         rho_ref = rho_ref * 1e3
@@ -129,6 +132,53 @@ function TOV_Solve(
     u0::AbstractArray,
     dr::Float64,
     Dr::Float64,
+    r_max::Float64,
+    EoS_inv::Function;
+    alg = OrdinaryDiffEqLowOrderRK.DP5(),
+    dt = dr,
+    saveat = Dr,
+    reltol = 1e-12,
+    solver_options...,
+)
+    # Building the TOV equation function using the provided inverse EoS function
+    tov! = tov_eq!(EoS_inv)
+    condition(u, t, integrator) = u[1] < 0
+    affect!(integrator) = terminate!(integrator)
+    cb = DiscreteCallback(condition, affect!)
+    sol_tov = evolve(
+        tov!,
+        u0,
+        0.0,
+        r_max;
+        alg,
+        reltol,
+        callback = cb,
+        dt,
+        saveat,
+        solver_options...,
+    )
+    ur = Array(sol_tov)
+    r = sol_tov.t
+    Pr = ur[1, :]
+    mr = ur[2, :]
+
+    R_index = findfirst(x->x<0, Pr)
+    TOV_sol = (;
+        r,
+        Pr,
+        mr,
+        ρr = EoS_inv.(Pr),
+        R = r[R_index-1],
+        M = mr[isnothing(R_index) ? end : (R_index - 1)],
+    )
+    return TOV_sol
+end
+
+
+function TOV_Solve_dimensionless(
+    u0::AbstractArray,
+    dr::Float64,
+    Dr::Float64,
     r_beg::Float64,
     EoS_inv::Function;
     alg = OrdinaryDiffEqLowOrderRK.DP5(),
@@ -138,7 +188,7 @@ function TOV_Solve(
     solver_options...,
 )
     # Building the dimensionless TOV equation function using the provided inverse EoS function
-    tov! = tov_eq!(EoS_inv);
+    tov! = tov_eq_dimless!(EoS_inv);
     tovUnits = TOV_ref_units();
     dt = dt / tovUnits.length_ref;
     Dr = Dr / tovUnits.length_ref;
@@ -147,7 +197,8 @@ function TOV_Solve(
     condition(u, t, integrator) = u[1] < 0
     affect!(integrator) = terminate!(integrator)
     cb = DiscreteCallback(condition, affect!)
-    problem = ODEProblem(tov!, u0, (0.0, r_max); callback = cb)
+
+    problem = ODEProblem(tov!, u0, (r_beg, r_max); callback = cb)
     sol = DE.solve(problem, OrdinaryDiffEqLowOrderRK.DP5(); saveat = Dr, reltol = 1e-12)
 
     ur = Array(sol)
