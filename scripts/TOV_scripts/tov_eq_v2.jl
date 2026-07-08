@@ -16,7 +16,7 @@ import CommonSolve as DE
 using OrdinaryDiffEqLowOrderRK
 
 Sim_Input = (
-    ρ0 = 5e14, # Initial central density in g/cm^3, above 1e15 seems to be unstable
+    ρ0 = 1e14, # Initial central density in g/cm^3, above 1e15 seems to be unstable
     dr = 0.0001*1e5, # Radial step in cm
     Dr = 0.005*1e5, # Radial interval for recording values in cm
     r_beg = 0.e5,
@@ -33,7 +33,7 @@ EoS_Param_Stiff = (
 )
 #EoS, EoS_inv = EoS_two_component_polytrope(EoS_Param_Stiff);
 tovUnits = TOV_ref_units()
-u0 = [EoS(Sim_Input.ρ0*tovUnits.rho_ref)/tovUnits.pressure_ref; 0.0];
+u0 = [EoS(Sim_Input.ρ0)/tovUnits.pressure_ref; 0.0];
 # Building the dimensionless TOV equation function using the provided inverse EoS function
 tov! = tov_eq!(EoS_inv);
 tovUnits = TOV_ref_units();
@@ -41,18 +41,31 @@ dt = Sim_Input.dr / tovUnits.length_ref;
 Dr = Sim_Input.Dr / tovUnits.length_ref;
 r_beg = Sim_Input.r_beg / tovUnits.length_ref;
 r_max = 20*1e3*1e2 / tovUnits.length_ref;
+
+
 # Callback setup to terminate the integration when the pressure drops below zero
 condition(u, t, integrator) = u[1] < 0
 affect!(integrator) = terminate!(integrator)
 cb = DiscreteCallback(condition, affect!)
+problem = ODEProblem(tov!, u0, (r_beg, r_max); callback = cb)
+sol = DE.solve(problem, OrdinaryDiffEqLowOrderRK.DP5(); saveat = Dr, reltol = 1e-12)
 
-sol_tov =
-    evolve(tov!, u0, 0.0, r_max; alg, reltol, callback = cb, dt, saveat, solver_options...)
-ur = Array(sol_tov)
-r = sol_tov.t * tovUnits.length_ref
+ur = Array(sol)
+r = sol.t * tovUnits.length_ref
 Pr = ur[1, :] * tovUnits.pressure_ref
 mr = ur[2, :] * tovUnits.mass_ref
-plot(r*tovUnits.length_ref*1e-5, ρr)
+ρr = EoS_inv.(Pr)
+R_index = findfirst(x->x<0, Pr)
+TOV_sol = (;
+    r,
+    Pr,
+    mr,
+    ρr,
+    R = r[isnothing(R_index) ? end : (R_index - 1)],
+    M = mr[isnothing(R_index) ? end : (R_index - 1)],
+)
+
+plot(r[1:(end-10)]*1e-5, ρr[1:(end-10)])
 
 
 #plot(TOV_sol.r*tovUnits.length_ref*1e-5, TOV_sol.Pr*tovUnits.pressure_ref)
