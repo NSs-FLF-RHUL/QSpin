@@ -30,10 +30,47 @@ using ..PhysicalConstants: gravitational_constant, speed_of_light_vacuum
 using DocStringExtensions: TYPEDSIGNATURES
 using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK
 using SciMLBase: DiscreteCallback, terminate!, ODEProblem
-import OrdinaryDiffEq as DE
+import CommonSolve as DE
 
 # Include the equations of state module as a submodule of the TOV module
 include("EoS/EquationOfState.jl")
+
+"""
+
+$(TYPEDSIGNATURES)
+
+Returns a named tuple containing the reference units for the TOV equation, given a reference density,rho_ref, in the CGS or SI units.
+
+"""
+function TOV_ref_units(; input_units::Union{String} = "CGS", rho_ref::Float64 = 2.8e14)
+    if input_units == "CGS" || input_units == "CGS_dim"
+        #println(" CGS unit")
+        G0 = gravitational_constant * 1e3
+        c0 = speed_of_light_vacuum * 1e2
+    elseif input_units == "SI" || input_units == "SI_dim"
+        #println(" SI unit")
+        rho_ref = rho_ref * 1e3
+        G0 = gravitational_constant
+        c0 = speed_of_light_vacuum
+        rho_ref = rho_ref * 1e3
+    else
+        error(" !!!! Non-Supported Units !!!!")
+    end
+    if input_units == "CGSdim" || input_units == "SIdim"
+        length_ref = 1.0
+        pressure_ref = 1.0
+        mass_ref = 1.0
+        rho_ref = 1.0
+    else
+        length_ref = c0 / sqrt(G0*rho_ref)
+        pressure_ref = rho_ref * c0^2
+        mass_ref = rho_ref * length_ref^3
+        G0 = 1.0
+        c0 = 1.0
+    end
+    tovUnits = (; length_ref, pressure_ref, mass_ref, rho_ref, G0, c0, input_units)
+    return tovUnits
+end
 
 """
 
@@ -47,7 +84,27 @@ Returns a function that evaluates the RHS of the TOV equations, given an equatio
 # Returns
 - `tov_inner!::Function`: Callable as `tov_inner!(du, u, params, r)` that evaluates the RHS of the TOV equations, writing the result to `du`.
 """
-function tov_eq!(EoS_rho_from_P::Function)
+function tov_eq!(
+    EoS_rho_from_P::Function;
+    units::Union{String} = "CGS",
+    rho_ref::Float64 = 2.8e14,
+)
+
+    tovUnits = TOV_ref_units(units = units, rho_ref = rho_ref)
+    P_ref = tovUnits.pressure_ref;
+    if units == "CGS"
+        G0 = gravitational_constant * 1e3
+        c0 = speed_of_light_vacuum * 1e2
+    elseif units == "SI"
+        G0 = gravitational_constant
+        c0 = speed_of_light_vacuum
+    elseif units == "dimensionless"
+        G0 = 1.0
+        c0 = 1.0
+    else
+        error(" !!!! Non-Supported Units !!!!")
+    end
+
     function tov_inner!(du, u, params, r)
         P = u[1]
         m = u[2]
@@ -55,10 +112,7 @@ function tov_eq!(EoS_rho_from_P::Function)
         du[1] = if r == 0.0
             0.0
         else
-            -gravitational_constant / r^2 *
-            (rho + P/speed_of_light_vacuum^2) *
-            (m + 4*pi*r^3*P/speed_of_light_vacuum^2) /
-            (1 - 2*gravitational_constant*m/(r*speed_of_light_vacuum^2))
+            -G0 / r^2 * (rho + P/c0^2) * (m + 4*pi*r^3*P/c0^2) / (1 - 2*G0*m/(r*c0^2))
         end
         du[2] = 4*pi*r^2*rho
     end
@@ -67,25 +121,6 @@ end
 
 
 
-function TOV_ref_units(; units::Union{String} = "CGS", rho_ref::Float64 = 2.8e14)
-    if units == "CGS"
-        #println(" CGS unit")
-        G0 = gravitational_constant * 1e3
-        c0 = speed_of_light_vacuum * 1e2
-    elseif units == "SI"
-        #println(" SI unit")
-        G0 = gravitational_constant
-        c0 = speed_of_light_vacuum
-        rho_ref = rho_ref * 1e3
-    else
-        error(" !!!! Non-Supported Units !!!!")
-    end
-    length_ref = c0 / sqrt(G0*rho_ref)
-    pressure_ref = rho_ref * c0^2
-    mass_ref = rho_ref * length_ref^3
-    tovUnits = (; length_ref, pressure_ref, mass_ref, rho_ref)
-    return tovUnits
-end
 """
 
 $(TYPEDSIGNATURES)
