@@ -92,23 +92,14 @@ function tov_eq!(
 
     tovUnits = TOV_ref_units(units = units, rho_ref = rho_ref)
     P_ref = tovUnits.pressure_ref;
-    if units == "CGS"
-        G0 = gravitational_constant * 1e3
-        c0 = speed_of_light_vacuum * 1e2
-    elseif units == "SI"
-        G0 = gravitational_constant
-        c0 = speed_of_light_vacuum
-    elseif units == "dimensionless"
-        G0 = 1.0
-        c0 = 1.0
-    else
-        error(" !!!! Non-Supported Units !!!!")
-    end
+    rho_ref = tovUnits.rho_ref;
+    G0 = tovUnits.G0;
+    c0 = tovUnits.c0;
 
     function tov_inner!(du, u, params, r)
         P = u[1]
         m = u[2]
-        rho = EoS_rho_from_P(P)
+        rho = EoS_rho_from_P(P*P_ref) / rho_ref
         du[1] = if r == 0.0
             0.0
         else
@@ -117,38 +108,6 @@ function tov_eq!(
         du[2] = 4*pi*r^2*rho
     end
     return tov_inner!
-end
-
-
-
-"""
-
-$(TYPEDSIGNATURES)
-
-Returns a function that evaluates the RHS of the dimensionless TOV equations, given an equation of state function.
-
-# Arguments
-- `EoS_rho_from_P::Function`: Single-argument (inverse) equation-of-state function that maps dimensionless density (``\\hat{\\rho}``) to dimensionless pressure (``\\hat{P}``).
-
-# Returns
-- `tov_dimless_inner!::Function`: Callable as `tov_dimless!(du, u, params, r)` that evaluates the RHS of the dimensionless TOV equations, writing the result to `du`.
-"""
-function tov_eq_dimless!(EoS_rho_from_P::Function; Units::Union{String} = "CGS")
-    tovUnits = TOV_ref_units(units = Units)
-    P_ref = tovUnits.pressure_ref;
-    rho_ref = tovUnits.rho_ref;
-    function tov_dimless_inner!(du, u, params, r)
-        P = u[1]
-        m = u[2]
-        rho = EoS_rho_from_P(P*P_ref) / rho_ref
-        du[1] = if r == 0.0
-            0.0
-        else
-            -1 / r^2 * (rho + P) * (m + 4*pi*r^3*P) / (1 - 2*m/r)
-        end
-        du[2] = 4*pi*r^2*rho
-    end
-    return tov_dimless_inner!
 end
 
 """
