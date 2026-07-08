@@ -89,7 +89,6 @@ function tov_eq!(
     units::Union{String} = "CGS",
     rho_ref::Float64 = 2.8e14,
 )
-
     tovUnits = TOV_ref_units(units = units, rho_ref = rho_ref)
     P_ref = tovUnits.pressure_ref;
     rho_ref = tovUnits.rho_ref;
@@ -147,11 +146,18 @@ function TOV_Solve(
     reltol = 1e-12,
     solver_options...,
 )
-    # Building the TOV equation function using the provided inverse EoS function
-    tov! = tov_eq!(EoS_inv)
+    # Building the dimensionless TOV equation function using the provided inverse EoS function
+    tov! = tov_eq_dimless!(EoS_inv);
+    tovUnits = TOV_ref_units();
+    dt = dt / tovUnits.length_ref;
+    Dr = Dr / tovUnits.length_ref;
+    r_beg = r_beg / tovUnits.length_ref;
+    r_max = r_max / tovUnits.length_ref;
+    # Callback setup to terminate the integration when the pressure drops below zero
     condition(u, t, integrator) = u[1] < 0
     affect!(integrator) = terminate!(integrator)
     cb = DiscreteCallback(condition, affect!)
+
     sol_tov = evolve(
         tov!,
         u0,
