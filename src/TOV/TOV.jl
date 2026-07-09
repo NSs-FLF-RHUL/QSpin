@@ -172,11 +172,13 @@ function TOV_Solve(
     cb = DiscreteCallback(condition, affect!)
     # Define the ODE problem and solve it with the DP5 alogorithm in CommonSolve.
     problem = ODEProblem(tov!, u0, (r_beg, r_max); callback = cb)
-
+    SaveAt = r_beg:Dr:r_max
+    TStops = r_beg:Dr:r_max
     sol = DE.solve(
         problem,
         OrdinaryDiffEqLowOrderRK.DP5();
-        saveat = Dr,
+        saveat = SaveAt,
+        tstops = TStops,
         reltol = 1e-13,
         abstol = 1e-13,
     )
