@@ -135,21 +135,25 @@ By default, the solver employs the DP5 method, which is a 5th order explicit Run
     - `M`: The total mass of the star, defined as the enclosed mass at the radius `R`.
 """
 function TOV_Solve(
+    EoS_inv::Function,
     u0::AbstractArray,
     dr::Float64,
     Dr::Float64,
-    r_max::Float64,
-    EoS_inv::Function;
+    r_beg::Float64;
     alg = OrdinaryDiffEqLowOrderRK.DP5(),
     dt = dr,
     saveat = Dr,
-    reltol = 1e-12,
+    r_max::Float64 = 20e5, # 20 km in cm
+    reltol = 1e-13,
+    abstol = 1e-13,
     solver_options...,
 )
     # Building the dimensionless TOV equation function using the provided inverse EoS function
-    tov! = tov_eq_dimless!(EoS_inv);
+    tov! = tov_eq!(EoS_inv);
+    # Scale the initial conditions and radial parameters to dimensionless units
     tovUnits = TOV_ref_units();
-    dt = dt / tovUnits.length_ref;
+    u0 = u0 ./ [tovUnits.pressure_ref, tovUnits.mass_ref];
+    dt = dr / tovUnits.length_ref;
     Dr = Dr / tovUnits.length_ref;
     r_beg = r_beg / tovUnits.length_ref;
     r_max = r_max / tovUnits.length_ref;
@@ -157,24 +161,21 @@ function TOV_Solve(
     condition(u, t, integrator) = u[1] < 0
     affect!(integrator) = terminate!(integrator)
     cb = DiscreteCallback(condition, affect!)
-
-    sol_tov = evolve(
-        tov!,
-        u0,
-        0.0,
-        r_max;
-        alg,
-        reltol,
-        callback = cb,
-        dt,
-        saveat,
-        solver_options...,
+    # Define the ODE problem and solve it with the DP5 alogorithm in CommonSolve.
+    problem = ODEProblem(tov!, u0, (r_beg, r_max); callback = cb)
+    sol = DE.solve(
+        problem,
+        OrdinaryDiffEqLowOrderRK.DP5();
+        saveat = Dr,
+        reltol = 1e-13,
+        abstol = 1e-13,
     )
-    ur = Array(sol_tov)
-    r = sol_tov.t * tovUnits.length_ref
+
+    ur = Array(sol)
+    r = sol.t * tovUnits.length_ref
     Pr = ur[1, :] * tovUnits.pressure_ref
     mr = ur[2, :] * tovUnits.mass_ref
-
+    ρr = EoS_inv.(Pr)
     R_index = findfirst(x->x<0, Pr)
     TOV_sol = (;
         r,
@@ -187,52 +188,5 @@ function TOV_Solve(
 
     return TOV_sol
 end
-
-
-function TOV_Solve_dimensionless(
-    u0::AbstractArray,
-    dr::Float64,
-    Dr::Float64,
-    r_beg::Float64,
-    EoS_inv::Function;
-    alg = OrdinaryDiffEqLowOrderRK.DP5(),
-    dt = dr,
-    reltol = 1e-12,
-    r_max::Float64 = 20e5, # 20 km in cm
-    solver_options...,
-)
-    # Building the dimensionless TOV equation function using the provided inverse EoS function
-    tov! = tov_eq_dimless!(EoS_inv);
-    tovUnits = TOV_ref_units();
-    dt = dt / tovUnits.length_ref;
-    Dr = Dr / tovUnits.length_ref;
-    r_beg = r_beg / tovUnits.length_ref;
-    r_max = r_max / tovUnits.length_ref;
-    condition(u, t, integrator) = u[1] < 0
-    affect!(integrator) = terminate!(integrator)
-    cb = DiscreteCallback(condition, affect!)
-
-    problem = ODEProblem(tov!, u0, (r_beg, r_max); callback = cb)
-    sol = DE.solve(problem, OrdinaryDiffEqLowOrderRK.DP5(); saveat = Dr, reltol = 1e-12)
-
-    ur = Array(sol)
-    r = sol.t * tovUnits.length_ref
-    Pr = ur[1, :] * tovUnits.pressure_ref
-    mr = ur[2, :] * tovUnits.mass_ref
-    ρr = EoS_inv.(Pr)
-    R_index = findfirst(x->x<0, Pr)
-    TOV_sol = (;
-        r,
-        Pr,
-        mr,
-        ρr,
-        R = r[isnothing(R_index) ? end : (R_index - 1)],
-        M = mr[isnothing(R_index) ? end : (R_index - 1)],
-    )
-    return TOV_sol
-end
-
-
-
 
 end

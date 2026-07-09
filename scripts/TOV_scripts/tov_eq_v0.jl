@@ -16,7 +16,7 @@ import CommonSolve as DE
 using OrdinaryDiffEqLowOrderRK
 
 Sim_Input = (
-    ρ0 = 10e16, # Initial central density in g/cm^3, above 2e16 seems to be unstable
+    ρ0 = 1e16, # Initial central density in g/cm^3, above 2e16 seems to be unstable
     dr = 0.0001*1e5, # Radial step in cm
     Dr = 0.005*1e5, # Radial interval for recording values in cm
     r_beg = 0.e5,
@@ -62,7 +62,7 @@ Pr = ur[1, :] * tovUnits.pressure_ref
 mr = ur[2, :] * tovUnits.mass_ref
 ρr = EoS_inv.(Pr)
 R_index = findfirst(x->x<0, Pr)
-TOV_sol = (;
+TOV_sol2 = (;
     r,
     Pr,
     mr,
