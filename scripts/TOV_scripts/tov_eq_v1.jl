@@ -3,7 +3,8 @@
 This script demonstrates how to solve the Tolman-Oppenheimer-Volkoff (TOV) equation for neutron stars using the `QSpin` package.
 See the documentation for the `QSpin.TOV` for more information.
 
-The parameters, and equation of state, are chosen from https://github.com/vanessagraber/teaching_materials/blob/master/summerschool_CRAQ_2019/mass_radius_relations.ipynb.
+The equation of state is from Negele & Vautherin (1973) and Graber, Cumming & Anderson (2018) in a two-component setup for the consideration of crust.
+It is implemented in the `EoS_GCA2018` function for the .
 =#
 
 using QSpin
