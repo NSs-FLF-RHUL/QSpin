@@ -23,16 +23,17 @@ Sim_Input = (
 )
 
 Ω_ini = [Sim_Input.Ω_crust; Sim_Input.Ω_sf; Sim_Input.Ω_core]
-Ωt = evolve(
+sol = evolve(
     ThreeCompSolid!,
     Ω_ini,
     0.0,
-    Sim_Input.t_end;
+    Sim_Input.t_end,
+    Sim_Input;
     alg = DE.Tsit5(),
     saveat = Sim_Input.Dt,
 )
 
-output_plot = plot(u.t, u[1, :])
+output_plot = plot(sol.t, sol[1, :])
 plot!(
     output_plot,
     u.t,
