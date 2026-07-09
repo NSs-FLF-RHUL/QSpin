@@ -9,14 +9,12 @@ The equation of states are set in the CGS units.
 
 using QSpin
 using QSpin.Parameters: ParameterType
-using QSpin.TOV: TOV_Solve_dimensionless, TOV_ref_units, tov_eq_dimless!
+using QSpin.TOV: TOV_Solve
 using QSpin.TOV.EquationOfState: EoS_two_component_polytrope
 using QSpin.PhysicalConstants: neutron_mass, mass_sun, hbar
 using Plots, LaTeXStrings
-import OrdinaryDiffEq as DE
+import CommonSolve as DE
 using OrdinaryDiffEqLowOrderRK
-
-tovUnits = TOV_ref_units()
 
 # Polytropic EoS parameters
 EoS_Param_Stiff = (
@@ -45,27 +43,27 @@ EoS_Soft, EoS_inv_Soft = EoS_two_component_polytrope(EoS_Param_Soft);
 
 # Getting two primary examples for the same input parameters but different EoSs.
 ## Setup initial condition; central pressure and enclosed mass
-u0_Stiff = [EoS_Stiff(Sim_Input.ρ0)/tovUnits.pressure_ref; 0.0];
-u0_Soft = [EoS_Soft(Sim_Input.ρ0)/tovUnits.pressure_ref; 0.0];
+u0_Stiff = [EoS_Stiff(Sim_Input.ρ0); 0.0];
+u0_Soft = [EoS_Soft(Sim_Input.ρ0); 0.0];
 
 # Solving the TOV equation for the stiff EoS with the same input parameters.
-@time TOV_sol_Stiff = TOV_Solve_dimensionless(
+@time TOV_sol_Stiff = TOV_Solve(
+    EoS_inv_Stiff,
     u0_Stiff,
     Sim_Input.dr,
     Sim_Input.Dr,
-    Sim_Input.r_beg,
-    EoS_inv_Stiff;
+    Sim_Input.r_beg;
     alg = OrdinaryDiffEqLowOrderRK.DP5(),
     reltol = 1e-15,
     abstol = [1.0, 1e15],
 )
 # Solving the TOV equation for the soft EoS with the same input parameters.
-@time TOV_sol_Soft = TOV_Solve_dimensionless(
+@time TOV_sol_Soft = TOV_Solve(
+    EoS_inv_Soft,
     u0_Soft,
     Sim_Input.dr,
     Sim_Input.Dr,
-    Sim_Input.r_beg,
-    EoS_inv_Soft;
+    Sim_Input.r_beg;
     alg = OrdinaryDiffEqLowOrderRK.DP5(),
     reltol = 1e-15,
 )
@@ -81,25 +79,25 @@ R_SoftScan = zeros(length(ρc_scan));
 for cc = 1:length(ρc_scan)
     ρc = ρc_scan[Int.(cc)];
     println(cc, ": Solving TOV eq. for central density ρc = ", ρc/1e14, "1e14 g/cm^3")
-    TOV_sol = TOV_Solve_dimensionless(
-        [EoS_Stiff(ρc)/tovUnits.pressure_ref; 0.0],
+    TOV_sol = TOV_Solve(
+        EoS_inv_Stiff,
+        [EoS_Stiff(ρc); 0.0],
         Sim_Input.dr,
         Sim_Input.Dr,
-        Sim_Input.r_beg,
-        EoS_inv_Stiff;
+        Sim_Input.r_beg;
         alg = OrdinaryDiffEqLowOrderRK.DP5(),
         reltol = 1e-15,
     )
     M_StiffScan[Int.(cc)] = TOV_sol.M
     R_StiffScan[Int.(cc)] = TOV_sol.R
 
-    TOV_sol = TOV_Solve_dimensionless(
-        [EoS_Soft(ρc)/tovUnits.pressure_ref; 0.0],
+    TOV_sol = TOV_Solve(
+        EoS_inv_Soft,
+        [EoS_Soft(ρc); 0.0],
         Sim_Input.dr,
         Sim_Input.Dr,
-        Sim_Input.r_beg,
-        EoS_inv_Soft;
-        alg = DE.Tsit5(),#OrdinaryDiffEqLowOrderRK.DP5(),
+        Sim_Input.r_beg;
+        alg = OrdinaryDiffEqLowOrderRK.DP5(),
         reltol = 1e-15,
     )
     M_SoftScan[Int.(cc)] = TOV_sol.M
@@ -127,7 +125,7 @@ plot!(
 )
 plt2 = plot(
     TOV_sol_Stiff.r/1e5,
-    TOV_sol_Stiff.ρr/tovUnits.rho_ref/Sim_Input.ρ0,
+    TOV_sol_Stiff.ρr/Sim_Input.ρ0,
     label = string(L"\gamma_\mathrm{core}=", EoS_Param_Stiff.γ_core),
     xlabel = "Radius (km)",
     ylabel = L"\rho/\rho_c",
@@ -137,7 +135,7 @@ plt2 = plot(
 plot!(
     plt2,
     TOV_sol_Soft.r/1e5,
-    TOV_sol_Soft.ρr/tovUnits.rho_ref/Sim_Input.ρ0,
+    TOV_sol_Soft.ρr/Sim_Input.ρ0,
     label = string(L"\gamma_\mathrm{core}=", EoS_Param_Soft.γ_core),
     linewidth = 2,
 )
