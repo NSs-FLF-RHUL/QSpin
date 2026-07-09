@@ -1,51 +1,39 @@
 using QSpin
 using QSpin.Parameters: ParameterType
 using QSpin.TOV: TOV_Solve
-using QSpin.TOV.EquationOfState: EoS_two_component_polytrope
-
+using QSpin.TOV.EquationOfState: EoS_GCA2018
 using QSpin.PhysicalConstants
 using Plots, LaTeXStrings
-import OrdinaryDiffEq as DE
+import CommonSolve as DE
 using OrdinaryDiffEqLowOrderRK
 
 file_path = "scripts/mutual_friction_input.json"
 output = QSpin.MFriction.VNparaGraber2018(file_path)
 
-ħ = hbar * 1e7;
-mn = neutron_mass * 1e3;
-Msun = mass_sun;
-
-# Polytropic EoS parameters
-EoS_Param_Stiff = (
-    K_crust = (3*π^2)^(2/3) * ħ^2 / (5*mn^(8/3)), # Polytropic constant for the crust
-    γ_crust = 5.0/3.0, # Polytropic index for the crust
-    γ_core = 3.0, # Polytropic index for the core
-    ρ_b = 3e14, # Transition density between crust and core in kg/m^3
-)
-
 # Input Parameters for the TOV solver
-TOV_Input = (
-    ρ0 = 1e15, # Initial central density in kg/m^3 (1e15 g/cm^3)
-    dr = 0.005*1e5, # Radial step in meters
-    Dr = 0.01*1e5, # Radial interval for recording values in meters
-    r_end = 25e5, # Maximum radius to solve up to in meters
-    r_beg = 0.0,
+Sim_Input = (
+
+    # TOV solver parameters
+    ρ0 = 1e15, # Initial central density in g/cm^3 (GCS units)
+    dr = 0.005*1e5, # Radial step in centimeters
+    Dr = 0.01*1e5, # Radial interval for recording values in centimeters
+    r_beg = 0.0, # Starting radius in centimeters
+    M_core = 1.4 * mass_sun, # Mass of the neutron star core in grams
 );
 
 # Fucntion Setup for inverse EoS and TOV equation for the solver
-EoS, EoS_inv = EoS_two_component_polytrope(EoS_Param_Stiff);
-#EoS, EoS_inv = QSpin.TOV.EoS_GCA2018();
+EoS, EoS_inv = EoS_GCA2018();
 # Setting up initial condition accordingly to the EoS for a given central density ρ0.
-u0 = [EoS_Stiff(TOV_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
+u0 = [EoS_Stiff(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
 
 # Sovling the TOV equation using the RK4 method with QSpin OdeSolve module for Stiff and Soft EoSs.
 
 @time TOV_sol = TOV_Solve(
     u0,
-    TOV_Input.dr,
-    TOV_Input.Dr,
-    TOV_Input.r_beg,
-    TOV_Input.r_end,
+    Sim_Input.dr,
+    Sim_Input.Dr,
+    Sim_Input.r_beg,
+    Sim_Input.r_end,
     EoS_inv;
     alg = OrdinaryDiffEqLowOrderRK.DP5(),
     reltol = 1e-8,
@@ -134,7 +122,7 @@ plt2 = heatmap(
     framestyle = :box,
     xlabel = "Time (s)",
     ylabel = "Radius (km)",
-    ylims = (TOV_Input.r_beg/1e5, TOV_sol.R/1e5),
+    ylims = (Sim_Input.r_beg/1e5, TOV_sol.R/1e5),
 )
 
 ρc_scan = exp10.(range(13, stop = log10(2e17), length = 150))*1e-3 # in g * cm^-3, which is equivalent to 1e-3 times the input in kg * fm^-3
