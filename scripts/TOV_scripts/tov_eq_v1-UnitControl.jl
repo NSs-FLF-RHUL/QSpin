@@ -18,11 +18,13 @@ using Plots, LaTeXStrings
 mn = neutron_mass;
 
 CGS_Input = (
+    # TOV_Solve input
     ρ0 = 1e15, # Initial central density in g/cm^3, above 2e16 seems to be unstable
     dr = 0.0001*1e5, # Radial step in cm
     Dr = 0.005*1e5, # Radial interval for recording values in cm
     r_beg = 0.e5,
     units = "CGS", # CGS or CGS_dim
+    # EOS input
     K_crust = (3*π^2)^(2/3) * (ħ*1e7)^2 / (5*(neutron_mass*1e3)^(8/3)), # Polytropic constant for the crust
     γ_crust = 5.0/3.0, # Polytropic index for the crust
     γ_core = 3.0, # Polytropic index for the core
@@ -30,11 +32,13 @@ CGS_Input = (
 );
 
 SI_Input = (
+    # TOV_Solve input
     ρ0 = 1e18, # Initial central density in kg/m^3, above 2e18 seems to be unstable
     dr = 0.0001*1e3, # Radial step in m
     Dr = 0.005*1e3, # Radial interval for recording values in m
     r_beg = 0.e3,
     units = "SI", # SI or SI_dim
+    # EOS input
     K_crust = (3*π^2)^(2/3) * ħ^2 / (5*neutron_mass^(8/3)), # Polytropic constant for the crust
     γ_crust = 5.0/3.0, # Polytropic index for the crust
     γ_core = 3.0, # Polytropic index for the core
