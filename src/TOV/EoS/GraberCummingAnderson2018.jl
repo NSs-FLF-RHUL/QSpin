@@ -57,7 +57,12 @@ function EoS_GCA2018(
         elseif P < EoS_P_from_rho(ρ_drip)
             (12 * π^2 * P / ħ / c)^(3/4) * (mn * 1e3) / (3 * π^2 * Ye)
         else
-            find_zero(y -> EoS_P_from_rho(y) - P, 5e12)
+            if log(P) > 76.0
+                rho_guess = ((log(P) - 75.06) / 4.87e-9)^(1/0.6028) # Emperical Guess from a Fitting
+            else
+                rho_guess = 5e12
+            end
+            find_zero(y -> EoS_P_from_rho(y) - P, rho_guess)
         end
         return ρ
     end
