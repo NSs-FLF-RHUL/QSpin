@@ -40,7 +40,7 @@ function EoS_NegeleVautherin1973(
         ρ = if P < 0
             0.0
         else
-            find_zero(y -> EoS_P_from_rho(y) - P, 4e11)
+            find_zero(y -> EoS_P_from_rho(y) - P, (4e11, 1e18), Bisection())
         end
         return ρ
     end
