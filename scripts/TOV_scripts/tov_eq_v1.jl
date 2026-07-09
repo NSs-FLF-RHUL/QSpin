@@ -4,7 +4,7 @@ This script demonstrates how to solve the Tolman-Oppenheimer-Volkoff (TOV) equat
 See the documentation for the `QSpin.TOV` for more information.
 
 The equation of state is from Negele & Vautherin (1973) and Graber, Cumming & Anderson (2018) in a two-component setup for the consideration of crust.
-It is implemented in the `EoS_GCA2018` function for the .
+It is implemented in the `EoS_GCA2018` function in the CGS units only.
 =#
 
 using QSpin
@@ -18,7 +18,7 @@ Sim_Input = (
     dr = 0.0001*1e5, # Radial step in cm
     Dr = 0.005*1e5, # Radial interval for recording values in cm
     r_beg = 0.e5,
-    units = "CGS_dim",
+    units = "CGS_dim", # optional
 );
 
 # Calling EoS_GCA2018
@@ -34,8 +34,8 @@ u0 = [EoS(Sim_Input.ρ0); 0.0];
     Sim_Input.r_beg;
     reltol = 1e-13,
     abstol = 1e-13,
-    input_units = Sim_Input.units,
-    rho_ref = 2.8e14, # nuclear saturation density in g/cm^3
+    input_units = Sim_Input.units, # optional
+    rho_ref = 2.8e14, # optional - nuclear saturation density in g/cm^3
 )
 
 plot!(TOV_sol.r*1e-5, TOV_sol.ρr)
