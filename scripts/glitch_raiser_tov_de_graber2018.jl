@@ -12,7 +12,6 @@ output = QSpin.MFriction.VNparaGraber2018(file_path)
 
 # Input Parameters for the TOV solver
 Sim_Input = (
-
     # TOV solver parameters
     ρ0 = 1e15, # Initial central density in g/cm^3 (GCS units)
     dr = 0.005*1e5, # Radial step in centimeters
