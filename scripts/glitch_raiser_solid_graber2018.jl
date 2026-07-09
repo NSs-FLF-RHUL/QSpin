@@ -1,23 +1,36 @@
 # This is an example script solve the simple glitch model under solid-body rotation approach
-using Plots
 using QSpin
 using QSpin.Parameters: ParameterType
+import QSpin.OdeSolve: evolve
+import QSpin.GlitchModels: ThreeCompSolid!
+import CommonSolve as DE
+using Plots
 
-import OrdinaryDiffEq as DE
+Sim_Input = (
+    # Glitch Model Input
+    Ω_crust = 70.34, # Initial angular velocity of the crust in rad/s
+    Ω_sf = 70.34 + 6.3e-3, # Initial angular velocity of the superfluid in rad/s
+    Ω_core = 70.34, # Initial angular velocity of the core in rad/s
+    I_crust = 4.5e30, # Moment of inertia of the crust in kg m^2
+    I_core = 0.8 * 4.5e30, # Moment of inertia of the core in kg m
+    N_ext = 0.0,
+    B_core = 5e-4, # Mutual Friction Parameter
+    B_sf = 5e-4, # Mutual Friction Parameter
+    # Glitch Model Solver Setup
+    Dt = 0.1, # Time interval for recording values in the glitch model in seconds
+    t_start = 0.0, # Start time for the glitch model simulation in seconds
+    t_end = 120.0, # End time for the glitch model simulation in seconds
+)
 
-M = [-2 1; 1 -2]
-ψ0 = [0.1; 0.2]
-dt = 1e-3
-Dt = 1e-1
-t_start = 0.0
-t_end = 1.0
-t_span = (t_start, t_end)
-
-function eom!(dψ::AbstractArray, ψ::AbstractArray, parameters::ParameterType, time::Float64)
-    dψ .= M * ψ
-end
-
-u = QSpin.OdeSolve.evolve(eom!, ψ0, t_start, t_end; alg = DE.Tsit5(), dt = dt, saveat = Dt)
+Ω_ini = [Sim_Input.Ω_crust; Sim_Input.Ω_sf; Sim_Input.Ω_core]
+Ωt = evolve(
+    ThreeCompSolid!,
+    Ω_ini,
+    0.0,
+    Sim_Input.t_end;
+    alg = DE.Tsit5(),
+    saveat = Sim_Input.Dt,
+)
 
 output_plot = plot(u.t, u[1, :])
 plot!(

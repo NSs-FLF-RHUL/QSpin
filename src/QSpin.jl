@@ -13,4 +13,6 @@ include("Hamiltonian.jl")
 # TOV module
 include("TOV/TOV.jl")
 
+# Glitch Modol module
+include("GlitchModels.jl")
 end
