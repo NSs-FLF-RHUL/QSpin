@@ -16,7 +16,7 @@ import CommonSolve as DE
 using OrdinaryDiffEqLowOrderRK
 
 Sim_Input = (
-    ρ0 = 10e15, # Initial central density in g/cm^3, above 1e15 seems to be unstable
+    ρ0 = 10e16, # Initial central density in g/cm^3, above 2e16 seems to be unstable
     dr = 0.0001*1e5, # Radial step in cm
     Dr = 0.005*1e5, # Radial interval for recording values in cm
     r_beg = 0.e5,

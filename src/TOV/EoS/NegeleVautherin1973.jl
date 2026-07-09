@@ -40,7 +40,13 @@ function EoS_NegeleVautherin1973(
         ρ = if P < 0
             0.0
         else
-            find_zero(y -> EoS_P_from_rho(y) - P, (4e11, 1e18), Bisection())
+            if log(P) > 76.0
+                #rho_guess = ((log(P) - 75.06) / 4.87e-9)^(1/0.6028) # Emperical Guess from a Fitting for density up to about 2e16
+                rho_guess = ((log(P) - 68.3) / 2.836e-7)^(1/0.502) # Emperical Guess from a Fitting for density up to about 4e16
+            else
+                rho_guess = 5e12
+            end
+            find_zero(y -> EoS_P_from_rho(y) - P, rho_guess)
         end
         return ρ
     end
