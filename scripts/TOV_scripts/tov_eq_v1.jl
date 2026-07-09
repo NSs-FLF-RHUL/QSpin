@@ -8,12 +8,9 @@ The parameters, and equation of state, are chosen from https://github.com/vaness
 
 using QSpin
 using QSpin.Parameters: ParameterType
-using QSpin.TOV: TOV_Solve, TOV_ref_units, tov_eq!
-using QSpin.TOV.EquationOfState: EoS_GCA2018, EoS_two_component_polytrope
-using QSpin.PhysicalConstants: neutron_mass, mass_sun, hbar
+using QSpin.TOV: TOV_Solve
+using QSpin.TOV.EquationOfState: EoS_GCA2018
 using Plots, LaTeXStrings
-import CommonSolve as DE
-using OrdinaryDiffEqLowOrderRK
 
 Sim_Input = (
     ρ0 = 1e16, # Initial central density in g/cm^3, above 2e16 seems to be unstable
@@ -24,7 +21,6 @@ Sim_Input = (
 
 # Calling EoS_GCA2018
 EoS, EoS_inv = EoS_GCA2018();
-tov! = tov_eq!(EoS_inv);
 u0 = [EoS(Sim_Input.ρ0); 0.0];
 
 # Callback setup to terminate the integration when the pressure drops below zero
