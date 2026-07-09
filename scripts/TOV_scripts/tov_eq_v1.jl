@@ -14,10 +14,11 @@ using QSpin.TOV.EquationOfState: EoS_GCA2018
 using Plots, LaTeXStrings
 
 Sim_Input = (
-    ρ0 = 1e16, # Initial central density in g/cm^3, above 2e16 seems to be unstable
+    ρ0 = 5e15, # Initial central density in g/cm^3, above 2e16 seems to be unstable
     dr = 0.0001*1e5, # Radial step in cm
     Dr = 0.005*1e5, # Radial interval for recording values in cm
     r_beg = 0.e5,
+    units = "CGS_dim",
 );
 
 # Calling EoS_GCA2018
@@ -33,6 +34,8 @@ u0 = [EoS(Sim_Input.ρ0); 0.0];
     Sim_Input.r_beg;
     reltol = 1e-13,
     abstol = 1e-13,
+    input_units = Sim_Input.units,
+    rho_ref = 2.8e14, # nuclear saturation density in g/cm^3
 )
 
-plot(TOV_sol.r*1e-5, TOV_sol.ρr)
+plot!(TOV_sol.r*1e-5, TOV_sol.ρr)

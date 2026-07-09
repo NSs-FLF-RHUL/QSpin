@@ -52,11 +52,11 @@ function TOV_ref_units(; input_units::Union{String} = "CGS", rho_ref::Float64 = 
         rho_ref = rho_ref * 1e3
         G0 = gravitational_constant
         c0 = speed_of_light_vacuum
-        rho_ref = rho_ref * 1e3
+
     else
         error(" !!!! Non-Supported Units !!!!")
     end
-    if input_units == "CGSdim" || input_units == "SIdim"
+    if input_units == "CGS_dim" || input_units == "SI_dim"
         length_ref = 1.0
         pressure_ref = 1.0
         mass_ref = 1.0
@@ -87,7 +87,7 @@ Returns a function that evaluates the RHS of the TOV equations, given an equatio
 function tov_eq!(
     EoS_rho_from_P::Function;
     units::Union{String} = "CGS",
-    rho_ref::Float64 = 2.8e14,
+    rho_ref::Float64 = 2.8e14, # nuclear saturation density in g/cm^3
 )
     tovUnits = TOV_ref_units(input_units = units, rho_ref = rho_ref)
     P_ref = tovUnits.pressure_ref;
@@ -150,21 +150,29 @@ function TOV_Solve(
     abstol = 1e-13,
     solver_options...,
 )
+
     # Building the dimensionless TOV equation function using the provided inverse EoS function
     tov! = tov_eq!(EoS_inv; units = input_units, rho_ref = rho_ref);
     # Scale the initial conditions and radial parameters to dimensionless units
     tovUnits = TOV_ref_units(; input_units = input_units, rho_ref = rho_ref);
+
     u0 = u0 ./ [tovUnits.pressure_ref, tovUnits.mass_ref];
     dt = dr / tovUnits.length_ref;
     Dr = Dr / tovUnits.length_ref;
     r_beg = r_beg / tovUnits.length_ref;
-    r_max = r_max / tovUnits.length_ref;
+    if input_units == "SI" || input_units == "SI_dim"
+        r_max = r_max * 1e-2 / tovUnits.length_ref;
+    else
+        r_max = r_max / tovUnits.length_ref;
+    end
+
     # Callback setup to terminate the integration when the pressure drops below zero
     condition(u, t, integrator) = u[1] < 0
     affect!(integrator) = terminate!(integrator)
     cb = DiscreteCallback(condition, affect!)
     # Define the ODE problem and solve it with the DP5 alogorithm in CommonSolve.
     problem = ODEProblem(tov!, u0, (r_beg, r_max); callback = cb)
+
     sol = DE.solve(
         problem,
         OrdinaryDiffEqLowOrderRK.DP5();
@@ -179,12 +187,13 @@ function TOV_Solve(
     mr = ur[2, :] * tovUnits.mass_ref
     ρr = EoS_inv.(Pr)
     R_index = findfirst(x->x<0, Pr)
+    # Output arguments in the original units
     TOV_sol = (;
         r,
         Pr,
         mr,
-        ρr = EoS_inv.(Pr),
-        R = r[R_index-1],
+        ρr,
+        R = r[isnothing(R_index) ? end : (R_index - 1)],
         M = mr[isnothing(R_index) ? end : (R_index - 1)],
     )
 
