@@ -143,15 +143,17 @@ function TOV_Solve(
     alg = OrdinaryDiffEqLowOrderRK.DP5(),
     dt = dr,
     saveat = Dr,
+    input_units::Union{String} = "CGS",
+    rho_ref::Float64 = 2.8e14, # nuclear saturation density in g/cm^3
     r_max::Float64 = 20e5, # 20 km in cm
     reltol = 1e-13,
     abstol = 1e-13,
     solver_options...,
 )
     # Building the dimensionless TOV equation function using the provided inverse EoS function
-    tov! = tov_eq!(EoS_inv);
+    tov! = tov_eq!(EoS_inv; units = input_units, rho_ref = rho_ref);
     # Scale the initial conditions and radial parameters to dimensionless units
-    tovUnits = TOV_ref_units();
+    tovUnits = TOV_ref_units(; input_units = input_units, rho_ref = rho_ref);
     u0 = u0 ./ [tovUnits.pressure_ref, tovUnits.mass_ref];
     dt = dr / tovUnits.length_ref;
     Dr = Dr / tovUnits.length_ref;
