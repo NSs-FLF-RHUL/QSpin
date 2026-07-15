@@ -4,6 +4,7 @@ using QSpin.Parameters: ParameterType
 import QSpin.OdeSolve: evolve
 import QSpin.GlitchModels: ThreeCompSolid!
 import CommonSolve as DE
+import OrdinaryDiffEqTsit5: Tsit5
 using Plots
 
 Sim_Input = (
@@ -13,6 +14,7 @@ Sim_Input = (
     Ω_core = 70.34, # Initial angular velocity of the core in rad/s
     I_crust = 4.5e30, # Moment of inertia of the crust in kg m^2
     I_core = 0.8 * 4.5e30, # Moment of inertia of the core in kg m
+    I_sf = 0.05*4.5e30,
     N_ext = 0.0,
     B_core = 5e-4, # Mutual Friction Parameter
     B_sf = 5e-4, # Mutual Friction Parameter
@@ -26,18 +28,18 @@ Sim_Input = (
 sol = evolve(
     ThreeCompSolid!,
     Ω_ini,
-    0.0,
+    Sim_Input.t_start,
     Sim_Input.t_end,
     Sim_Input;
-    alg = DE.Tsit5(),
+    alg = Tsit5(),
     saveat = Sim_Input.Dt,
 )
 
 output_plot = plot(sol.t, sol[1, :])
 plot!(
     output_plot,
-    u.t,
-    u[2, :],
+    sol.t,
+    sol[2, :],
     xlabel = "time (A.U.)",
     ylabel = "Rotating Frequency (A.U.)",
     title = "Solving a set of coupled ODEs",
