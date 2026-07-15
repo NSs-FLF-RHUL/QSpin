@@ -40,7 +40,7 @@ $(TYPEDSIGNATURES)
 Returns a named tuple containing the reference units for the TOV equation, given a reference density,rho_ref, in the CGS or SI units.
 
 """
-function TOV_ref_units(; input_units::Union{String} = "CGS", rho_ref::Float64 = 2.8e14)
+function TOV_ref_units(; input_units::String = "CGS", rho_ref::Float64 = 2.8e14)
     if input_units == "CGS" || input_units == "CGS_dim"
         #println(" CGS unit")
         G0 = gravitational_constant * 1e3
