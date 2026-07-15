@@ -30,7 +30,7 @@ using ..PhysicalConstants: gravitational_constant, speed_of_light_vacuum
 using DocStringExtensions: TYPEDSIGNATURES
 using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK
 using SciMLBase: DiscreteCallback, terminate!, ODEProblem
-import CommonSolve as DE
+using CommonSolve: CommonSolve
 
 # Include the equations of state module as a submodule of the TOV module
 include("EoS/EquationOfState.jl")
