@@ -54,7 +54,9 @@ function TOV_ref_units(; input_units::Union{String} = "CGS", rho_ref::Float64 = 
         c0 = speed_of_light_vacuum
 
     else
-        error(" !!!! Non-Supported Units !!!!")
+        error(
+            "Unsupported units '$(units)'.  Only supported units are 'CGS' ('CGS_dim') and 'SI' ('SI_dim')",
+        )
     end
     if input_units == "CGS_dim" || input_units == "SI_dim"
         length_ref = 1.0
