@@ -26,7 +26,7 @@ jobs:
       # When the triggering event is not a pull request, repository must be checked
       # out prior to running, so the previous commit can be accessed and changes to
       # the filter patterns can be detected.
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         name: (Non-pull request) Checkout repository to get commit history
         if: ${{ github.event_name != 'pull_request' }}
 
@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Julia
         uses: julia-actions/setup-julia@v3
