@@ -50,7 +50,6 @@ function TOV_ref_units(; input_units::String = "CGS", rho_ref::Float64 = 2.8e14)
         rho_ref = rho_ref * 1e3
         G0 = gravitational_constant
         c0 = speed_of_light_vacuum
-
     else
         error(
             "Unsupported units '$(units)'.  Only supported units are 'CGS' ('CGS_dim') and 'SI' ('SI_dim')",
