@@ -176,7 +176,7 @@ function TOV_Solve(
     problem = ODEProblem(tov!, u0, (r_beg, r_max); callback = cb)
     SaveAt = r_beg:Dr:r_max
     TStops = r_beg:Dr:r_max
-    sol = DE.solve(
+    sol = CommonSolve.solve(
         problem,
         OrdinaryDiffEqLowOrderRK.DP5();
         saveat = SaveAt,
