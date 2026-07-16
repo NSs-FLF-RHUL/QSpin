@@ -15,6 +15,8 @@ Gary Liu ([Gary.Liu@rhul.ac.uk](mailto:Gary.Liu@rhul.ac.uk)),
 
 Will Graham ([william.graham@ucl.ac.uk](mailto:william.graham@ucl.ac.uk))
 
+Mosè Giordano ([m.giordano@ucl.ac.uk](mailto:m.giordano@ucl.ac.uk))
+
 <!-- TODO: how do we have an array of collaborators - steal from s2fft -->
 
 ## Description

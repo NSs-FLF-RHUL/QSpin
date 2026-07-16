@@ -1,7 +1,7 @@
 using DocStringExtensions: TYPEDSIGNATURES
 using ....Parameters: ParameterType
 using ....PhysicalConstants: electron_volt, hbar, neutron_mass, speed_of_light_vacuum
-
+using Roots: find_zero
 """
 $(TYPEDSIGNATURES)
 
@@ -57,7 +57,13 @@ function EoS_GCA2018(
         elseif P < EoS_P_from_rho(ρ_drip)
             (12 * π^2 * P / ħ / c)^(3/4) * (mn * 1e3) / (3 * π^2 * Ye)
         else
-            find_zero(y -> EoS_P_from_rho(y) - P, 5e11)
+            rho_guess = if log(P) > 76.0
+                # ((log(P) - 75.06) / 4.87e-9)^(1/0.6028) # Emperical Guess from a Fitting for density up to about 4e16
+                ((log(P) - 68.3) / 2.836e-7)^(1/0.502) # Emperical Guess from a Fitting for density up to about 9e16
+            else
+                5e12
+            end
+            find_zero(y -> EoS_P_from_rho(y) - P, rho_guess)
         end
         return ρ
     end
