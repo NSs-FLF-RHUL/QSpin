@@ -33,5 +33,5 @@ Manifest.toml
 
 /docs/build/
 outputs/**
-/local_tests/**
-/rc/TOV/EoS/WNewton
+/local_tests/*
+/src/TOV/EoS/WNewton
