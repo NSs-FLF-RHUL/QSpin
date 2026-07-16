@@ -107,9 +107,6 @@ function VNparaGraber2018(file_path)
         Beb_itp,
         Bj_itp,
     )
-
-
-
     return output
 end
 
