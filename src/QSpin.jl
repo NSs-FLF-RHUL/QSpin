@@ -13,4 +13,6 @@ include("Hamiltonian.jl")
 # TOV module
 include("TOV/TOV.jl")
 
+# Equation of State module
+include("TOV/EoS/EquationOfState.jl")
 end
