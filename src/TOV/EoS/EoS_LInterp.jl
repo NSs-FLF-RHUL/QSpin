@@ -1,8 +1,8 @@
 using DocStringExtensions: TYPEDSIGNATURES
 using ....Parameters: ParameterType
 using Roots: find_zero
-using CSV
-using DataFrames
+using CSV: File
+using DataFrames: DataFrame, select!
 using DataInterpolations: ExtrapolationType, QuadraticSpline
 
 """
@@ -17,9 +17,21 @@ Loading the data from a pre-computed equation of state (EoS) and using quadratic
 - `EoS_P_from_rho`: The interpolation for the equation of state.
 - `EoS_rho_from_P`: The interpolation for the inverse equation of state.
 """
-function EoS_LInterp(file_name::String, EoS_indices::Tuple{Int64,Int64})
-    df = DataFrame(CSV.File(file_name, delim = " "))
-    select!(df, [k for (k, v) in pairs(eachcol(df)) if !all(ismissing, v)])
+function EoS_LInterp(
+    file_input::Union{String,AbstractArray},
+    EoS_indices::Tuple{Int64,Int64},
+)
+
+    if typeof(file_input) == String
+        df = DataFrame(File(file_input, delim = " "))
+        select!(df, [k for (k, v) in pairs(eachcol(df)) if !all(ismissing, v)])
+    elseif typeof(file_input) == AbstractArray
+        df = file_input
+    else
+        error(
+            "Unsupported input -- file_input must be an N-by-2 array or a string for the directory of an .dat input.",
+        )
+    end
     i_rho, i_press = EoS_indices
     rho = sort(df[:, i_rho])
     press = sort(df[:, i_press])
