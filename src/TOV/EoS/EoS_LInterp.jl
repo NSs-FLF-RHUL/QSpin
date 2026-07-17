@@ -20,7 +20,6 @@ Loading the data from a pre-computed equation of state (EoS) and using quadratic
 function EoS_LInterp(file_name::String, EoS_indices::Tuple{Int64,Int64})
     df = DataFrame(CSV.File(file_name, delim = " "))
     select!(df, [k for (k, v) in pairs(eachcol(df)) if !all(ismissing, v)])
-    #deleteat!(permutedims(df), all.(ismissing, eachcol(df))) |> permutedims # Seems to be equivalent.
     i_rho, i_press = EoS_indices
     rho = sort(df[:, i_rho])
     press = sort(df[:, i_press])
