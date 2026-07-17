@@ -18,14 +18,14 @@ Loading the data from a pre-computed equation of state (EoS) and using quadratic
 - `EoS_rho_from_P`: The interpolation for the inverse equation of state.
 """
 function EoS_LInterp(
-    file_input::Union{String,AbstractArray},
+    file_input::Union{String,AbstractArray,Matrix{Float64}},
     EoS_indices::Tuple{Int64,Int64},
 )
 
     if typeof(file_input) == String
         df = DataFrame(File(file_input, delim = " "))
         select!(df, [k for (k, v) in pairs(eachcol(df)) if !all(ismissing, v)])
-    elseif typeof(file_input) == AbstractArray
+    elseif typeof(file_input) == AbstractArray || typeof(file_input) == Matrix{Float64}
         df = file_input
     else
         error(
