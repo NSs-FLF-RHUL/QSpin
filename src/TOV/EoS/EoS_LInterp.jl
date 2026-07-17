@@ -10,7 +10,7 @@ $(TYPEDSIGNATURES)
 Loading the data from a pre-computed equation of state (EoS) and using quadraticspline interpolation to get the function of equation of state for TOV equation computations.
 
 # Arguments
-- `file_name::`: the file directory and file name of the pre-computed equation of state in dat format
+- `file_input::`: the file directory and file name of the pre-computed equation of state in dat format or lading them in an N-by-x array with a correct EoS_indices.
 - `EoS_indices::tuple`: the indices in the dat for density, rho, and pressure, press.
 
 # Returns
