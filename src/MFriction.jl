@@ -25,7 +25,7 @@ function VNparaGraber2018(file_path)
     κ = hbar / neutron_mass * π  # SI units
 
     data = JSON.parsefile(file_path)
-    println("Successfully loaded JSON data!\n")
+    @info "JSON data successfully loaded from $(file_path)"
     nb = zeros(length(data)-1)
     Z = zeros(length(data)-1)
     N = zeros(length(data)-1)
