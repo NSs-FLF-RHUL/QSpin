@@ -34,5 +34,6 @@ Manifest.toml
 /docs/build/
 outputs/**
 /local_tests/**
+/src/TOV/EoS/WNewton
 
 .DS_Store
