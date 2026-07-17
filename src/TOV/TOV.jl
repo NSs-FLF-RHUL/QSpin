@@ -29,7 +29,7 @@ using DocStringExtensions: TYPEDSIGNATURES
 using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK
 using SciMLBase: DiscreteCallback, terminate!, ODEProblem
 using CommonSolve: CommonSolve
-using DataInterpolations
+using DataInterpolations: QuadraticSpline
 
 # Include the equations of state module as a submodule of the TOV module
 include("EoS/EquationOfState.jl")
