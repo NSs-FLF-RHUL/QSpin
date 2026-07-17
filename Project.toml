@@ -20,6 +20,8 @@ SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
 
 [compat]
 CommonSolve = "0.2.6"
+CSV = "0.2.9"
+DataFrames = "1.8.2"
 DataInterpolations = "9.0.2"
 DocStringExtensions = "0.9.5"
 FFTW = "1.10.0"
