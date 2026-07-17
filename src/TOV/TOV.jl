@@ -29,6 +29,7 @@ using DocStringExtensions: TYPEDSIGNATURES
 using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK
 using SciMLBase: DiscreteCallback, terminate!, ODEProblem
 using CommonSolve: CommonSolve
+using DataInterpolations
 
 # Include the equations of state module as a submodule of the TOV module
 include("EoS/EquationOfState.jl")
@@ -84,7 +85,7 @@ Returns a function that evaluates the RHS of the TOV equations, given an equatio
 - `tov_inner!::Function`: Callable as `tov_inner!(du, u, params, r)` that evaluates the RHS of the TOV equations, writing the result to `du`.
 """
 function tov_eq!(
-    EoS_rho_from_P::Function;
+    EoS_rho_from_P::Union{Function,DataInterpolations.QuadraticSpline};
     units::Union{String} = "CGS",
     rho_ref::Float64 = 2.8e14, # nuclear saturation density in g/cm^3
 )
@@ -134,7 +135,7 @@ By default, the solver employs the DP5 method, which is a 5th order explicit Run
     - `M`: The total mass of the star, defined as the enclosed mass at the radius `R`.
 """
 function TOV_Solve(
-    EoS_inv::Function,
+    EoS_inv::Union{Function,DataInterpolations.QuadraticSpline},
     u0::AbstractArray,
     dr::Float64,
     Dr::Float64,
