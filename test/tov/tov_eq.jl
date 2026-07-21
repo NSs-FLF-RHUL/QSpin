@@ -223,4 +223,31 @@ using QSpin.PhysicalConstants:
         @test 5.0 <= R_km <= 20.0
         @test 0.1 <= M_solar <= 3.0
     end
+
+    @testset "solver keyword forwarding" begin
+        ρ0 = 0.01
+        EoS_inv = Returns(ρ0)
+        sol = TOV_Solve(
+            EoS_inv,
+            [1e-3, 0.0],
+            1e-3,
+            1e-2,
+            0.0;
+            input_units = "CGS_dim",
+            r_max = 0.2,
+            saveat = 0.05,
+        )
+
+        @test all(isapprox(0.05), diff(sol.r))
+        @test_throws Exception TOV_Solve(
+            EoS_inv,
+            [1e-3, 0.0],
+            1e-3,
+            1e-2,
+            0.0;
+            alg = :unsupported,
+            input_units = "CGS_dim",
+            r_max = 0.2,
+        )
+    end
 end

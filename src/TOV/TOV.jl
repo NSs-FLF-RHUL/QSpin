@@ -155,31 +155,31 @@ function TOV_Solve(
     # Scale the initial conditions and radial parameters to dimensionless units
     tovUnits = TOV_ref_units(; input_units = input_units, rho_ref = rho_ref);
 
-    u0 = u0 ./ [tovUnits.pressure_ref, tovUnits.mass_ref];
-    dt = dr / tovUnits.length_ref;
-    Dr = Dr / tovUnits.length_ref;
-    r_beg = r_beg / tovUnits.length_ref;
-    if input_units == "SI" || input_units == "SI_dim"
-        r_max = r_max * 1e-2 / tovUnits.length_ref;
+    u0 = u0 ./ [tovUnits.pressure_ref, tovUnits.mass_ref]
+    dt = dt / tovUnits.length_ref
+    saveat = saveat / tovUnits.length_ref
+    r_beg = r_beg / tovUnits.length_ref
+    r_max = if input_units == "SI" || input_units == "SI_dim"
+        r_max * 1e-2 / tovUnits.length_ref
     else
-        r_max = r_max / tovUnits.length_ref;
+        r_max / tovUnits.length_ref
     end
 
     # Callback setup to terminate the integration when the pressure drops below zero
     condition(u, t, integrator) = u[1] < 0
     affect!(integrator) = terminate!(integrator)
     cb = DiscreteCallback(condition, affect!; save_positions=(false, false))
-    # Define the ODE problem and solve it with the DP5 alogorithm in CommonSolve.
+    # Define the ODE problem and solve it with the requested algorithm and options.
     problem = ODEProblem(tov!, u0, (r_beg, r_max); callback = cb)
-    SaveAt = r_beg:Dr:r_max
-    TStops = r_beg:Dr:r_max
+    SaveAt = r_beg:saveat:r_max
     sol = CommonSolve.solve(
         problem,
-        OrdinaryDiffEqLowOrderRK.DP5();
+        alg;
+        dt = dt,
         saveat = SaveAt,
-        tstops = TStops,
-        reltol = 1e-13,
-        abstol = 1e-13,
+        reltol = reltol,
+        abstol = abstol,
+        solver_options...,
     )
 
     ur = Array(sol)
