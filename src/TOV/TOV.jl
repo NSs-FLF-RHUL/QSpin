@@ -187,15 +187,20 @@ function TOV_Solve(
     Pr = ur[1, :] * tovUnits.pressure_ref
     mr = ur[2, :] * tovUnits.mass_ref
     ρr = EoS_inv.(Pr)
-    R_index = findfirst(x->x<0, Pr)
+    R_index = findfirst(<(0), Pr)
+    surface_index = if isnothing(R_index)
+        lastindex(r)
+    else
+        max(firstindex(r), R_index - 1)
+    end
     # Output arguments in the original units
     TOV_sol = (;
         r,
         Pr,
         mr,
         ρr,
-        R = r[isnothing(R_index) ? end : (R_index - 1)],
-        M = mr[isnothing(R_index) ? end : (R_index - 1)],
+        R = r[surface_index],
+        M = mr[surface_index],
     )
 
     return TOV_sol

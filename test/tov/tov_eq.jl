@@ -250,4 +250,38 @@ using QSpin.PhysicalConstants:
             r_max = 0.2,
         )
     end
+
+    @testset "surface and r_max behaviour" begin
+        ρ0 = 0.01
+        R_surface = 1.0
+        M_surface = 4 * π * ρ0 * R_surface^3 / 3
+        surface_factor = sqrt(1 - 2 * M_surface / R_surface)
+        P0 = ρ0 * (1 - surface_factor) / (3 * surface_factor - 1)
+        EoS_inv = Returns(ρ0)
+
+        truncated = TOV_Solve(
+            EoS_inv,
+            [P0, 0.0],
+            1e-3,
+            1e-2,
+            0.0;
+            input_units = "CGS_dim",
+            r_max = 0.5,
+        )
+        @test truncated.R == truncated.r[end] == 0.5
+        @test truncated.M == truncated.mr[end]
+        @test truncated.Pr[end] > 0
+
+        initially_negative = TOV_Solve(
+            Returns(0.0),
+            [-1.0, 0.0],
+            1e-3,
+            1e-2,
+            0.0;
+            input_units = "CGS_dim",
+            r_max = 0.1,
+        )
+        @test initially_negative.R == initially_negative.r[1] == 0.0
+        @test initially_negative.M == initially_negative.mr[1] == 0.0
+    end
 end
