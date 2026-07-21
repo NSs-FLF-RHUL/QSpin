@@ -111,8 +111,38 @@ function VNparaGraber2018(file_path)
     return output
 end
 
-function MutualFrictionCoefficients(Param, Beb_itp, Bj_itp; ρ_drip = 4e11*1e3, Rcci = 1e4)
-    log_ρs = log10.(Param.ρs)
+"""
+    MutualFrictionCoefficients(Param, Beb_itp, Bj_itp; input_units="SI",
+                               ρ_drip=nothing, Rcci=nothing)
+
+Evaluate the electron-vortex and Jones mutual-friction coefficients along a
+density/radius profile. `Param.ρs`, `Param.r`, and any explicit `ρ_drip` or
+`Rcci` values use `input_units`. Supported systems are `"SI"` (kg/m³, m) and
+`"CGS"` (g/cm³, cm). The interpolation tables are always evaluated in kg/m³.
+
+The defaults represent `ρ_drip = 4e14 kg/m³` and `Rcci = 10 km`.
+"""
+function MutualFrictionCoefficients(
+    Param,
+    Beb_itp,
+    Bj_itp;
+    input_units::String = "SI",
+    ρ_drip = nothing,
+    Rcci = nothing,
+)
+    if input_units == "SI"
+        density_to_si = 1.0
+        ρ_drip = something(ρ_drip, 4e14)
+        Rcci = something(Rcci, 1e4)
+    elseif input_units == "CGS"
+        density_to_si = 1e3
+        ρ_drip = something(ρ_drip, 4e11)
+        Rcci = something(Rcci, 1e6)
+    else
+        throw(ArgumentError("input_units must be \"SI\" or \"CGS\""))
+    end
+
+    log_ρs = log10.(Param.ρs .* density_to_si)
     Beb = exp10.(Beb_itp.(log_ρs))
     Bj = exp10.(Bj_itp.(log_ρs))
     Beb[Param.ρs .< ρ_drip] .= 0.0

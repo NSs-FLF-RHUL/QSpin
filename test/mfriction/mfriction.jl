@@ -79,4 +79,25 @@ using QSpin.MFriction: VNparaGraber2018, MutualFrictionCoefficients
         @test Bs.Beb ≈ output.Beb
         @test Bs.Bj ≈ output.Bj
     end
+
+    @testset "CGS and SI profile equivalence" begin
+        Beb_itp(log_ρs) = -2 + 0.1 * (log_ρs - 15)
+        Bj_itp(log_ρs) = -3 + 0.1 * (log_ρs - 15)
+        common = (Beb_core = 0.2, Bj_core = 0.3)
+        si = (; common..., ρs = [1e13, 1e15], r = [2e4, 2e4])
+        cgs = (; common..., ρs = si.ρs ./ 1e3, r = si.r .* 1e2)
+
+        Bs_si = MutualFrictionCoefficients(si, Beb_itp, Bj_itp; input_units = "SI")
+        Bs_cgs = MutualFrictionCoefficients(cgs, Beb_itp, Bj_itp; input_units = "CGS")
+
+        @test Bs_cgs.Beb ≈ Bs_si.Beb
+        @test Bs_cgs.Bj ≈ Bs_si.Bj
+        @test Bs_cgs.Beb[1] == Bs_si.Beb[1] == 0.0
+        @test_throws ArgumentError MutualFrictionCoefficients(
+            si,
+            Beb_itp,
+            Bj_itp;
+            input_units = "invalid",
+        )
+    end
 end
