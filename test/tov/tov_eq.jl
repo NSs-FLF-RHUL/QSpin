@@ -177,11 +177,18 @@ using QSpin.PhysicalConstants:
     @testset "EoS_GCA2018 roundtrip" begin
         EoS, EoS_inv = EoS_GCA2018()
         ρ_drip = 4.0e11
+        ρ_outer = 1e10
+        Ye = 0.4
+        ħ_cgs = hbar * 1e7
+        c_cgs = speed_of_light_vacuum * 1e2
+        mn_cgs = neutron_mass * 1e3
+        P_outer = ħ_cgs * c_cgs * (3 * π^2 * Ye * ρ_outer / mn_cgs)^(4 / 3) / (12 * π^2)
 
         # Outer crust (analytic inverse), drip interface, and inner crust / core (root finder)
         for ρ in (1e10, ρ_drip * 0.5, ρ_drip, 1e13, 1e14, 1e15)
             @test isapprox(EoS_inv(EoS(ρ)), ρ)
         end
+        @test EoS(ρ_outer) ≈ P_outer
     end
 
     @testset "TOV_Solve GCA2018 smoke" begin
