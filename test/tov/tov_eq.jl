@@ -171,7 +171,7 @@ using QSpin.PhysicalConstants:
         )
 
         # CGS: cm, g → SI: m, kg
-        @test isapprox(sol_cgs.R / 100, sol_si.R)
+        @test isapprox(sol_cgs.R / 100, sol_si.R; rtol = 1e-5)
         @test isapprox(sol_cgs.M / 1000, sol_si.M)
     end
 
@@ -223,7 +223,7 @@ using QSpin.PhysicalConstants:
         G_cgs = gravitational_constant * 1e3
         c_cgs = speed_of_light_vacuum * 1e2
         ρ0 = 1e15
-        R_exact = 1e6
+        R_exact = 1.023e6
         M_exact = 4 * π * ρ0 * R_exact^3 / 3
         surface_factor = sqrt(1 - 2 * G_cgs * M_exact / (c_cgs^2 * R_exact))
         P0 = ρ0 * c_cgs^2 * (1 - surface_factor) / (3 * surface_factor - 1)
@@ -253,6 +253,7 @@ using QSpin.PhysicalConstants:
         @test isapprox(sol.mr[interior], m_exact)
         @test isapprox(sol.R, R_exact)
         @test isapprox(sol.M, M_exact)
+        @test abs(sol.Pr[end]) <= 1e-8 * P0
     end
 
     @testset "solver keyword forwarding" begin

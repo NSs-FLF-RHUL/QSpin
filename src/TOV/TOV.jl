@@ -27,7 +27,7 @@ module TOV
 using ..PhysicalConstants: gravitational_constant, speed_of_light_vacuum
 using DocStringExtensions: TYPEDSIGNATURES
 using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK
-using SciMLBase: DiscreteCallback, terminate!, ODEProblem
+using SciMLBase: ContinuousCallback, terminate!, ODEProblem
 using CommonSolve: CommonSolve
 
 # Include the equations of state module as a submodule of the TOV module
@@ -78,7 +78,7 @@ $(TYPEDSIGNATURES)
 Returns a function that evaluates the RHS of the TOV equations, given an equation of state function.
 
 # Arguments
-- `EoS_rho_from_P::Function`: Single-argument (inverse) equation-of-state function that maps density (``\\rho``) to pressure (``P``).
+- `EoS_rho_from_P::Function`: Single-argument inverse equation-of-state function that maps pressure (``P``) to density (``\\rho``).
 
 # Returns
 - `tov_inner!::Function`: Callable as `tov_inner!(du, u, params, r)` that evaluates the RHS of the TOV equations, writing the result to `du`.
@@ -120,8 +120,8 @@ By default, the solver employs the DP5 method, which is a 5th order explicit Run
 - `u0::AbstractArray`: Initial conditions for the TOV equation, given as a vector of the form `[P(0), m(0)]`.
 - `dr::Float64`: Radial step size for the numerical solver.
 - `Dr::Float64`: Radial interval for recording values of the solution.
-- `r_max::Float64`: Maximum radius to solve up to.
-- `EoS_inv::Function`: Single-argument (inverse) equation-of-state function that maps density (``\\rho``) to pressure (``P``).
+- `r_max`: Maximum radius in the selected input units. Defaults to 20 km.
+- `EoS_inv::Function`: Single-argument inverse equation-of-state function that maps pressure (``P``) to density (``\\rho``).
 - `solver_options...`: Additional keyword arguments to pass to the ODE solver.
 
 # Returns
@@ -153,6 +153,14 @@ function TOV_Solve(
     is_si = input_units in ("SI", "SI_dim")
     r_max = isnothing(r_max) ? (is_si ? 20e3 : 20e5) : r_max
 
+    if u0[1] <= 0
+        r = [r_beg]
+        Pr = [u0[1]]
+        mr = [u0[2]]
+        ρr = EoS_inv.(Pr)
+        return (; r, Pr, mr, ρr, R = r_beg, M = u0[2])
+    end
+
     # Building the dimensionless TOV equation function using the provided inverse EoS function
     tov! = tov_eq!(EoS_inv; units = input_units, rho_ref = rho_ref);
     # Scale the initial conditions and radial parameters to dimensionless units
@@ -164,36 +172,21 @@ function TOV_Solve(
     r_beg = r_beg / tovUnits.length_ref
     r_max = r_max / tovUnits.length_ref
 
-    # Callback setup to terminate the integration when the pressure drops below zero
-    condition(u, t, integrator) = u[1] < 0
+    # Locate the stellar surface by root-finding on P(r) = 0.
+    condition(u, t, integrator) = u[1]
     affect!(integrator) = terminate!(integrator)
-    cb = DiscreteCallback(condition, affect!; save_positions = (false, false))
+    cb = ContinuousCallback(condition, affect!; save_positions = (false, true))
     # Define the ODE problem and solve it with the requested algorithm and options.
     problem = ODEProblem(tov!, u0, (r_beg, r_max); callback = cb)
-    SaveAt = r_beg:saveat:r_max
-    sol = CommonSolve.solve(
-        problem,
-        alg;
-        dt = dt,
-        saveat = SaveAt,
-        reltol = reltol,
-        abstol = abstol,
-        solver_options...,
-    )
+    sol = CommonSolve.solve(problem, alg; dt, saveat, reltol, abstol, solver_options...)
 
     ur = Array(sol)
     r = sol.t * tovUnits.length_ref
     Pr = ur[1, :] * tovUnits.pressure_ref
     mr = ur[2, :] * tovUnits.mass_ref
     ρr = EoS_inv.(Pr)
-    R_index = findfirst(<(0), Pr)
-    surface_index = if isnothing(R_index)
-        lastindex(r)
-    else
-        max(firstindex(r), R_index - 1)
-    end
     # Output arguments in the original units
-    TOV_sol = (; r, Pr, mr, ρr, R = r[surface_index], M = mr[surface_index])
+    TOV_sol = (; r, Pr, mr, ρr, R = r[end], M = mr[end])
 
     return TOV_sol
 end
