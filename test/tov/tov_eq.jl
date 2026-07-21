@@ -1,5 +1,6 @@
 using QSpin.TOV: TOV_ref_units, tov_eq!, TOV_Solve
-using QSpin.TOV.EquationOfState: EoS_two_component_polytrope, EoS_GCA2018
+using QSpin.TOV.EquationOfState:
+    EoS_two_component_polytrope, EoS_GCA2018, EoS_NegeleVautherin1973
 using QSpin.PhysicalConstants:
     gravitational_constant, speed_of_light_vacuum, neutron_mass, mass_sun, hbar
 
@@ -189,6 +190,14 @@ using QSpin.PhysicalConstants:
             @test isapprox(EoS_inv(EoS(ρ)), ρ)
         end
         @test EoS(ρ_outer) ≈ P_outer
+    end
+
+    @testset "EoS_NegeleVautherin1973 vacuum" begin
+        EoS, EoS_inv = EoS_NegeleVautherin1973()
+        @test EoS(0.0) == 0.0
+        @test EoS_inv(0.0) == 0.0
+        @test isfinite(EoS(0.0))
+        @test EoS_inv(EoS(1e14)) ≈ 1e14
     end
 
     @testset "TOV_Solve GCA2018 smoke" begin
