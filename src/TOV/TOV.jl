@@ -168,7 +168,7 @@ function TOV_Solve(
     # Callback setup to terminate the integration when the pressure drops below zero
     condition(u, t, integrator) = u[1] < 0
     affect!(integrator) = terminate!(integrator)
-    cb = DiscreteCallback(condition, affect!)
+    cb = DiscreteCallback(condition, affect!; save_positions=(false, false))
     # Define the ODE problem and solve it with the DP5 alogorithm in CommonSolve.
     problem = ODEProblem(tov!, u0, (r_beg, r_max); callback = cb)
     SaveAt = r_beg:Dr:r_max
