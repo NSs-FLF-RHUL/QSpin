@@ -15,6 +15,10 @@ end
     include("tov/tov_eq.jl")
 end
 
+@testset "MFriction" begin
+    include("mfriction/mfriction.jl")
+end
+
 @testset "Quality assurance" begin
     include("quality_assurance.jl")
 end
