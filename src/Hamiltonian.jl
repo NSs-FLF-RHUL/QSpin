@@ -30,7 +30,7 @@ as positional arguments, and return the value of the respective energy quantitie
 # Returns
 - `H!::Function`: The Hamiltonian formed from the kinetic and potential energies
 """
-function hamiltonian!(KineticEnergy, PotentialEnergy, irt = im)
+function hamiltonian!(KineticEnergy, PotentialEnergy, irt = -im)
     function H!(
         dψ::AbstractArray,
         ψ::AbstractArray,

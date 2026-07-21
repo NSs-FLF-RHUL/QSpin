@@ -11,6 +11,8 @@ end
     include("grids/fft_ke.jl")
 end
 
+include("hamiltonian.jl")
+
 @testset "TOV" begin
     include("tov/tov_eq.jl")
 end
