@@ -21,4 +21,12 @@
             QSpin.OdeSolve.ode_rk4(initial_field, 10.0, 0.0, no_evolution),
         )
     end
+
+    @testset "evolve default algorithm" begin
+        decay!(du, u, _, _) = (du .= -u)
+        solution = QSpin.OdeSolve.evolve(decay!, [1.0], 0.0, 1.0)
+
+        @test solution.t[end] == 1.0
+        @test isapprox(solution.u[end][1], exp(-1); rtol = 2e-5)
+    end
 end

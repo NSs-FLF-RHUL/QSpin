@@ -2,6 +2,7 @@ module OdeSolve
 
 using CommonSolve: solve
 using DocStringExtensions: TYPEDSIGNATURES
+using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK
 using SciMLBase: ODEProblem
 
 using ..Parameters: ParameterType
@@ -26,6 +27,7 @@ are the current field, parameters of the problem, and current time respectively.
 - `t_start::Float64`: Start time for system evolution.
 - `t_end::Float64`: End time for system evolution.
 - `p::NamedTuple`: Problem parameters, to pass to `DE.ODEProblem`.
+- `alg`: ODE algorithm; defaults to `DP5()`.
 - `solver_options`: Keyword arguments that will be passed to `DE.solve`.
 
 # Returns
@@ -37,6 +39,7 @@ function evolve(
     t_start::Float64 = 0.0,
     t_end::Float64 = 1.0,
     p::Union{ParameterType,Nothing} = nothing;
+    alg = OrdinaryDiffEqLowOrderRK.DP5(),
     solver_options...,
 )
     if p === nothing
@@ -44,7 +47,7 @@ function evolve(
     end
 
     problem = ODEProblem(eom!, ψ0, (t_start, t_end), p)
-    return solve(problem; solver_options...)
+    return solve(problem, alg; solver_options...)
 end
 
 """
