@@ -16,6 +16,7 @@ SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
 QSpin = {path = ".."}
 
 [compat]
+DataInterpolations = "9.0.2"
 FFTW = "1.10.0"
 LaTeXStrings = "1.4.0"
 LinearAlgebra = "<0.0.1, 1"
