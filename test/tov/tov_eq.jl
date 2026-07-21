@@ -58,18 +58,9 @@ using QSpin.PhysicalConstants:
         K_crust = (3 * π^2)^(2 / 3) * (hbar * 1e7)^2 / (5 * (neutron_mass * 1e3)^(8 / 3))
         ρ_b = 3e14
 
-        EoS_Param_Stiff = (
-            K_crust = K_crust,
-            γ_crust = 5.0 / 3.0,
-            γ_core = 3.0,
-            ρ_b = ρ_b,
-        )
-        EoS_Param_Soft = (
-            K_crust = K_crust,
-            γ_crust = 5.0 / 3.0,
-            γ_core = 5.0 / 2.0,
-            ρ_b = ρ_b,
-        )
+        EoS_Param_Stiff = (K_crust = K_crust, γ_crust = 5.0 / 3.0, γ_core = 3.0, ρ_b = ρ_b)
+        EoS_Param_Soft =
+            (K_crust = K_crust, γ_crust = 5.0 / 3.0, γ_core = 5.0 / 2.0, ρ_b = ρ_b)
 
         for params in (EoS_Param_Stiff, EoS_Param_Soft)
             EoS, EoS_inv = EoS_two_component_polytrope(params)
@@ -108,20 +99,8 @@ using QSpin.PhysicalConstants:
             ρ_b = ρ_b,
         ))
 
-        sol_stiff = TOV_Solve(
-            EoS_inv_Stiff,
-            [EoS_Stiff(ρ0); 0.0],
-            dr,
-            Dr,
-            r_beg,
-        )
-        sol_soft = TOV_Solve(
-            EoS_inv_Soft,
-            [EoS_Soft(ρ0); 0.0],
-            dr,
-            Dr,
-            r_beg,
-        )
+        sol_stiff = TOV_Solve(EoS_inv_Stiff, [EoS_Stiff(ρ0); 0.0], dr, Dr, r_beg)
+        sol_soft = TOV_Solve(EoS_inv_Soft, [EoS_Soft(ρ0); 0.0], dr, Dr, r_beg)
 
         for sol in (sol_stiff, sol_soft)
             @test all(isfinite, sol.r)
@@ -248,12 +227,11 @@ using QSpin.PhysicalConstants:
 
         interior = sol.r .<= 0.9 * R_exact
         r = sol.r[interior]
-        radial_factor =
-            sqrt.(1 .- 2 * G_cgs * M_exact .* r.^2 ./ (c_cgs^2 * R_exact^3))
+        radial_factor = sqrt.(1 .- 2 * G_cgs * M_exact .* r .^ 2 ./ (c_cgs^2 * R_exact^3))
         P_exact =
             ρ0 .* c_cgs^2 .* (radial_factor .- surface_factor) ./
             (3 * surface_factor .- radial_factor)
-        m_exact = 4 * π * ρ0 .* r.^3 ./ 3
+        m_exact = 4 * π * ρ0 .* r .^ 3 ./ 3
 
         @test isapprox(sol.Pr[interior], P_exact)
         @test isapprox(sol.mr[interior], m_exact)

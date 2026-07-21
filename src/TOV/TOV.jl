@@ -168,7 +168,7 @@ function TOV_Solve(
     # Callback setup to terminate the integration when the pressure drops below zero
     condition(u, t, integrator) = u[1] < 0
     affect!(integrator) = terminate!(integrator)
-    cb = DiscreteCallback(condition, affect!; save_positions=(false, false))
+    cb = DiscreteCallback(condition, affect!; save_positions = (false, false))
     # Define the ODE problem and solve it with the requested algorithm and options.
     problem = ODEProblem(tov!, u0, (r_beg, r_max); callback = cb)
     SaveAt = r_beg:saveat:r_max
@@ -194,14 +194,7 @@ function TOV_Solve(
         max(firstindex(r), R_index - 1)
     end
     # Output arguments in the original units
-    TOV_sol = (;
-        r,
-        Pr,
-        mr,
-        ρr,
-        R = r[surface_index],
-        M = mr[surface_index],
-    )
+    TOV_sol = (; r, Pr, mr, ρr, R = r[surface_index], M = mr[surface_index])
 
     return TOV_sol
 end
