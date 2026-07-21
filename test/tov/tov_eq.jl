@@ -314,5 +314,16 @@ using QSpin.PhysicalConstants:
         )
         @test initially_negative.R == initially_negative.r[1] == 0.0
         @test initially_negative.M == initially_negative.mr[1] == 0.0
+
+        si_truncated = TOV_Solve(
+            Returns(0.0),
+            [1e-3, 0.0],
+            1.0,
+            10.0,
+            0.0;
+            input_units = "SI_dim",
+            r_max = 100.0,
+        )
+        @test si_truncated.R == si_truncated.r[end] == 100.0
     end
 end

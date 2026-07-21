@@ -144,11 +144,14 @@ function TOV_Solve(
     saveat = Dr,
     input_units::Union{String} = "CGS",
     rho_ref::Float64 = 2.8e14, # nuclear saturation density in g/cm^3
-    r_max::Float64 = 20e5, # 20 km in cm
+    r_max::Union{Nothing,Float64} = nothing,
     reltol = 1e-13,
     abstol = 1e-13,
     solver_options...,
 )
+
+    is_si = input_units in ("SI", "SI_dim")
+    r_max = isnothing(r_max) ? (is_si ? 20e3 : 20e5) : r_max
 
     # Building the dimensionless TOV equation function using the provided inverse EoS function
     tov! = tov_eq!(EoS_inv; units = input_units, rho_ref = rho_ref);
@@ -159,11 +162,7 @@ function TOV_Solve(
     dt = dt / tovUnits.length_ref
     saveat = saveat / tovUnits.length_ref
     r_beg = r_beg / tovUnits.length_ref
-    r_max = if input_units == "SI" || input_units == "SI_dim"
-        r_max * 1e-2 / tovUnits.length_ref
-    else
-        r_max / tovUnits.length_ref
-    end
+    r_max = r_max / tovUnits.length_ref
 
     # Callback setup to terminate the integration when the pressure drops below zero
     condition(u, t, integrator) = u[1] < 0
