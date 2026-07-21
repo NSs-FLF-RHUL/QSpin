@@ -28,7 +28,7 @@ using QSpin.PhysicalConstants:
             @test dim.rho_ref == 1.0
         end
 
-        @test_throws Exception TOV_ref_units(; input_units = "unsupported")
+        @test_throws ErrorException TOV_ref_units(; input_units = "unsupported")
     end
 
     @testset "tov_eq! RHS" begin
