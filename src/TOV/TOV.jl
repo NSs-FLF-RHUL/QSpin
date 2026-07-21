@@ -41,11 +41,11 @@ Returns a named tuple containing the reference units for the TOV equation, given
 
 """
 function TOV_ref_units(; input_units::String = "CGS", rho_ref::Float64 = 2.8e14)
-    if input_units == "CGS" || input_units == "CGS_dim"
+    if input_units in ("CGS", "CGS_dim")
         #println(" CGS unit")
         G0 = gravitational_constant * 1e3
         c0 = speed_of_light_vacuum * 1e2
-    elseif input_units == "SI" || input_units == "SI_dim"
+    elseif input_units in ("SI", "SI_dim")
         #println(" SI unit")
         rho_ref = rho_ref * 1e3
         G0 = gravitational_constant
@@ -55,7 +55,7 @@ function TOV_ref_units(; input_units::String = "CGS", rho_ref::Float64 = 2.8e14)
             "Unsupported units '$(units)'.  Only supported units are 'CGS' ('CGS_dim') and 'SI' ('SI_dim')",
         )
     end
-    if input_units == "CGS_dim" || input_units == "SI_dim"
+    if input_units in ("CGS_dim", "SI_dim")
         length_ref = 1.0
         pressure_ref = 1.0
         mass_ref = 1.0
