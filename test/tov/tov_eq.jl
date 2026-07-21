@@ -224,6 +224,43 @@ using QSpin.PhysicalConstants:
         @test 0.1 <= M_solar <= 3.0
     end
 
+    @testset "constant-density analytic solution" begin
+        G_cgs = gravitational_constant * 1e3
+        c_cgs = speed_of_light_vacuum * 1e2
+        ρ0 = 1e15
+        R_exact = 1e6
+        M_exact = 4 * π * ρ0 * R_exact^3 / 3
+        surface_factor = sqrt(1 - 2 * G_cgs * M_exact / (c_cgs^2 * R_exact))
+        P0 = ρ0 * c_cgs^2 * (1 - surface_factor) / (3 * surface_factor - 1)
+        EoS_inv = Returns(ρ0)
+
+        sol = TOV_Solve(
+            EoS_inv,
+            [P0, 0.0],
+            100.0,
+            1e4,
+            0.0;
+            input_units = "CGS_dim",
+            r_max = 1.2e6,
+            reltol = 1e-10,
+            abstol = 1e-12,
+        )
+
+        interior = sol.r .<= 0.9 * R_exact
+        r = sol.r[interior]
+        radial_factor =
+            sqrt.(1 .- 2 * G_cgs * M_exact .* r.^2 ./ (c_cgs^2 * R_exact^3))
+        P_exact =
+            ρ0 .* c_cgs^2 .* (radial_factor .- surface_factor) ./
+            (3 * surface_factor .- radial_factor)
+        m_exact = 4 * π * ρ0 .* r.^3 ./ 3
+
+        @test isapprox(sol.Pr[interior], P_exact)
+        @test isapprox(sol.mr[interior], m_exact)
+        @test isapprox(sol.R, R_exact)
+        @test isapprox(sol.M, M_exact)
+    end
+
     @testset "solver keyword forwarding" begin
         ρ0 = 0.01
         EoS_inv = Returns(ρ0)
