@@ -29,4 +29,35 @@
         @test solution.t[end] == 1.0
         @test isapprox(solution.u[end][1], exp(-1); rtol = 2e-5)
     end
+
+    @testset "evolve_rk4 save scheduling" begin
+        constant_rate(u, _) = ones(size(u))
+        fields, times = QSpin.OdeSolve.evolve_rk4([0.0], 0.1, 0.3, 0.6, constant_rate)
+
+        @test times ≈ [0.0, 0.3, 0.6]
+        @test vec(fields) ≈ times
+        @test_throws ArgumentError QSpin.OdeSolve.evolve_rk4(
+            [0.0],
+            0.2,
+            0.1,
+            0.4,
+            constant_rate,
+        )
+        @test_throws ArgumentError QSpin.OdeSolve.evolve_rk4(
+            [0.0],
+            0.1,
+            0.25,
+            0.5,
+            constant_rate,
+        )
+    end
+
+    @testset "evolve_rk4 NaN truncation" begin
+        nan_rate(u, _) = fill(NaN, size(u))
+        fields, times = QSpin.OdeSolve.evolve_rk4([1.0], 0.1, 0.2, 1.0, nan_rate)
+
+        @test size(fields) == (1, 1)
+        @test fields[:, 1] == [1.0]
+        @test times == [0.0]
+    end
 end

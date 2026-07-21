@@ -107,36 +107,44 @@ function evolve_rk4(
         ".",
     )
 
-    ΔNt = floor(Int, Dt / dt)
-    Nt = floor(Int, t_end / Dt)
-    ψall = zeros(eltype(ψ0), size(ψ0)..., Nt + 1)
+    dt > 0 || throw(ArgumentError("dt must be positive"))
+    Dt > 0 || throw(ArgumentError("Dt must be positive"))
+    t_end >= 0 || throw(ArgumentError("t_end must be non-negative"))
+
+    save_every = round(Int, Dt / dt)
+    save_every >= 1 || throw(ArgumentError("Dt must be at least dt"))
+    isapprox(save_every * dt, Dt; rtol = 1e-12, atol = 1e-14) ||
+        throw(ArgumentError("Dt must be an integer multiple of dt"))
+
+    step_count = floor(Int, t_end / dt + 1e-12)
+    save_count = fld(step_count, save_every) + 1
+    ψall = zeros(eltype(ψ0), size(ψ0)..., save_count)
 
     selectdim(ψall, time_dimension_index, 1) .= ψ0
-    tspan = zeros(Nt + 1)
+    tspan = zeros(save_count)
 
     t = 0.0
     ψcurrent = ψ0
     save_number = 1
-    step_number = 0
     println("。  Simulation Begins。")
     println(" t = ", t)
-    @inbounds while t < t_end
+    @inbounds for step_number = 1:step_count
         ψcurrent = ode_rk4(ψcurrent, dt, t, eom)
-        t += dt
-        step_number += 1
-        if sum(isnan.(ψcurrent[:]))>0
+        t = step_number * dt
+        if any(isnan, ψcurrent)
             println(
                 "NaN detected in the field at time ",
                 t,
                 ". Time Step could be too big.",
             )
-            break
+            valid_fields = copy(selectdim(ψall, time_dimension_index, 1:save_number))
+            return valid_fields, tspan[1:save_number]
         end
-        if mod(step_number, ΔNt) == 0
+        if mod(step_number, save_every) == 0
             println(" t = ", t)
-            selectdim(ψall, time_dimension_index, save_number + 1) .= ψcurrent
-            tspan[save_number+1] = t
             save_number += 1
+            selectdim(ψall, time_dimension_index, save_number) .= ψcurrent
+            tspan[save_number] = t
         end
     end
     return ψall, tspan
