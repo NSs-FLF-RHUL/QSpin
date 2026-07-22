@@ -19,6 +19,7 @@ QSpin = {path = ".."}
 
 [compat]
 FFTW = "1.10.0"
+JSON = "1.6.1"
 LaTeXStrings = "1.4.0"
 LinearAlgebra = "<0.0.1, 1"
 MAT = "0.11.5"
