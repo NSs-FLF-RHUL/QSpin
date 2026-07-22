@@ -41,18 +41,19 @@ function VNparaGraber2018(file_path)
     #    A = zeros(length(data)-1)
     #    RWS = zeros(length(data)-1)
     for dd = 2:length(data)
-        nb[dd-1] = data[dd].nb
-        Z[dd-1] = data[dd].Z
-        N[dd-1] = data[dd].N
-        x[dd-1] = data[dd].x
-        ns[dd-1] = data[dd].ns
-        a[dd-1] = data[dd].a
-        Rn[dd-1] = data[dd].RN
-        Es[dd-1] = data[dd].Es
-        E1[dd-1] = data[dd].E1
-        ΔE[dd-1] = data[dd].DE
-        ξ[dd-1] = data[dd].xi
-        Ep[dd-1] = data[dd].Ep
+        row = data[dd]
+        nb[dd-1] = row["nb"]
+        Z[dd-1] = row["Z"]
+        N[dd-1] = row["N"]
+        x[dd-1] = row["x"]
+        ns[dd-1] = row["ns"]
+        a[dd-1] = row["a"]
+        Rn[dd-1] = row["RN"]
+        Es[dd-1] = row["Es"]
+        E1[dd-1] = row["E1"]
+        ΔE[dd-1] = row["DE"]
+        ξ[dd-1] = row["xi"]
+        Ep[dd-1] = row["Ep"]
         #A[dd-1]   = data[dd].Z * (1 + 1/data[dd].x)
         #Rws[dd-1] = (3*(data[dd].N+data[dd].Z) / (4 * π * data[dd].nb*1e-4))^(1/3)
     end
@@ -110,8 +111,38 @@ function VNparaGraber2018(file_path)
     return output
 end
 
-function MutualFrictionCoefficients(Param, Beb_itp, Bj_itp; ρ_drip = 4e11*1e3, Rcci = 1e4)
-    log_ρs = log10.(Param.ρs)
+"""
+    MutualFrictionCoefficients(Param, Beb_itp, Bj_itp; input_units="SI",
+                               ρ_drip=nothing, Rcci=nothing)
+
+Evaluate the electron-vortex and Jones mutual-friction coefficients along a
+density/radius profile. `Param.ρs`, `Param.r`, and any explicit `ρ_drip` or
+`Rcci` values use `input_units`. Supported systems are `"SI"` (kg/m³, m) and
+`"CGS"` (g/cm³, cm). The interpolation tables are always evaluated in kg/m³.
+
+The defaults represent `ρ_drip = 4e14 kg/m³` and `Rcci = 10 km`.
+"""
+function MutualFrictionCoefficients(
+    Param,
+    Beb_itp,
+    Bj_itp;
+    input_units::String = "SI",
+    ρ_drip = nothing,
+    Rcci = nothing,
+)
+    if input_units == "SI"
+        density_to_si = 1.0
+        ρ_drip = something(ρ_drip, 4e14)
+        Rcci = something(Rcci, 1e4)
+    elseif input_units == "CGS"
+        density_to_si = 1e3
+        ρ_drip = something(ρ_drip, 4e11)
+        Rcci = something(Rcci, 1e6)
+    else
+        throw(ArgumentError("input_units must be \"SI\" or \"CGS\""))
+    end
+
+    log_ρs = log10.(Param.ρs .* density_to_si)
     Beb = exp10.(Beb_itp.(log_ρs))
     Bj = exp10.(Bj_itp.(log_ρs))
     Beb[Param.ρs .< ρ_drip] .= 0.0

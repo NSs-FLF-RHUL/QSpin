@@ -82,4 +82,16 @@
         @test size(Ky)==(10, 4, 20)
         @test size(Kz)==(10, 4, 20)
     end
+
+    @testset "odd grid sizes and validation" begin
+        x, kx, facx = QSpin.Grids.CartGrid([1.0], [5])
+        @test length(x) == 5
+        @test kx ≈ [0, 1, 2, -2, -1] .* π
+        @test facx ≈ π
+
+        @test_throws ArgumentError QSpin.Grids.CartGrid(Float64[], Int[])
+        @test_throws ArgumentError QSpin.Grids.CartGrid(ones(4), fill(4, 4))
+        @test_throws DimensionMismatch QSpin.Grids.CartGrid([1.0], [4, 4])
+        @test_throws ArgumentError QSpin.Grids.CartGrid([1.0], [0])
+    end
 end
