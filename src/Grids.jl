@@ -10,20 +10,26 @@ $(TYPEDSIGNATURES)
 Set up a uniform Cartesian grid, applicable for the Fourier spectral method.
 
 # Arguments
-- `CompDomain::Array{Float64}`: The half computational domain size.
+- `CompDomain::AbstractVector{<:Real}`: The half computational domain size.
     Input as an array for [Lx,Ly,Lz], and up to 3D.
-- `GridSize::Array{Float64}`: The number of grid points in each dimension.
+- `GridSize::AbstractVector{<:Integer}`: The number of grid points in each dimension.
     Input as an array of the form [Nx,Ny,Nz], and up to 3D.
 """
-function CartGrid(CompDomain::Array{Float64}, GridSize::Array{Int64})
+function CartGrid(CompDomain::AbstractVector{<:Real}, GridSize::AbstractVector{<:Integer})
     dims = length(GridSize)
+    dims in 1:3 || throw(ArgumentError("CartGrid supports one to three dimensions"))
+    length(CompDomain) == dims ||
+        throw(DimensionMismatch("CompDomain and GridSize must have equal lengths"))
+    all(>(0), CompDomain) || throw(ArgumentError("domain sizes must be positive"))
+    all(>(0), GridSize) || throw(ArgumentError("grid sizes must be positive"))
+
     if dims <= 3
         Nx = GridSize[1]
         dx = 2 * CompDomain[1] / Nx
         x = range(-CompDomain[1], stop = CompDomain[1]-dx, length = Int(Nx))
         kx = [
-            range(0, stop = Nx/2-1, length = Int(Nx/2));
-            range(-Nx/2, stop = -1, length = Int(Nx/2))
+            0:fld(Nx-1, 2);
+            (-fld(Nx, 2)):-1
         ]
         facx = pi / CompDomain[1]
         kx = kx .* facx
@@ -33,8 +39,8 @@ function CartGrid(CompDomain::Array{Float64}, GridSize::Array{Int64})
         dy = 2 * CompDomain[2] / Ny
         y = range(-CompDomain[2], stop = CompDomain[2]-dy, length = Int(Ny))
         ky = [
-            range(0, stop = Ny/2-1, length = Int(Ny/2));
-            range(-Ny/2, stop = -1, length = Int(Ny/2))
+            0:fld(Ny-1, 2);
+            (-fld(Ny, 2)):-1
         ]
         facy = pi / CompDomain[2]
         ky = ky .* facy
@@ -44,8 +50,8 @@ function CartGrid(CompDomain::Array{Float64}, GridSize::Array{Int64})
         dz = 2 * CompDomain[3] / Nz
         z = range(-CompDomain[3], stop = CompDomain[3]-dz, length = Int(Nz))
         kz = [
-            range(0, stop = Nz/2-1, length = Int(Nz/2));
-            range(-Nz/2, stop = -1, length = Int(Nz/2))
+            0:fld(Nz-1, 2);
+            (-fld(Nz, 2)):-1
         ]
         facz = pi / CompDomain[3]
         kz = kz .* facz
