@@ -19,10 +19,10 @@ SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
 
 [compat]
 CommonSolve = "0.2.6"
-DataInterpolations = "5"
+DataInterpolations = "9"
 DocStringExtensions = "0.9.5"
 FFTW = "1.10.0"
-JSON = "0.21"
+JSON = "0.21, 1.6"
 OrdinaryDiffEqLowOrderRK = "2.1.0"
 PhysicalConstants = "0.2.5"
 Roots = "3.0.0"
