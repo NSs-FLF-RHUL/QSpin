@@ -43,6 +43,7 @@ const kiloparsec_in_m = 3.08567758e19
 
 # Neutron mass; kg
 const neutron_mass = NeutronMass.val
+const atomic_mass = AtomicMassConstant.val 
 
 # Gigayear; s
 const gyr = 86400 * 365.24219 * 1e9
