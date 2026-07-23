@@ -22,8 +22,9 @@ function ThreeCompSolid!(
 end
 
 function ThreeCompGCA2018!(EoMSetup::ParameterType; value_check::Bool = false)
+
     Nr = length(EoMSetup.r);
-    I_total = 0.35 * M_NS * RNS^2
+    I_total = 0.35 * EoMSetup.M_NS * EOMSetup.R_NS^2
     dr = [diff(EoMSetup.r); diff(EoMSetup.r)[end]]
     spherical_momentum_of_innertia = EoMSetup.ρr .* EoMSetup.r .^ 4 .* dr
     unit_momenum_of_innertia = EvoMSetup.ρr .* EoMSetup.r .^ 3 .* dr
@@ -66,12 +67,58 @@ function ThreeCompGCA2018!(EoMSetup::ParameterType; value_check::Bool = false)
     return ThreeComMod_inner!
 end
 
-function integrand_sph(ρ, r; Rin::Float64 = r[1], Rend::Float64 = r[end])
-    return 8 * π * sum(spherical_momentum_of_innertia[i_Rcci:end])
+function integral_moi_sph(
+    ρ::AbstractArray,
+    r::AbstractArray;
+    r_range::Union{Tuple{Float64,Float64},Nothing} = nothing,
+)
+    if length(ρ) == length(r)
+        r_low = isnothing(r_range) ? r[1] : r_range[1]
+        r_up = isnothing(r_range) ? r[end] : r_range[2]
+
+        i_low = argmin(abs.(r .- r_low))
+        i_up = argmin(abs.(r .- r_up))
+
+        i_low < 2 ? i_min = 1 : i_min = i_low-1
+        i_up > length(r)-1 ? i_max = i_up : i_max = i_up + 1
+        if r[i_low] < minimum(r)
+            error("The lower bound of r_range is not in the ragne of r")
+        end
+        if r[i_up] > maximum(r)
+            error("The upper bound of r_range is not in the range of r")
+        end
+        dV = ρ .* r .^ 4 .* [diff(r); diff(r)[end]];
+        return 8 * π * sum(dV[i_low:i_up]) / 3
+    else
+        error("Input ρ and r are not in the same size.")
+    end
 end
 
-function integrand_cyl(ρ, r; Rin::Float64, Rend::Float64)
-    return 2 * π * sum(nit_momenum_of_innertia[i_Rcci:end])
+function integral_moi_cyl(
+    ρ::AbstractArray,
+    r::AbstractArray;
+    r_range::Union{Tuple{Float64,Float64},Nothing} = nothing,
+)
+    if length(ρ) == length(r)
+        r_low = isnothing(r_range) ? r[1] : r_range[1]
+        r_up = isnothing(r_range) ? r[end] : r_range[2]
+
+        i_low = argmin(abs.(r .- r_low))
+        i_up = argmin(abs.(r .- r_up))
+
+        i_low < 2 ? i_min = 1 : i_min = i_low-1
+        i_up > length(r)-1 ? i_max = i_up : i_max = i_up + 1
+        if r[i_low] < minimum(r)
+            error("The lower bound of r_range is not in the ragne of r")
+        end
+        if r[i_up] > maximum(r)
+            error("The upper bound of r_range is not in the range of r")
+        end
+        dV = ρ .* r .^ 3 .* [diff(r); diff(r)[end]];
+        return 2 * π * sum(dV[i_low:i_up])
+    else
+        error("Input ρ and r are not in the same size.")
+    end
 end
 
 end

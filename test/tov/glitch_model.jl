@@ -1,12 +1,23 @@
 using QSpin
 using QSpin.Parameters: ParameterType
 import QSpin.OdeSolve: evolve
-import QSpin.GlitchModels: ThreeCompSolid!
+import QSpin.GlitchModels: ThreeCompSolid!, integral_moi_sph, integral_moi_cyl
 import CommonSolve as DE
 import OrdinaryDiffEqTsit5: Tsit5
 
 @testset "glith_riser" begin
+    @testset "moment of inertia spherical integral" begin
+        r = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]
+        ρ = ones(size(r))
+        @test isapprox(integral_moi_sph(ρ, r), sum(r .^ 4)*8*π/3)
 
+    end
+    @testset "moment of inertia spherical cyl" begin
+        r = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]
+        ρ = ones(size(r))
+        @test isapprox(integral_moi_cyl(ρ, r), sum(r .^ 3)*2*π)
+
+    end
     @testset "solid body" begin
         Sim_Input = (
             # Glitch Model Input
