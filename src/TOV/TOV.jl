@@ -132,17 +132,6 @@ function tov_eq!(
     G0 = tovUnits.G0;
     c0 = tovUnits.c0;
 
-function tov_eq!(
-    EoS_rho_from_P::Function;
-    units::Union{String} = "CGS",
-    rho_ref::Float64 = 2.8e14, # nuclear saturation density in g/cm^3
-)
-    tovUnits = TOV_ref_units(input_units = units, rho_ref = rho_ref)
-    P_ref = tovUnits.pressure_ref;
-    rho_ref = tovUnits.rho_ref;
-    G0 = tovUnits.G0;
-    c0 = tovUnits.c0;
-
     function tov_inner!(du, u, params, r)
         P = u[1]
         m = u[2]
@@ -186,7 +175,6 @@ By default, the solver employs the DP5 method, which is a 5th order explicit Run
 """
 function TOV_Solve(
     EoS_inv::Function,
-    EoS_inv::Function,
     u0::AbstractArray,
     dr::Float64,
     Dr::Float64,
@@ -195,11 +183,6 @@ function TOV_Solve(
     alg = OrdinaryDiffEqLowOrderRK.DP5(),
     dt = dr,
     saveat = Dr,
-    input_units::Union{String} = "CGS",
-    rho_ref::Float64 = 2.8e14, # nuclear saturation density in g/cm^3
-    r_max::Union{Nothing,Float64} = nothing,
-    reltol = 1e-13,
-    abstol = 1e-13,
     input_units::Union{String} = "CGS",
     rho_ref::Float64 = 2.8e14, # nuclear saturation density in g/cm^3
     r_max::Float64 = 20e5, # 20 km in cm
