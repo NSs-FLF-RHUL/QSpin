@@ -75,18 +75,18 @@ function integral_moi_sph(
     if length(ρ) == length(r)
         r_low = isnothing(r_range) ? r[1] : r_range[1]
         r_up = isnothing(r_range) ? r[end] : r_range[2]
-
+        if r_low < minimum(r)
+            error("The lower bound of r_range is not in the ragne of r")
+        end
+        if r_up > maximum(r)
+            error("The upper bound of r_range is not in the range of r")
+        end
         i_low = argmin(abs.(r .- r_low))
         i_up = argmin(abs.(r .- r_up))
 
         i_low < 2 ? i_min = 1 : i_min = i_low-1
         i_up > length(r)-1 ? i_max = i_up : i_max = i_up + 1
-        if r[i_low] < minimum(r)
-            error("The lower bound of r_range is not in the ragne of r")
-        end
-        if r[i_up] > maximum(r)
-            error("The upper bound of r_range is not in the range of r")
-        end
+
         dV = ρ .* r .^ 4 .* [diff(r); diff(r)[end]];
         return 8 * π * sum(dV[i_low:i_up]) / 3
     else
@@ -102,18 +102,18 @@ function integral_moi_cyl(
     if length(ρ) == length(r)
         r_low = isnothing(r_range) ? r[1] : r_range[1]
         r_up = isnothing(r_range) ? r[end] : r_range[2]
-
+        if r_low < minimum(r)
+            error("The lower bound of r_range is not in the ragne of r")
+        end
+        if r_up > maximum(r)
+            error("The upper bound of r_range is not in the range of r")
+        end
         i_low = argmin(abs.(r .- r_low))
         i_up = argmin(abs.(r .- r_up))
 
         i_low < 2 ? i_min = 1 : i_min = i_low-1
         i_up > length(r)-1 ? i_max = i_up : i_max = i_up + 1
-        if r[i_low] < minimum(r)
-            error("The lower bound of r_range is not in the ragne of r")
-        end
-        if r[i_up] > maximum(r)
-            error("The upper bound of r_range is not in the range of r")
-        end
+
         dV = ρ .* r .^ 3 .* [diff(r); diff(r)[end]];
         return 2 * π * sum(dV[i_low:i_up])
     else
