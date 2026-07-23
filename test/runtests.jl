@@ -20,6 +20,9 @@ end
 @testset "MFriction" begin
     include("mfriction/mfriction.jl")
 end
+@testset "gltich model" begin
+    include("tov/glitch_model.jl")
+end
 
 @testset "Quality assurance" begin
     include("quality_assurance.jl")
