@@ -18,7 +18,7 @@ function EoS_NegeleVautherin1973(
     ],
 )
     function EoS_P_from_rho(ρ)
-        P = if ρ < 0
+        P = if ρ <= 0
             0.0
         else
             nb = ρ / (neutron_mass * 1e3); # in the unit of g/cm^3
@@ -37,14 +37,14 @@ function EoS_NegeleVautherin1973(
     end
 
     function EoS_rho_from_P(P)
-        ρ = if P < 0
+        ρ = if P <= 0
             0.0
         else
-            if log(P) > 76.0
-                #rho_guess = ((log(P) - 75.06) / 4.87e-9)^(1/0.6028) # Emperical Guess from a Fitting for density up to about 2e16
-                rho_guess = ((log(P) - 68.3) / 2.836e-7)^(1/0.502) # Emperical Guess from a Fitting for density up to about 4e16
+            rho_guess = if log(P) > 76.0
+                # ((log(P) - 75.06) / 4.87e-9)^(1/0.6028) # Emperical Guess from a Fitting for density up to about 2e16
+                ((log(P) - 68.3) / 2.836e-7)^(1/0.502) # Emperical Guess from a Fitting for density up to about 4e16
             else
-                rho_guess = 5e12
+                5e12
             end
             find_zero(y -> EoS_P_from_rho(y) - P, rho_guess)
         end

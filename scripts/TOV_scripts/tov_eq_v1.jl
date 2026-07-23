@@ -18,7 +18,7 @@ Sim_Input = (
     dr = 0.0001*1e5, # Radial step in cm
     Dr = 0.005*1e5, # Radial interval for recording values in cm
     r_beg = 0.e5,
-    units = "CGS_dim", # optional
+    units = "CGS", # optional
 );
 
 # Calling EoS_GCA2018

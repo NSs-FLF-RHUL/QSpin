@@ -1,7 +1,7 @@
 using DocStringExtensions: TYPEDSIGNATURES
 using ....Parameters: ParameterType
 using ....PhysicalConstants: electron_volt, hbar, neutron_mass, speed_of_light_vacuum
-using Roots: find_zero
+using Roots: find_zerousing Roots: find_zero
 """
 $(TYPEDSIGNATURES)
 
@@ -23,17 +23,17 @@ function EoS_GCA2018(
         -3.2618465e-3,
         1.3543555e-4,
     ],
-    ρ_drip = 4.e11, # in g/m^3,
+    ρ_drip = 4.e11, # in g/cm^3
     Ye = 0.4,
 )
     ħ = hbar * 1e3 * 1e4; # convert to g * cm^2 / s
     mn = neutron_mass * 1e3; # convert to g
-    c = speed_of_light_vacuum
+    c = speed_of_light_vacuum * 1e2; # convert to cm / s
     function EoS_P_from_rho(ρ)
         P = if ρ < 0
             0.0
         elseif ρ < ρ_drip
-            ħ * c * (3 * π^2 * Ye * ρ / (mn * 1e3))^(4/3) / 12 / π^2
+            ħ * c * (3 * π^2 * Ye * ρ / mn)^(4/3) / 12 / π^2
         else
             nb = ρ / (neutron_mass * 1e3); # in the unit of g/cm^3
             nb_scaled = nb * 1e-35
@@ -51,17 +51,21 @@ function EoS_GCA2018(
         return P
     end
 
+    P_drip = EoS_P_from_rho(ρ_drip)
+
     function EoS_rho_from_P(P)
         ρ = if P < 0
             0.0
-        elseif P < EoS_P_from_rho(ρ_drip)
-            (12 * π^2 * P / ħ / c)^(3/4) * (mn * 1e3) / (3 * π^2 * Ye)
+        elseif isapprox(P, P_drip; rtol = 1e-12)
+            ρ_drip
+        elseif P < P_drip
+            (12 * π^2 * P / ħ / c)^(3/4) * mn / (3 * π^2 * Ye)
         else
-            if log(P) > 76.0
-                #rho_guess = ((log(P) - 75.06) / 4.87e-9)^(1/0.6028) # Emperical Guess from a Fitting for density up to about 4e16
-                rho_guess = ((log(P) - 68.3) / 2.836e-7)^(1/0.502) # Emperical Guess from a Fitting for density up to about 9e16
+            rho_guess = if log(P) > 76.0
+                # ((log(P) - 75.06) / 4.87e-9)^(1/0.6028) # Emperical Guess from a Fitting for density up to about 4e16
+                ((log(P) - 68.3) / 2.836e-7)^(1/0.502) # Emperical Guess from a Fitting for density up to about 9e16
             else
-                rho_guess = 5e12
+                5e12
             end
             find_zero(y -> EoS_P_from_rho(y) - P, rho_guess)
         end
