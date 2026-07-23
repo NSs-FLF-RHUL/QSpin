@@ -21,22 +21,24 @@ function ThreeCompSolid!(
         Param.I_core / Param.I_crust * dΩ[3];
 end
 
-function ThreeCompGCA2018!(EoMSetup::ParameterType; value_check::Bool = false)
-
+function ThreeCompGCA2018!(
+    EoMSetup::ParameterType;
+    value_check::Bool = false,
+    ρ_drip::Float64 = 4e11,
+    Units::String = "CGS",
+)
+    dr = [diff(r); diff(r)[end]]
     Nr = length(EoMSetup.r);
     I_total = 0.35 * EoMSetup.M_NS * EOMSetup.R_NS^2
-    dr = [diff(EoMSetup.r); diff(EoMSetup.r)[end]]
-    spherical_momentum_of_innertia = EoMSetup.ρr .* EoMSetup.r .^ 4 .* dr
-    unit_momenum_of_innertia = EvoMSetup.ρr .* EoMSetup.r .^ 3 .* dr
-    I_crust_total = 8 * π * sum(spherical_momentum_of_innertia[i_Rcci:end])
-    I_crust_unitheight = 2 * π * sum(nit_momenum_of_innertia[i_Rcci:end])
-    h_crust = I_crust_unitheight / I_crust_total / 2.0
-
-    I_core = EoMSetup.α_core * (I_total - I_crust_total)
-    I_proton = EoMSetup.α_proton * (I_total - I_crust_total)
-    i_R_drip
-    I_sf = 4 * π * EvoMSetup.ρr .* EvoMSetup.r .^ 3 .* dr;
-    I_sf = sum(I_sf(i_Rcci:iR_drip)) * h_crust
+    R_drip = r[argmin(abs.(EoMSetup.rho-ρ_drip))]
+    I_sf = integral_moi_sph(EoMSetup.rho, EoMSetup.r; r_range = (EoMSetup.Rcci, R_drip))
+    I_crust_total =
+        integral_moi_sph(EoMSetup.rho, EoMSetup.r; r_range = (EoMSetup.Rcci, EoMSetup.R))
+    I_core = 0.95 * (I_total - I_crust_total)
+    I_crust = I_total - I_core - I_sf
+    h_eff =
+        0.5 * I_sf /
+        integral_moi_cyl(EoMSetup.rho, EoMSetup.r; r_rnage = (EoMSetup.Rcci, EoMSetup.R))
     if value_check
         println("")
     end
@@ -50,13 +52,12 @@ function ThreeCompGCA2018!(EoMSetup::ParameterType; value_check::Bool = false)
         # dΩ_sf/dt
         Ω_sf = Ω[2:(Nr+1)];
         #Bsf = Param.B_sf * Param.ρr ./ maximum(Param.ρr); # Scaling B_sf with the local density profile
-        dΩ_sfdr = [diff(Ω_sf) ./ diff(Param.r); 0.0];
+        dΩ_sfdr = [diff(Ω_sf); 0.0] ./ dr;
         dΩ[2:(Nr+1)] = Param.B_sf .* (2 * Ω_sf + EoMSetup.r .* dΩ_sfdr) .* (Ω[1] .- Ω_sf);
         dΩ_sf_net =
-            4 .* π .* sum(
-                ((Param.r .^ 2) .* EoMSetup.ρr .* dΩ[2:(Nr+1)]) .*
-                [diff(EoMSetup.r); diff(EoMSetup.r)[end]],
-            );
+            2 *
+            h_eff *
+            integral_moi_cyl(EoMSetup.rho, EoMSetup.r; r_range = (EoMSetp.Rcci, R_drip))
         # dΩ_core/dt
         dΩ[Nr+2] = 2 * Param.B_core * Ω[2] * (Ω[1] - Ω[2]);
         # dΩ_crust/dt
@@ -70,7 +71,7 @@ end
 function integral_moi_sph(
     ρ::AbstractArray,
     r::AbstractArray;
-    r_range::Union{Tuple{Float64,Float64},Nothing} = nothing,
+    r_range::Union{Tuple{Float64,Float64},AbstractArray,Nothing} = nothing,
 )
     if length(ρ) == length(r)
         r_low = isnothing(r_range) ? r[1] : r_range[1]
@@ -97,7 +98,7 @@ end
 function integral_moi_cyl(
     ρ::AbstractArray,
     r::AbstractArray;
-    r_range::Union{Tuple{Float64,Float64},Nothing} = nothing,
+    r_range::Union{Tuple{Float64,Float64},AbstractArray,Nothing} = nothing,
 )
     if length(ρ) == length(r)
         r_low = isnothing(r_range) ? r[1] : r_range[1]
