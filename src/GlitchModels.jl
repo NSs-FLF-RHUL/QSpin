@@ -23,9 +23,8 @@ end
 
 function ThreeCompGCA2018!(
     EoMSetup::ParameterType;
-    value_check::Bool = false,
     ρ_drip::Float64 = 4e11,
-    Units::String = "CGS",
+    value_check::Bool = false,
 )
     dr = [diff(r); diff(r)[end]]
     Nr = length(EoMSetup.r);
@@ -57,7 +56,11 @@ function ThreeCompGCA2018!(
         dΩ_sf_net =
             2 *
             h_eff *
-            integral_moi_cyl(EoMSetup.rho, EoMSetup.r; r_range = (EoMSetp.Rcci, R_drip))
+            integral_moi_cyl(
+                EoMSetup.rho .* dΩ[2:(Nr+1)],
+                EoMSetup.r;
+                r_range = (EoMSetp.Rcci, R_drip),
+            )
         # dΩ_core/dt
         dΩ[Nr+2] = 2 * Param.B_core * Ω[2] * (Ω[1] - Ω[2]);
         # dΩ_crust/dt
