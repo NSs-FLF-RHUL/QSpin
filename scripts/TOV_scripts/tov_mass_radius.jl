@@ -23,6 +23,7 @@ EoS_Param_Stiff = (
     γ_core = 3.0,
     ρ_b = 3e14,
 )
+
 EoS_Param_Soft = (
     K_crust = (3*π^2)^(2/3) * (hbar*1e7)^2 / (5*(neutron_mass*1e3)^(8/3)),
     γ_crust = 5.0/3.0,
@@ -43,6 +44,7 @@ EoS_Soft, EoS_inv_Soft = EoS_two_component_polytrope(EoS_Param_Soft);
 
 # Getting two primary examples for the same input parameters but different EoSs.
 ## Setup initial condition; central pressure and enclosed mass
+
 u0_Stiff = [EoS_Stiff(Sim_Input.ρ0); 0.0];
 u0_Soft = [EoS_Soft(Sim_Input.ρ0); 0.0];
 
@@ -55,7 +57,6 @@ u0_Soft = [EoS_Soft(Sim_Input.ρ0); 0.0];
     Sim_Input.r_beg;
     alg = OrdinaryDiffEqLowOrderRK.DP5(),
     reltol = 1e-15,
-    abstol = [1.0, 1e15],
 )
 # Solving the TOV equation for the soft EoS with the same input parameters.
 @time TOV_sol_Soft = TOV_Solve(

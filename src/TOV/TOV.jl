@@ -152,7 +152,7 @@ function TOV_Solve(
 )
 
     is_si = input_units in ("SI", "SI_dim")
-    r_max = isnothing(r_max) ? (is_si ? 20e3 : 20e5) : r_max
+    r_max = isnothing(r_max) ? (is_si ? 25e3 : 25e5) : r_max
 
     if u0[1] <= 0
         r = [r_beg]
