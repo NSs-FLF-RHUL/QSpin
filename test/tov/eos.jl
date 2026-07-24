@@ -1,6 +1,6 @@
 @testset "EoS" begin
     # This begin a set of tests for the EoS
-    @testset "EoS_LInterp-Method 1" begin
+    @testset "EoS_LInterp - Matrix input" begin
         # Making density array (unsorted to check the sorting part of the scripts)
         rho = [1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 9.1, 8.8, 10.0]
         # Quadratic EoS
