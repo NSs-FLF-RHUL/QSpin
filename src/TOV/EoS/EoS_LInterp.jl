@@ -28,9 +28,9 @@ function EoS_LInterp(
     elseif typeof(file_input) == AbstractArray || typeof(file_input) == Matrix{Float64}
         df = file_input
     else
-        error(
-            "Unsupported input -- file_input must be an N-by-2 array or a string for the directory of an .dat input.",
-        )
+        throw(ArgumentError(
+            "`file_input` must be an N×2 array or a string for the directory of a .dat input.",
+        ))
     end
     i_rho, i_press = EoS_indices
     rho = sort(df[:, i_rho])
