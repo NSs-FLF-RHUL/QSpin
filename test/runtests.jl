@@ -15,6 +15,7 @@ include("hamiltonian.jl")
 
 @testset "TOV" begin
     include("tov/tov_eq.jl")
+    include("tov/glitch_model.jl")
 end
 
 @testset "MFriction" begin
