@@ -1,5 +1,5 @@
 """
-Defines a number of fundamental physical constants for use in simulations.
+Defines a number of fundamental physical constants for use in simulations in the SU units.
 """
 module PhysicalConstants
 using PhysicalConstants.CODATA2022:
