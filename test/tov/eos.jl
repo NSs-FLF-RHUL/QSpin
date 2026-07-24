@@ -14,7 +14,7 @@
         @test isapprox(EoS_inv(press), rho)
     end
     @testset "EoS_LInterp-Method 2" begin
-        file_name = "src/TOV/EoS/WNewton/eos_SkXi450_28.0_40.00_-100.00_glitch.dat"
+        file_name = "test/tov/test.dat"
         EoS, EoS_inv = QSpin.TOV.EquationOfState.EoS_LInterp(file_name, (1, 2));
         rho = [1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 9.1, 8.8, 10.0]*1e12
         press = EoS(rho)
