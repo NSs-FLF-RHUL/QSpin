@@ -6,9 +6,9 @@
         # Quadratic EoS
         press = rho .^ 2
         # Making an input array for the test
-        file_input = [rho press]
+        input = [rho press]
         # Creating equation of state and its inverse function
-        EoS, EoS_inv = QSpin.TOV.EquationOfState.EoS_LInterp(file_input, (1, 2))
+        EoS, EoS_inv = QSpin.TOV.EquationOfState.EoS_LInterp(input, (1, 2))
         # Comparing
         @test isapprox(EoS(rho), press)
         @test isapprox(EoS_inv(press), rho)
