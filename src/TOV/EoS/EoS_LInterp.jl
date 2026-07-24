@@ -18,7 +18,7 @@ Loading the data from a pre-computed equation of state (EoS) and using quadratic
 - `EoS_rho_from_P`: The interpolation for the inverse equation of state.
 """
 function EoS_LInterp(
-    input::Union{DataFrame,AbstractMatrix{Float64},AbstractArray{Float64}},
+    input::Union{DataFrame,AbstractMatrix{Float64}},
     EoS_indices::Tuple{Int64,Int64},
 )
     i_rho, i_press = EoS_indices
