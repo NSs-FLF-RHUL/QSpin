@@ -26,20 +26,26 @@ function ThreeCompGCA2018!(
     ρ_drip::Float64 = 4e11,
     value_check::Bool = false,
 )
-    dr = [diff(r); diff(r)[end]]
+    dr = [diff(EoMSetup.r); diff(EoMSetup.r)[end]]
     Nr = length(EoMSetup.r);
-    I_total = 0.35 * EoMSetup.M_NS * EOMSetup.R_NS^2
-    R_drip = r[argmin(abs.(EoMSetup.rho-ρ_drip))]
-    I_sf = integral_moi_sph(EoMSetup.rho, EoMSetup.r; r_range = (EoMSetup.Rcci, R_drip))
-    I_crust_total =
-        integral_moi_sph(EoMSetup.rho, EoMSetup.r; r_range = (EoMSetup.Rcci, EoMSetup.R))
+    I_total = 0.35 * EoMSetup.M_NS * EoMSetup.R_NS^2
+    R_drip = EoMSetup.r[argmin(abs.(EoMSetup.rho .- ρ_drip))]
+    I_sf = integral_moi_sph(EoMSetup.rho, EoMSetup.r; r_range = (EoMSetup.R_cci, R_drip))
+    I_crust_total = integral_moi_sph(
+        EoMSetup.rho,
+        EoMSetup.r;
+        r_range = (EoMSetup.R_cci, EoMSetup.R_NS),
+    )
     I_core = 0.95 * (I_total - I_crust_total)
     I_crust = I_total - I_core - I_sf
     h_eff =
-        0.5 * I_sf /
-        integral_moi_cyl(EoMSetup.rho, EoMSetup.r; r_rnage = (EoMSetup.Rcci, EoMSetup.R))
+        0.5 * I_sf / integral_moi_cyl(
+            EoMSetup.rho,
+            EoMSetup.r;
+            r_range = (EoMSetup.R_cci, EoMSetup.R_NS),
+        )
     if value_check
-        println("")
+        println("What do I want to printing?")
     end
 
     function ThreeComMod_inner!(
@@ -52,7 +58,7 @@ function ThreeCompGCA2018!(
         Ω_sf = Ω[2:(Nr+1)];
         #Bsf = Param.B_sf * Param.ρr ./ maximum(Param.ρr); # Scaling B_sf with the local density profile
         dΩ_sfdr = [diff(Ω_sf); 0.0] ./ dr;
-        dΩ[2:(Nr+1)] = Param.B_sf .* (2 * Ω_sf + EoMSetup.r .* dΩ_sfdr) .* (Ω[1] .- Ω_sf);
+        dΩ[2:(Nr+1)] = EoMSetup.B_sf .* (2 * Ω_sf + EoMSetup.r .* dΩ_sfdr) .* (Ω[1] .- Ω_sf);
         dΩ_sf_net =
             2 *
             h_eff *
@@ -62,11 +68,11 @@ function ThreeCompGCA2018!(
                 r_range = (EoMSetp.Rcci, R_drip),
             )
         # dΩ_core/dt
-        dΩ[Nr+2] = 2 * Param.B_core * Ω[2] * (Ω[1] - Ω[2]);
+        dΩ[Nr+2] = 2 * EoMSetup.B_core * Ω[2] * (Ω[1] - Ω[2]);
         # dΩ_crust/dt
         dΩ[1] =
-            -Param.N_ext/Param.I_crust - Param.I_core/Param.I_crust * dΩ[2] -
-            dΩ_sf_net/Param.I_crust;
+            -EoMSetup.N_ext/EoMSetup.I_crust - EoMSetup.I_core/EoMSetup.I_crust * dΩ[2] -
+            dΩ_sf_net/EoMSetup.I_crust;
     end
     return ThreeComMod_inner!
 end

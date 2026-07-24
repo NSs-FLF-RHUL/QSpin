@@ -3,9 +3,13 @@ using QSpin.Parameters: ParameterType
 using QSpin.TOV: TOV_Solve
 using QSpin.TOV.EquationOfState: EoS_GCA2018
 using QSpin.PhysicalConstants
+using QSpin.GlitchModels: ThreeCompGCA2018!
+using QSpin.PhysicalConstants: neutron_mass
 using Plots, LaTeXStrings
+import QSpin.OdeSolve: evolve
 import CommonSolve as DE
 using OrdinaryDiffEqLowOrderRK
+import OrdinaryDiffEqTsit5: Tsit5
 
 file_path = "scripts/mutual_friction_input.json"
 output = QSpin.MFriction.VNparaGraber2018(file_path)
@@ -14,7 +18,6 @@ output = QSpin.MFriction.VNparaGraber2018(file_path)
 Sim_Input = (
     # gltich model parameters
     B_core = 5e-4, # Mutual Friction Parameter
-    B_sf = yBeb[1:(end-1)], # Mutual Friction Parameter
     Ω_crust = 70.34, # Initial angular velocity of the crust in rad/s
     Ω_sf = 70.34 + 6.3e-3, # Initial angular velocity of the superfluid in rad/s
     Ω_core = 70.34, # Initial angular velocity of the core in rad/s
@@ -27,18 +30,18 @@ Sim_Input = (
     t_start = 0.0, # Start time for the glitch model simulation in seconds
     t_end = 120.0, # End time for the glitch model simulation in seconds
     # TOV solver parameters
-    ρ0 = 1e15, # Initial central density in g/cm^3 (GCS units)
+    ρ0 = 0.08*1e39*neutron_mass*1e3, # Initial central density in g/cm^3 (GCS units)
     dr = 0.005*1e5, # Radial step in centimeters
     Dr = 0.01*1e5, # Radial interval for recording values in centimeters
-    r_beg = 0.0, # Starting radius in centimeters
-    M_core = 1.4 * mass_sun, # Mass of the neutron star core in grams
+    r_beg = 1e6, # Starting radius in centimeters
+    M_core = 1.4e3 * mass_sun, # Mass of the neutron star core in grams
     tov_units = "CGS",
 );
 
 # Fucntion Setup for inverse EoS and TOV equation for the solver
 EoS, EoS_inv = EoS_GCA2018();
 # Setting up initial condition accordingly to the EoS for a given central density ρ0.
-u0 = [EoS_Stiff(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
+u0 = [EoS(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure and enclosed mass
 
 # Sovling the TOV equation using the RK4 method with QSpin OdeSolve module for Stiff and Soft EoSs.
 @time TOV_sol = TOV_Solve(
@@ -50,7 +53,7 @@ u0 = [EoS_Stiff(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure and
     reltol = 1e-13,
     abstol = 1e-13,
     input_units = Sim_Input.tov_units, # optional
-    rho_ref = 2.8e14, # optional - nuclear saturation density in g/cm^3
+    # rho_ref = 2.8e14, # optional - nuclear saturation density in g/cm^3
 )
 
 Bs = QSpin.MFriction.MutualFrictionCoefficients(
@@ -80,14 +83,26 @@ Glitch_Raiser_Input = (
     r = TOV_sol.r[1:(end-1)],
 );
 
-Ω_ini = [Sim_Input.Ω_crust; Sim_Input.Ω_sf; Sim_Input.Ω_core]
+Ω_ini = [Sim_Input.Ω_crust; Sim_Input.Ω_sf*ones(size(TOV_sol.r)); Sim_Input.Ω_core]
+
+EoMSetup = (
+    rho = TOV_sol.ρr,
+    r = TOV_sol.r,
+    M_NS = TOV_sol.M+1.4*mass_sun,
+    R_NS = TOV_sol.R,
+    R_cci = 1e6, # 10 km in cm
+    B_core = 5e-4, # Mutual Friction Parameter
+    B_sf = yBeb, # Mutual Friction Parameter
+)
+
+EoM! = ThreeCompGCA2018!(EoMSetup)
 sol = evolve(
-    ThreeCompSol,
+    EoM!,
     Ω_ini,
     0.0,
     Sim_Input.t_end,
     Sim_Input;
-    alg = DE.Tsit5(),
+    alg = Tsit5(),
     saveat = Sim_Input.Dt,
 )
 
