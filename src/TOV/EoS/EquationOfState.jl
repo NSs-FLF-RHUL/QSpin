@@ -6,5 +6,5 @@ module EquationOfState
 include("GraberCummingAnderson2018.jl")
 include("NegeleVautherin1973.jl")
 include("TwoComponentPolytrope.jl")
-
+include("EoS_LInterp.jl")
 end
