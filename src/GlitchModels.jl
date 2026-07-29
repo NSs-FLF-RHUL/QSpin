@@ -38,14 +38,26 @@ function ThreeCompGCA2018!(
     )
     I_core = 0.95 * (I_total - I_crust_total)
     I_crust = I_total - I_core - I_sf
-    h_eff =
-        0.5 * I_sf / integral_moi_cyl(
-            EoMSetup.rho,
-            EoMSetup.r;
-            r_range = (EoMSetup.R_cci, EoMSetup.R_NS),
-        )
+    I_crust_unit = integral_moi_cyl(
+        EoMSetup.rho,
+        EoMSetup.r;
+        r_range = (EoMSetup.R_cci, EoMSetup.R_NS),
+    )
+    h_eff = 0.5 * I_crust_total / I_crust_unit
     if value_check
-        println(R_drip)
+        println(" * I_total = ", I_total)
+        println(" * I_core = ", I_core)
+        println(" * I_sf = ", I_sf, ", I_sf/_total = ", I_sf/I_total)
+        println(
+            " * I_crust_total = ",
+            I_crust_total,
+            ", I_crust_total/I_total = ",
+            I_crust_total/I_total,
+        )
+        println(" * I_crust_unit = ", I_crust_unit)
+        println(" * h_eff = ", h_eff)
+        println(" * I_crust = ", I_crust)
+        println(" * R_drip = ", R_drip)
     end
 
     function ThreeComMod_inner!(

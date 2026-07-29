@@ -35,6 +35,7 @@ Sim_Input = (
     dr = 0.0005*1e5, # Radial step in centimeters
     Dr = 0.001*1e5, # Radial interval for recording values in centimeters
     r_beg = 1e6, # Starting radius in centimeters
+    R_cci = 1e6, # the crust-core transition radius
     M_core = 1.4e3 * mass_sun, # Mass of the neutron star core in grams
     tov_units = "CGS",
 );
@@ -72,22 +73,6 @@ Bs = QSpin.MFriction.MutualFrictionCoefficients(
 yBeb = Bs.Beb
 yBj = Bs.Bj
 
-
-Glitch_Raiser_Input = (
-    B_core = Sim_Input.B_core, # Mutual Friction Parameter
-    B_sf = yBj[1:(end-1)], # Mutual Friction Parameter
-    Ω_crust = 70.34, # Initial angular velocity of the crust in rad/s
-    Ω_sf = 70.34 + 6.3e-3, # Initial angular velocity of the superfluid in rad/s
-    Ω_core = 70.34, # Initial angular velocity of the core in rad/s
-    N_ext = 0.0,
-    dt = 1e-6, # Time step for the ODE solver in seconds
-    Dt = 0.1, # Time interval for recording values in the glitch model in seconds
-    t_start = 0.0, # Start time for the glitch model simulation in seconds
-    t_end = 120.0, # End time for the glitch model simulation in seconds
-    ρr = TOV_sol.ρr[1:(end)],
-    r = TOV_sol.r[1:(end)],
-);
-
 Ω_ini = [Sim_Input.Ω_crust; Sim_Input.Ω_sf*ones(size(TOV_sol.r)); Sim_Input.Ω_core]
 
 EoMSetup = (
@@ -95,10 +80,10 @@ EoMSetup = (
     r = TOV_sol.r,
     M_NS = TOV_sol.M,
     R_NS = TOV_sol.R,
-    R_cci = 1e6, # 10 km in cm
+    R_cci = Sim_Input.R_cci, # 10 km in cm
     B_core = Sim_Input.B_core, # Mutual Friction Parameter
     B_sf = yBj, # Mutual Friction Parameter
-    N_ext = 0.0,
+    N_ext = Sim_Input.N_ext,
 )
 
 EoM! = ThreeCompGCA2018!(EoMSetup; value_check = true)
@@ -114,9 +99,9 @@ sol = evolve(
     abstol = 1e-14,
 )
 
+# Data Reading and Plotting
 Ωt = Array(sol);
 t = sol.t;
-
 
 Ω_sf = Ωt[2:length(TOV_sol.r), :]
 t_plots = [0.12, 0.6, 3.0, 30]
@@ -126,7 +111,7 @@ plt1 = plot(
     Ω_sf[:, idt],
     xflip = true,
     label = string(L"t=", 0, L"\;\textrm{s}"),
-    linewidth = 2,
+    linewidth = 3,
 )
 for pp = 1:length(t_plots)
     idt = Int64(t_plots[pp]/Sim_Input.Dt)+1
@@ -134,15 +119,24 @@ for pp = 1:length(t_plots)
         plt1,
         TOV_sol.r[1:(end-1)]*1e-5,
         Ω_sf[:, idt],
-        linewidth = 2,
+        line = (2, :dash),
         label = string(L"t=", t_plots[pp], L"\;\textrm{s}"),
         xflip = true,
         xlabel = L"r (\mathrm{km})",
-        ylabel = L"Ω_\mathrm{sf}\;(\textrm{rad/})",
+        ylabel = L"Ω_\mathrm{sf}\;(\textrm{rad/s})",
     )
 end
-plot!(plt1, xflip = true, xlims = (10.0, 10.43), legend = :outertopright, framestyle = :box)
-
+plot!(
+    plt1,
+    TOV_sol.r[1:(end-1)]*1e-5,
+    Ω_sf[:, end],
+    linewidth = 3,
+    label = string(L"t=", t[end], L"\;\textrm{s}"),
+    xflip = true,
+    xlims = (10.0, 10.45),
+    legend = :outertopright,
+    framestyle = :box,
+)
 
 plt2 = plot(t, Ωt[1, :], label = L"\Omega_\mathrm{crust}", linewidth = 2)
 plot!(
@@ -166,7 +160,6 @@ plt3 = heatmap(
     title = L"Ω_\mathrm{sf}(t,r)\;(\textrm{rad/s})",
     framestyle = :box,
 )
-
 
 l = @layout [a b; c]
 plot(plt2, plt3, plt1, layout = l)
