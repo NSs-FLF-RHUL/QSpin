@@ -45,7 +45,7 @@ function ThreeCompGCA2018!(
             r_range = (EoMSetup.R_cci, EoMSetup.R_NS),
         )
     if value_check
-        println("What do I want to printing?")
+        println(R_drip)
     end
 
     function ThreeComMod_inner!(
@@ -65,14 +65,12 @@ function ThreeCompGCA2018!(
             integral_moi_cyl(
                 EoMSetup.rho .* dΩ[2:(Nr+1)],
                 EoMSetup.r;
-                r_range = (EoMSetp.Rcci, R_drip),
+                r_range = (EoMSetup.R_cci, R_drip),
             )
         # dΩ_core/dt
-        dΩ[Nr+2] = 2 * EoMSetup.B_core * Ω[2] * (Ω[1] - Ω[2]);
+        dΩ[Nr+2] = 2 * EoMSetup.B_core * Ω[end] * (Ω[1] - Ω[end]);
         # dΩ_crust/dt
-        dΩ[1] =
-            -EoMSetup.N_ext/EoMSetup.I_crust - EoMSetup.I_core/EoMSetup.I_crust * dΩ[2] -
-            dΩ_sf_net/EoMSetup.I_crust;
+        dΩ[1] = -EoMSetup.N_ext/I_crust - I_core/I_crust * dΩ[end] - dΩ_sf_net/I_crust;
     end
     return ThreeComMod_inner!
 end

@@ -18,7 +18,7 @@ The function returns a tuple containing the input parameters and the calculated 
 # Returns
 - 'output': A tuple containing the input parameters (in their original units from the input JSON file) and the calculated mutual friction parameters in array forms. The qubic spline interpolations for the mutual friction coefficients, B_EW and B_J, as functions of the superfluid density (in kg * m^-3, while the coverted input is in kg fm^-3) are included.
 """
-function VNparaGraber2018(file_path)
+function VNparaGraber2018(file_path; units = "CGS")
 
     MeV = electron_volt * 1e6 # convert to kg * fm^2 / s^2
     δ = 1e-2 # dimensionless coefficient for the pinning energy reduction due to vortex tension
@@ -145,8 +145,8 @@ function MutualFrictionCoefficients(
     log_ρs = log10.(Param.ρs .* density_to_si)
     Beb = exp10.(Beb_itp.(log_ρs))
     Bj = exp10.(Bj_itp.(log_ρs))
-    Beb[Param.ρs .< ρ_drip] .= 0.0
-    Bj[Param.ρs .< ρ_drip] .= 0.0
+    Beb[Param.ρs .< ρ_drip] .= exp10.(Beb_itp(log10.(1e9)))
+    Bj[Param.ρs .< ρ_drip] .= exp10.(Bj_itp(log10.(1e9)))
     Beb[Param.r .< Rcci] .= Param.Beb_core
     Bj[Param.r .< Rcci] .= Param.Bj_core
 
