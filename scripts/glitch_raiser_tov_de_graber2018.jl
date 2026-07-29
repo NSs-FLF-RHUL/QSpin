@@ -127,7 +127,7 @@ plt1 = plot(
     TOV_sol.r[1:(end-1)]*1e-5,
     Ω_sf[:, idt],
     xflip = true,
-    label = string(L"t=0"),
+    label = string(L"t=", 0, L"\;\textrm{s}"),
     linewidth = 2,
 )
 for pp = 1:length(t_plots)
