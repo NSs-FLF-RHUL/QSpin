@@ -147,8 +147,8 @@ function MutualFrictionCoefficients(
     Bj = exp10.(Bj_itp.(log_ρs))
     Beb[Param.ρs .< ρ_drip] .= exp10.(Beb_itp(log10.(1e9)))
     Bj[Param.ρs .< ρ_drip] .= exp10.(Bj_itp(log10.(1e9)))
-    Beb[Param.r .< Rcci] .= Param.Beb_core
-    Bj[Param.r .< Rcci] .= Param.Bj_core
+    #Beb[Param.r .< Rcci] .= Param.Beb_core
+    #Bj[Param.r .< Rcci] .= Param.Bj_core
 
     Bs = (; Beb, Bj)
     return Bs

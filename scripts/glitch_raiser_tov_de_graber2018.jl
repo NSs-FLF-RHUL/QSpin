@@ -18,7 +18,7 @@ output = QSpin.MFriction.VNparaGraber2018(file_path)
 # Input Parameters for the TOV solver
 Sim_Input = (
     # gltich model parameters
-    B_core = 5e-5, # Mutual Friction Parameter
+    B_core = 1e-2, # Mutual Friction Parameter
     Ω_crust = 70.34, # Initial angular velocity of the crust in rad/s
     Ω_sf = 70.34 + 6.3e-3, # Initial angular velocity of the superfluid in rad/s
     Ω_core = 70.34, # Initial angular velocity of the core in rad/s
@@ -112,28 +112,59 @@ sol = evolve(
     Sim_Input;
     alg = Tsit5(),
     saveat = Sim_Input.Dt,
-    reltol = 1e-13,
-    abstol = 1e-13,
+    reltol = 1e-14,
+    abstol = 1e-14,
 )
 
 Ωt = Array(sol);
 t = sol.t;
 
-Ω_sf = Ωt[2:length(TOV_sol.r), :]
-t_plots = [0.0, 0.12, 0.6, 3.0, 30]
-for pp = 1:length(t_plots)
 
-    if pp == 1
-        plot(
-            TOV_sol.r[1:(end-1)]*1e-5,
-            Ω_sf[:, Int64(t_plots[pp]/Sim_Input.Dt)+1],
-            xflip = true,
-        )
-    else
-        plot!(
-            TOV_sol.r[1:(end-1)]*1e-5,
-            Ω_sf[:, Int64(t_plots[pp]/Sim_Input.Dt)+1],
-            xflip = true,
-        )
-    end
+Ω_sf = Ωt[2:length(TOV_sol.r), :]
+t_plots = [0.12, 0.6, 3.0, 30]
+idt = 1
+plt1 = plot(
+    TOV_sol.r[1:(end-1)]*1e-5,
+    Ω_sf[:, idt],
+    xflip = true,
+    label = string(L"t=0"),
+    linewidth = 2,
+)
+for pp = 1:length(t_plots)
+    idt = Int64(t_plots[pp]/Sim_Input.Dt)+1
+    plot!(
+        plt1,
+        TOV_sol.r[1:(end-1)]*1e-5,
+        Ω_sf[:, idt],
+        linewidth = 2,
+        label = string(L"t=", t_plots[pp], L"\;\textrm{s}"),
+        xflip = true,
+        xlabel = L"r (\mathrm{km})",
+        ylabel = L"Ω_\mathrm{sf}\;(\textrm{s}^{-1})",
+    )
 end
+plot!(plt1, xflip = true, xlims = (10.0, 10.43))
+
+
+plt2 = plot(t, Ωt[1, :], label = L"\Omega_\mathrm{crust}", linewidth = 2)
+plot!(
+    plt2,
+    t,
+    Ωt[end, :],
+    linewidth = 2,
+    label = L"\Omega_\mathrm{core}",
+    xlabel = L"t\;(\mathrm{s})",
+    ylabel = L"Ω\;(\textrm{s}^{-1})",
+)
+
+plt3 = heatmap(
+    t,
+    TOV_sol.r[1:(end-1)]*1e-5,
+    Ω_sf,
+    xlabel = L"t\quad(\textrm{s})",
+    ylabel = L"r\quad(\textrm{km})",
+)
+
+
+l = @layout [a b; c]
+plot(plt2, plt1, plt3, layout = l)
