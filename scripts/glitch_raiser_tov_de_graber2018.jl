@@ -75,7 +75,7 @@ yBj = Bs.Bj
 
 Glitch_Raiser_Input = (
     B_core = Sim_Input.B_core, # Mutual Friction Parameter
-    B_sf = yBeb[1:(end-1)], # Mutual Friction Parameter
+    B_sf = yBj[1:(end-1)], # Mutual Friction Parameter
     Ω_crust = 70.34, # Initial angular velocity of the crust in rad/s
     Ω_sf = 70.34 + 6.3e-3, # Initial angular velocity of the superfluid in rad/s
     Ω_core = 70.34, # Initial angular velocity of the core in rad/s
@@ -95,11 +95,11 @@ Glitch_Raiser_Input = (
 EoMSetup = (
     rho = TOV_sol.ρr,
     r = TOV_sol.r,
-    M_NS = TOV_sol.M+1.4*mass_sun,
+    M_NS = TOV_sol.M,
     R_NS = TOV_sol.R,
     R_cci = 1e6, # 10 km in cm
     B_core = 5e-4, # Mutual Friction Parameter
-    B_sf = yBeb, # Mutual Friction Parameter
+    B_sf = yBj, # Mutual Friction Parameter
     N_ext = 0.0,
 )
 
@@ -143,7 +143,7 @@ for pp = 1:length(t_plots)
         ylabel = L"Ω_\mathrm{sf}\;(\textrm{s}^{-1})",
     )
 end
-plot!(plt1, xflip = true, xlims = (10.0, 10.43))
+plot!(plt1, xflip = true, xlims = (10.0, 10.43), legend = :outertopright)
 
 
 plt2 = plot(t, Ωt[1, :], label = L"\Omega_\mathrm{crust}", linewidth = 2)
