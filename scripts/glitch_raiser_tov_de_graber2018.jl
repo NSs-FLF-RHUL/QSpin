@@ -163,6 +163,7 @@ plt3 = heatmap(
     Ω_sf,
     xlabel = L"t\quad(\textrm{s})",
     ylabel = L"r\quad(\textrm{km})",
+    title = L"Ω_\mathrm{sf}(t,r)",
 )
 
 
