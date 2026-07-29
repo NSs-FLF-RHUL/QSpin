@@ -18,7 +18,7 @@ output = QSpin.MFriction.VNparaGraber2018(file_path)
 # Input Parameters for the TOV solver
 Sim_Input = (
     # gltich model parameters
-    B_core = 1e-2, # Mutual Friction Parameter
+    B_core = 5e-5, # Mutual Friction Parameter
     Ω_crust = 70.34, # Initial angular velocity of the crust in rad/s
     Ω_sf = 70.34 + 6.3e-3, # Initial angular velocity of the superfluid in rad/s
     Ω_core = 70.34, # Initial angular velocity of the core in rad/s
@@ -61,8 +61,8 @@ Bs = QSpin.MFriction.MutualFrictionCoefficients(
     (
         ρs = TOV_sol.ρr*1e3,
         r = TOV_sol.r*1e-2,
-        Beb_core = 1e-4,
-        Bj_core = 1e-4,
+        Beb_core = Sim_Input.B_core,
+        Bj_core = Sim_Input.B_core,
         input_units = "CGS",
     ),
     output.Beb_itp,
@@ -79,15 +79,13 @@ Glitch_Raiser_Input = (
     Ω_crust = 70.34, # Initial angular velocity of the crust in rad/s
     Ω_sf = 70.34 + 6.3e-3, # Initial angular velocity of the superfluid in rad/s
     Ω_core = 70.34, # Initial angular velocity of the core in rad/s
-    I_crust = 4.5e30, # Moment of inertia of the crust in kg m^2
-    I_core = 0.8 * 4.5e30, # Moment of inertia of the core in kg m
     N_ext = 0.0,
     dt = 1e-6, # Time step for the ODE solver in seconds
     Dt = 0.1, # Time interval for recording values in the glitch model in seconds
     t_start = 0.0, # Start time for the glitch model simulation in seconds
     t_end = 120.0, # End time for the glitch model simulation in seconds
-    ρr = TOV_sol.ρr[1:(end-1)],
-    r = TOV_sol.r[1:(end-1)],
+    ρr = TOV_sol.ρr[1:(end)],
+    r = TOV_sol.r[1:(end)],
 );
 
 Ω_ini = [Sim_Input.Ω_crust; Sim_Input.Ω_sf*ones(size(TOV_sol.r)); Sim_Input.Ω_core]
@@ -98,7 +96,7 @@ EoMSetup = (
     M_NS = TOV_sol.M,
     R_NS = TOV_sol.R,
     R_cci = 1e6, # 10 km in cm
-    B_core = 5e-4, # Mutual Friction Parameter
+    B_core = Sim_Input.B_core, # Mutual Friction Parameter
     B_sf = yBj, # Mutual Friction Parameter
     N_ext = 0.0,
 )
@@ -140,10 +138,10 @@ for pp = 1:length(t_plots)
         label = string(L"t=", t_plots[pp], L"\;\textrm{s}"),
         xflip = true,
         xlabel = L"r (\mathrm{km})",
-        ylabel = L"Ω_\mathrm{sf}\;(\textrm{s}^{-1})",
+        ylabel = L"Ω_\mathrm{sf}\;(\textrm{rad/})",
     )
 end
-plot!(plt1, xflip = true, xlims = (10.0, 10.43), legend = :outertopright)
+plot!(plt1, xflip = true, xlims = (10.0, 10.43), legend = :outertopright, framestyle = :box)
 
 
 plt2 = plot(t, Ωt[1, :], label = L"\Omega_\mathrm{crust}", linewidth = 2)
@@ -154,7 +152,9 @@ plot!(
     linewidth = 2,
     label = L"\Omega_\mathrm{core}",
     xlabel = L"t\;(\mathrm{s})",
-    ylabel = L"Ω\;(\textrm{s}^{-1})",
+    ylabel = L"Ω\;(\textrm{rad/s})",
+    title = string(L"\mathcal{B}_\mathrm{core}=", Sim_Input.B_core),
+    framestyle = :box,
 )
 
 plt3 = heatmap(
@@ -163,9 +163,10 @@ plt3 = heatmap(
     Ω_sf,
     xlabel = L"t\quad(\textrm{s})",
     ylabel = L"r\quad(\textrm{km})",
-    title = L"Ω_\mathrm{sf}(t,r)",
+    title = L"Ω_\mathrm{sf}(t,r)\;(\textrm{rad/s})",
+    framestyle = :box,
 )
 
 
 l = @layout [a b; c]
-plot(plt2, plt1, plt3, layout = l)
+plot(plt2, plt3, plt1, layout = l)
