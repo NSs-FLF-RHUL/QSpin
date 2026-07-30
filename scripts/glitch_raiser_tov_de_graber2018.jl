@@ -22,8 +22,6 @@ Sim_Input = (
     Ω_crust = 70.34, # Initial angular velocity of the crust in rad/s
     Ω_sf = 70.34 + 6.3e-3, # Initial angular velocity of the superfluid in rad/s
     Ω_core = 70.34, # Initial angular velocity of the core in rad/s
-    I_crust = 4.5e30, # Moment of inertia of the crust in kg m^2
-    I_core = 0.8 * 4.5e30, # Moment of inertia of the core in kg m
     N_ext = 0.0,
     # Glitch model solver setup
     dt = 1e-6, # Time step for the ODE solver in seconds
@@ -87,7 +85,7 @@ EoMSetup = (
 )
 
 EoM! = ThreeCompGCA2018!(EoMSetup; value_check = true)
-sol = evolve(
+@time sol = evolve(
     EoM!,
     Ω_ini,
     0.0,
