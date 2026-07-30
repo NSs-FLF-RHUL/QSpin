@@ -12,6 +12,8 @@ This function reads in JSON data for a given file path and calculates the mutual
 According to Graber et al. 2018, the mutual friction coefficients are calculated based on the superfluid density and other physical parameters.
 The function returns a tuple containing the input parameters and the calculated mutual friction parameters, including the qubic spline interpolations for the mutual friction coefficients as functions of the superfluid density (in kg * m^-3, while the coverted input is in kg fm^-3) in log-log space.
 
+Here things are converted in the SI units so as MutualFrictionCoefficients
+
 # Arguments
 - `file_path`: A string representing the path to the JSON file containing the input parameters for the mutual friction calculations. The JSON file should contain an array of objects, each representing a different region of the neutron star crust with specific parameters such as baryon number density (nb), proton number (Z), neutron number (N), proton fraction (x), superfluid density (ns), lattice spacing (a), nuclear radius (RN), and pinning energy parameters (Es, E1, DE, xi, Ep).
 
