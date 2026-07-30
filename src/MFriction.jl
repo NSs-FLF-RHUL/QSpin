@@ -128,16 +128,16 @@ function MutualFrictionCoefficients(
     Bj_itp;
     input_units::String = "SI",
     ρ_drip = nothing,
-    Rcci = nothing,
+    R_cci = nothing,
 )
     if input_units == "SI"
         density_to_si = 1.0
         ρ_drip = something(ρ_drip, 4e14)
-        Rcci = something(Rcci, 1e4)
+        R_cci = something(R_cci, 1e4)
     elseif input_units == "CGS"
         density_to_si = 1e3
         ρ_drip = something(ρ_drip, 4e11)
-        Rcci = something(Rcci, 1e6)
+        R_cci = something(R_cci, 1e6)
     else
         throw(ArgumentError("input_units must be \"SI\" or \"CGS\""))
     end
