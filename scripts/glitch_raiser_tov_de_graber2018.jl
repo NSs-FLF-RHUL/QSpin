@@ -18,7 +18,7 @@ output = QSpin.MFriction.VNparaGraber2018(file_path)
 # Input Parameters for the TOV solver
 Sim_Input = (
     # gltich model parameters
-    B_core = 5e-5, # Mutual Friction Parameter
+    B_core = 1e-2, # Mutual Friction Parameter
     Ω_crust = 70.34, # Initial angular velocity of the crust in rad/s
     Ω_sf = 70.34 + 6.3e-3, # Initial angular velocity of the superfluid in rad/s
     Ω_core = 70.34, # Initial angular velocity of the core in rad/s
@@ -77,7 +77,7 @@ EoMSetup = (
     R_NS = TOV_sol.R,
     R_cci = Sim_Input.R_cci, # 10 km in cm
     B_core = Sim_Input.B_core, # Mutual Friction Parameter
-    B_sf = Bs[1], # Mutual Friction Parameter
+    B_sf = Bs[3], # Mutual Friction Parameter
     N_ext = Sim_Input.N_ext,
 )
 
@@ -99,7 +99,8 @@ EoM! = ThreeCompGCA2018!(EoMSetup; value_check = true)
 t = sol.t;
 
 Ω_sf = Ωt[2:length(TOV_sol.r), :]
-t_plots = [0.12, 0.6, 3.0, 30]
+#t_plots = [0.12, 0.6, 3.0, 30]
+t_plots = [0.3, 1.8, 6.0];
 idt = 1
 plt1 = plot(
     TOV_sol.r[1:(end-1)]*1e-5,

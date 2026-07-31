@@ -161,9 +161,9 @@ function MutualFrictionCoefficients(
     BA = B_itp[1](Param.ρs .* density_to_si)
     Beb = B_itp[2](Param.ρs .* density_to_si) #exp10.(Beb_itp.(log_ρs))
     Bj = B_itp[3](Param.ρs .* density_to_si) #exp10.(Bj_itp.(log_ρs))
-    BA[Param.ρs .< ρ_drip] .= B_itp[1](ρ_drip)
-    Beb[Param.ρs .< ρ_drip] .= B_itp[2](ρ_drip)
-    Bj[Param.ρs .< ρ_drip] .= B_itp[3](ρ_drip)
+    BA[Param.ρs .< ρ_drip] .= B_itp[1](0.2*ρ_drip)
+    Beb[Param.ρs .< ρ_drip] .= B_itp[2](0.2*ρ_drip)
+    Bj[Param.ρs .< ρ_drip] .= B_itp[3](0.2*ρ_drip)
     #Beb[Param.r .< Rcci] .= Param.Beb_core
     #Bj[Param.r .< Rcci] .= Param.Bj_core
 
