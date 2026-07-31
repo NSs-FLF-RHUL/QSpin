@@ -64,12 +64,9 @@ Bs = QSpin.MFriction.MutualFrictionCoefficients(
         Bj_core = Sim_Input.B_core,
         input_units = Sim_Input.tov_units,
     ),
-    output.Beb_itp,
-    output.Bj_itp;
+    output.B_itp;
     R_cci = Sim_Input.R_cci,
 )
-yBeb = Bs.Beb
-yBj = Bs.Bj
 
 Ω_ini = [Sim_Input.Ω_crust; Sim_Input.Ω_sf*ones(size(TOV_sol.r)); Sim_Input.Ω_core]
 
@@ -80,7 +77,7 @@ EoMSetup = (
     R_NS = TOV_sol.R,
     R_cci = Sim_Input.R_cci, # 10 km in cm
     B_core = Sim_Input.B_core, # Mutual Friction Parameter
-    B_sf = yBj, # Mutual Friction Parameter
+    B_sf = Bs[1], # Mutual Friction Parameter
     N_ext = Sim_Input.N_ext,
 )
 

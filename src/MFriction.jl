@@ -122,7 +122,7 @@ Evaluate the mutual friction coefficent for an input DataInterpolation that fits
 - `dlog10_fit_inner: Recovering the results back to linear space.
 """
 function dlog10_fit(B_log10_intepr)
-    function dlog10_fit_inner(ρ::AbstractArray{Float64})
+    function dlog10_fit_inner(ρ::Union{Float64,AbstractArray{Float64}})
         exp10.(B_log10_intepr(log10.(ρ)))
     end
     return dlog10_fit_inner
@@ -159,10 +159,11 @@ function MutualFrictionCoefficients(
     end
 
     BA = B_itp[1](Param.ρs .* density_to_si)
-    Beb = B_itp[2](Para.ρs .* density_to_si) #exp10.(Beb_itp.(log_ρs))
-    Bj = B_itp[3](ρs .* density_to_si) #exp10.(Bj_itp.(log_ρs))
-    BA[Param.ρs .< ρ_drip] .= 0.0
-    Bj[Param.ρs .< ρ_drip] .= 0.0
+    Beb = B_itp[2](Param.ρs .* density_to_si) #exp10.(Beb_itp.(log_ρs))
+    Bj = B_itp[3](Param.ρs .* density_to_si) #exp10.(Bj_itp.(log_ρs))
+    BA[Param.ρs .< ρ_drip] .= B_itp[1](ρ_drip)
+    Beb[Param.ρs .< ρ_drip] .= B_itp[2](ρ_drip)
+    Bj[Param.ρs .< ρ_drip] .= B_itp[3](ρ_drip)
     #Beb[Param.r .< Rcci] .= Param.Beb_core
     #Bj[Param.r .< Rcci] .= Param.Bj_core
 
