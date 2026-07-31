@@ -20,7 +20,7 @@ Here things are converted in the SI units so as MutualFrictionCoefficients
 # Returns
 - 'output': A tuple containing the input parameters (in their original units from the input JSON file) and the calculated mutual friction parameters in array forms. The qubic spline interpolations for the mutual friction coefficients, B_EW and B_J, as functions of the superfluid density (in kg * m^-3, while the coverted input is in kg fm^-3) are included.
 """
-function VNparaGraber2018(file_path)
+function VNparaGraber2018(file_path; units = "CGS")
 
     MeV = electron_volt * 1e6 # convert to kg * fm^2 / s^2
     δ = 1e-2 # dimensionless coefficient for the pinning energy reduction due to vortex tension
@@ -122,7 +122,7 @@ Evaluate the mutual friction coefficent for an input DataInterpolation that fits
 - `dlog10_fit_inner: Recovering the results back to linear space.
 """
 function dlog10_fit(B_log10_intepr)
-    function dlog10_fit_inner(ρ::AbstractArray{Float64})
+    function dlog10_fit_inner(ρ::Union{Float64,AbstractArray{Float64}})
         exp10.(B_log10_intepr(log10.(ρ)))
     end
     return dlog10_fit_inner
@@ -144,25 +144,26 @@ function MutualFrictionCoefficients(
     B_itp;
     input_units::String = "SI",
     ρ_drip = nothing,
-    Rcci = nothing,
+    R_cci = nothing,
 )
     if input_units == "SI"
         density_to_si = 1.0
         ρ_drip = something(ρ_drip, 4e14)
-        Rcci = something(Rcci, 1e4)
+        R_cci = something(R_cci, 1e4)
     elseif input_units == "CGS"
         density_to_si = 1e3
         ρ_drip = something(ρ_drip, 4e11)
-        Rcci = something(Rcci, 1e6)
+        R_cci = something(R_cci, 1e6)
     else
         throw(ArgumentError("input_units must be \"SI\" or \"CGS\""))
     end
 
     BA = B_itp[1](Param.ρs .* density_to_si)
-    Beb = B_itp[2](Para.ρs .* density_to_si) #exp10.(Beb_itp.(log_ρs))
-    Bj = B_itp[3](ρs .* density_to_si) #exp10.(Bj_itp.(log_ρs))
-    BA[Param.ρs .< ρ_drip] .= 0.0
-    Bj[Param.ρs .< ρ_drip] .= 0.0
+    Beb = B_itp[2](Param.ρs .* density_to_si) #exp10.(Beb_itp.(log_ρs))
+    Bj = B_itp[3](Param.ρs .* density_to_si) #exp10.(Bj_itp.(log_ρs))
+    BA[Param.ρs .< ρ_drip] .= B_itp[1](ρ_drip)
+    Beb[Param.ρs .< ρ_drip] .= B_itp[2](ρ_drip)
+    Bj[Param.ρs .< ρ_drip] .= B_itp[3](ρ_drip)
     #Beb[Param.r .< Rcci] .= Param.Beb_core
     #Bj[Param.r .< Rcci] .= Param.Bj_core
 
