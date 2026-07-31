@@ -65,6 +65,10 @@ function VNparaGraber2018(file_path)
     Rws = (3*(N .+ Z) ./ (4 * π * nb * 1e-4)) .^ (1/3)
     n1 = 3/4/π ./ Rws .^ 3*1e6
     ρs = ns * 1e-4 * neutron_mass * 1e45# in kg * m^-3
+    EpA = sqrt.(Es .^ 2 + Es .* E1 + 0.5 * E1 .^ 2)
+    RA =
+        2.8 * sqrt.(0.5 * neutron_mass/hbar) * sqrt.(abs.(EpA * MeV) * δ ./ ρs / κ) .* Rn ./
+        a .^ (1.5) * 10^(7.5)
     Reb =
         2.8 * sqrt.(0.5 * neutron_mass/hbar) * sqrt.(abs.(Ep * MeV) * δ ./ ρs / κ) .* Rn ./
         a .^ (1.5) * 10^(7.5)
@@ -72,45 +76,56 @@ function VNparaGraber2018(file_path)
         0.5 / sqrt(π) *
         (0.5 * neutron_mass/hbar)^(1/2) *
         (abs.(Ep * MeV) * δ ./ ρs / κ) .^ (1/2) .* a .^ 0.5 ./ ξ * 10^(7.5)
+    BA = RA ./ (1 .+ RA .^ 2)
     Beb = Reb ./ (1 .+ Reb .^ 2)
     Bj = Rj ./ (1 .+ Rj .^ 2)
-    Beb_itp = QuadraticSpline(
-        log10.(Beb),
-        log10.(ρs);
-        extrapolation_right = ExtrapolationType.Extension,
-        extrapolation_left = ExtrapolationType.Constant,
+    BA_itp = dlog10_fit(
+        QuadraticSpline(
+            log10.(BA),
+            log10.(ρs);
+            extrapolation_right = ExtrapolationType.Extension,
+            extrapolation_left = ExtrapolationType.Constant,
+        ),
     )
-    Bj_itp = QuadraticSpline(
-        log10.(Bj),
-        log10.(ρs);
-        extrapolation_right = ExtrapolationType.Extension,
-        extrapolation_left = ExtrapolationType.Constant,
+    Beb_itp = dlog10_fit(
+        QuadraticSpline(
+            log10.(Beb),
+            log10.(ρs);
+            extrapolation_right = ExtrapolationType.Extension,
+            extrapolation_left = ExtrapolationType.Constant,
+        ),
     )
-    output = (;
-        nb,
-        Z,
-        N,
-        x,
-        ns,
-        n1,
-        a,
-        Rn,
-        Es,
-        E1,
-        ΔE,
-        ξ,
-        Ep,
-        A,
-        Rws,
-        ρs,
-        Reb,
-        Rj,
-        Beb,
-        Bj,
-        Beb_itp,
-        Bj_itp,
+    Bj_itp = dlog10_fit(
+        QuadraticSpline(
+            log10.(Bj),
+            log10.(ρs);
+            extrapolation_right = ExtrapolationType.Extension,
+            extrapolation_left = ExtrapolationType.Constant,
+        ),
     )
+    R = (RA, Reb, Rj)
+    B = (BA, Beb, Bj)
+    B_itp = (BA_itp, Beb_itp, Bj_itp)
+    output = (; nb, Z, N, x, ns, n1, a, Rn, Es, E1, ΔE, ξ, Ep, A, Rws, ρs, R, B, B_itp)
     return output
+end
+"""
+$(TYPEDSIGNATURES)
+# Arguments
+
+Evaluate the mutual friction coefficent for an input DataInterpolation that fits the data points in double-log10 space.
+
+# Arguments
+- `B_log10_intepr`: The interpolation function for B in log-log space
+
+# Returns
+- `dlog10_fit_inner: Recovering the results back to linear space.
+"""
+function dlog10_fit(B_log10_intepr)
+    function dlog10_fit_inner(ρ::AbstractArray{Float64})
+        exp10.(B_log10_intepr(log10.(ρ)))
+    end
+    return dlog10_fit_inner
 end
 
 """
