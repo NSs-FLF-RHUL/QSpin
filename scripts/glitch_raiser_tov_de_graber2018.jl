@@ -38,6 +38,8 @@ u0 = [EoS_Stiff(Sim_Input.ρ0); 0.0]; # Initial conditions: central pressure and
     reltol = 1e-8,
     abstol = [1.0, 1e15],
 )
+
+
 Bs = QSpin.MFriction.MutualFrictionCoefficients(
     (ρs = TOV_sol.ρr, r = TOV_sol.r, Beb_core = 1e-4, Bj_core = 1e-4),
     output.Beb_itp,
@@ -49,9 +51,10 @@ yBeb = Bs.Beb
 yBj = Bs.Bj
 
 
+
 Glitch_Raiser_Input = (
     B_core = 5e-4, # Mutual Friction Parameter
-    B_sf = yBeb[1:(end-1)], # Mutual Friction Parameter
+    B_sf = B[1:(end-1)], # Mutual Friction Parameter
     Ω_crust = 70.34, # Initial angular velocity of the crust in rad/s
     Ω_sf = 70.34 + 6.3e-3, # Initial angular velocity of the superfluid in rad/s
     Ω_core = 70.34, # Initial angular velocity of the core in rad/s
