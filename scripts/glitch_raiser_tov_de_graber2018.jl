@@ -47,14 +47,10 @@ Bs = QSpin.MFriction.MutualFrictionCoefficients(
     input_units = "CGS",
     Rcci = 1.2e6,
 )
-yBeb = Bs.Beb
-yBj = Bs.Bj
-
-
 
 Glitch_Raiser_Input = (
     B_core = 5e-4, # Mutual Friction Parameter
-    B_sf = B[1:(end-1)], # Mutual Friction Parameter
+    B_sf = Bs.BA[1:(end-1)], # Mutual Friction Parameter
     Ω_crust = 70.34, # Initial angular velocity of the crust in rad/s
     Ω_sf = 70.34 + 6.3e-3, # Initial angular velocity of the superfluid in rad/s
     Ω_core = 70.34, # Initial angular velocity of the core in rad/s

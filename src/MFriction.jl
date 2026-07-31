@@ -158,9 +158,9 @@ function MutualFrictionCoefficients(
         throw(ArgumentError("input_units must be \"SI\" or \"CGS\""))
     end
 
-    BA = BA_itp(Param.ρs .* density_to_si)
-    Beb = Beb_itp(Para.ρs .* density_to_si) #exp10.(Beb_itp.(log_ρs))
-    Bj = Bj_itp(ρs .* density_to_si) #exp10.(Bj_itp.(log_ρs))
+    BA = B_itp[1](Param.ρs .* density_to_si)
+    Beb = B_itp[2](Para.ρs .* density_to_si) #exp10.(Beb_itp.(log_ρs))
+    Bj = B_itp[3](ρs .* density_to_si) #exp10.(Bj_itp.(log_ρs))
     BA[Param.ρs .< ρ_drip] .= 0.0
     Bj[Param.ρs .< ρ_drip] .= 0.0
     #Beb[Param.r .< Rcci] .= Param.Beb_core
