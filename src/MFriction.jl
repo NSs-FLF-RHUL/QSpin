@@ -141,8 +141,7 @@ The defaults represent `ρ_drip = 4e14 kg/m³` and `Rcci = 10 km`.
 """
 function MutualFrictionCoefficients(
     Param,
-    Beb_itp,
-    Bj_itp;
+    B_itp;
     input_units::String = "SI",
     ρ_drip = nothing,
     R_cci = nothing,
@@ -159,15 +158,15 @@ function MutualFrictionCoefficients(
         throw(ArgumentError("input_units must be \"SI\" or \"CGS\""))
     end
 
-    log_ρs = log10.(Param.ρs .* density_to_si)
-    Beb = exp10.(Beb_itp.(log_ρs))
-    Bj = exp10.(Bj_itp.(log_ρs))
-    Beb[Param.ρs .< ρ_drip] .= exp10.(Beb_itp(log10.(1e9)))
-    Bj[Param.ρs .< ρ_drip] .= exp10.(Bj_itp(log10.(1e9)))
+    BA = B_itp[1](Param.ρs .* density_to_si)
+    Beb = B_itp[2](Para.ρs .* density_to_si) #exp10.(Beb_itp.(log_ρs))
+    Bj = B_itp[3](ρs .* density_to_si) #exp10.(Bj_itp.(log_ρs))
+    BA[Param.ρs .< ρ_drip] .= 0.0
+    Bj[Param.ρs .< ρ_drip] .= 0.0
     #Beb[Param.r .< Rcci] .= Param.Beb_core
     #Bj[Param.r .< Rcci] .= Param.Bj_core
 
-    Bs = (; Beb, Bj)
+    Bs = (BA, Beb, Bj)
     return Bs
 
 end
