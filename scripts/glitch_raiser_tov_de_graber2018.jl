@@ -9,9 +9,10 @@ using QSpin.PhysicalConstants: neutron_mass
 using Plots, LaTeXStrings
 import QSpin.OdeSolve: evolve
 import CommonSolve as DE
-using OrdinaryDiffEqLowOrderRK
+#using OrdinaryDiffEqLowOrderRK
 import OrdinaryDiffEqTsit5: Tsit5
 
+save_path = "local_tests"
 gm_input_path = "scripts/glitch_riser_input.json"
 mf_input_path = "scripts/mutual_friction_input.json"
 mf_output = QSpin.MFriction.VNparaGraber2018(mf_input_path)
@@ -78,6 +79,20 @@ EoM! = ThreeCompGCA2018!(EoMSetup; value_check = true)
 # Data Reading and Plotting
 Ωt = Array(sol);
 t = sol.t;
+
+# Data JSON output
+jwrap_out = Dict(
+    "t" => t,
+    "r" => TOV_sol.r,
+    "ρ" => TOV_sol.ρr,
+    "Ω_crust" => Ωt[1, :],
+    "Ω_sf" => Ωt[2:(length(TOV_sol.r)+1), :],
+    "Ω_core" => Ωt[end, :],
+)
+jsave_name = string(save_path, "/", "glitch_riser_output.json")
+open(jsave_name, "w") do io
+    JSON.print(io, jwrap_out, 4)
+end
 
 Ω_sf = Ωt[2:length(TOV_sol.r), :]
 #t_plots = [0.12, 0.6, 3.0, 30]
