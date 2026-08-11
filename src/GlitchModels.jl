@@ -1,5 +1,6 @@
 module GlitchModels
 using DocStringExtensions: TYPEDSIGNATURES
+using JSON: JSON
 using ..Parameters: ParameterType
 
 """
@@ -135,4 +136,27 @@ function integral_moi_cyl(
     end
 end
 
+
+function gm_input(file_path::String)
+    data = JSON.parsefile(file_path)
+    @info "JSON data successfully loaded from $(file_path)"
+    return Sim_Input = (
+        B_core = data[1]["B_core"],
+        Ω_crust = data[1]["Ω_crust"],
+        Ω_sf = data[1]["Ω_sf"],
+        Ω_core = data[1]["Ω_core"],
+        N_ext = data[1]["N_ext"],
+        dt = data[2]["dt"],
+        Dt = data[2]["Dt"],
+        t_start = data[2]["t_start"],
+        t_end = data[2]["t_end"],
+        ρ0 = data[3]["ρ0"],
+        dr = data[3]["dr"],
+        Dr = data[3]["Dr"],
+        r_beg = data[3]["r_beg"],
+        R_cci = data[3]["R_cci"],
+        M_core = data[3]["M_core"],
+        tov_units = data[3]["tov_units"],
+    )
+end
 end

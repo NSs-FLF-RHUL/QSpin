@@ -3,7 +3,7 @@ using QSpin.Parameters: ParameterType
 using QSpin.TOV: TOV_Solve
 using QSpin.TOV.EquationOfState: EoS_GCA2018
 using QSpin.PhysicalConstants
-using QSpin.GlitchModels: ThreeCompGCA2018!
+using QSpin.GlitchModels: ThreeCompGCA2018!, gm_input
 using QSpin.MFriction: MutualFrictionCoefficients
 using QSpin.PhysicalConstants: neutron_mass
 using Plots, LaTeXStrings
@@ -12,31 +12,12 @@ import CommonSolve as DE
 using OrdinaryDiffEqLowOrderRK
 import OrdinaryDiffEqTsit5: Tsit5
 
-file_path = "scripts/mutual_friction_input.json"
-output = QSpin.MFriction.VNparaGraber2018(file_path)
+gm_input_path = "scripts/glitch_riser_input.json"
+mf_input_path = "scripts/mutual_friction_input.json"
+mf_output = QSpin.MFriction.VNparaGraber2018(mf_input_path)
 
 # Input Parameters for the TOV solver
-Sim_Input = (
-    # gltich model parameters
-    B_core = 1e-2, # Mutual Friction Parameter
-    Ω_crust = 70.34, # Initial angular velocity of the crust in rad/s
-    Ω_sf = 70.34 + 6.3e-3, # Initial angular velocity of the superfluid in rad/s
-    Ω_core = 70.34, # Initial angular velocity of the core in rad/s
-    N_ext = 0.0,
-    # Glitch model solver setup
-    dt = 1e-6, # Time step for the ODE solver in seconds
-    Dt = 0.02, # Time interval for recording values in the glitch model in seconds
-    t_start = 0.0, # Start time for the glitch model simulation in seconds
-    t_end = 120.0, # End time for the glitch model simulation in seconds
-    # TOV solver parameters
-    ρ0 = 0.08*1e39*neutron_mass*1e3, # Initial central density in g/cm^3 (GCS units)
-    dr = 0.0005*1e5, # Radial step in centimeters
-    Dr = 0.001*1e5, # Radial interval for recording values in centimeters
-    r_beg = 1e6, # Starting radius in centimeters
-    R_cci = 1e6, # the crust-core transition radius
-    M_core = 1.4e3 * mass_sun, # Mass of the neutron star core in grams
-    tov_units = "CGS",
-);
+Sim_Input = gm_input(gm_input_path)
 
 # Fucntion Setup for inverse EoS and TOV equation for the solver
 EoS, EoS_inv = EoS_GCA2018();
@@ -64,7 +45,7 @@ Bs = QSpin.MFriction.MutualFrictionCoefficients(
         Bj_core = Sim_Input.B_core,
         input_units = Sim_Input.tov_units,
     ),
-    output.B_itp;
+    mf_output.B_itp;
     R_cci = Sim_Input.R_cci,
 )
 
@@ -115,7 +96,7 @@ for pp = 1:length(t_plots)
         plt1,
         TOV_sol.r[1:(end-1)]*1e-5,
         Ω_sf[:, idt],
-        line = (2, :dash),
+        line = (2, :dot),
         label = string(L"t=", t_plots[pp], L"\;\textrm{s}"),
         xflip = true,
         xlabel = L"r (\mathrm{km})",
