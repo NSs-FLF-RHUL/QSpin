@@ -164,9 +164,6 @@ function MutualFrictionCoefficients(
     BA[Param.ρs .< ρ_drip] .= B_itp[1](0.2*ρ_drip)
     Beb[Param.ρs .< ρ_drip] .= B_itp[2](0.2*ρ_drip)
     Bj[Param.ρs .< ρ_drip] .= B_itp[3](0.2*ρ_drip)
-    #Beb[Param.r .< Rcci] .= Param.Beb_core
-    #Bj[Param.r .< Rcci] .= Param.Bj_core
-
     Bs = (BA, Beb, Bj)
     return Bs
 

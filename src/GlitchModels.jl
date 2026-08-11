@@ -142,6 +142,7 @@ function gm_input(file_path::String)
     @info "JSON data successfully loaded from $(file_path)"
     return Sim_Input = (
         B_core = data[1]["B_core"],
+        B_sf_type = data[1]["B_sf_type"],
         Ω_crust = data[1]["Ω_crust"],
         Ω_sf = data[1]["Ω_sf"],
         Ω_core = data[1]["Ω_core"],

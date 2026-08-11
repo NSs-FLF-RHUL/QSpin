@@ -9,7 +9,7 @@ using QSpin.PhysicalConstants: neutron_mass
 using Plots, LaTeXStrings
 import QSpin.OdeSolve: evolve
 import CommonSolve as DE
-#using OrdinaryDiffEqLowOrderRK
+using JSON
 import OrdinaryDiffEqTsit5: Tsit5
 
 save_path = "local_tests"
@@ -50,8 +50,10 @@ Bs = QSpin.MFriction.MutualFrictionCoefficients(
     R_cci = Sim_Input.R_cci,
 )
 
+# Setting initial conditions for the glitch model
 Ω_ini = [Sim_Input.Ω_crust; Sim_Input.Ω_sf*ones(size(TOV_sol.r)); Sim_Input.Ω_core]
 
+# Wrap the parameters in the glith model
 EoMSetup = (
     rho = TOV_sol.ρr,
     r = TOV_sol.r,
@@ -59,7 +61,7 @@ EoMSetup = (
     R_NS = TOV_sol.R,
     R_cci = Sim_Input.R_cci, # 10 km in cm
     B_core = Sim_Input.B_core, # Mutual Friction Parameter
-    B_sf = Bs[3], # Mutual Friction Parameter
+    B_sf = Bs[Sim_Input.B_sf_type], # Mutual Friction Parameter
     N_ext = Sim_Input.N_ext,
 )
 
@@ -94,6 +96,7 @@ open(jsave_name, "w") do io
     JSON.print(io, jwrap_out, 4)
 end
 
+# Data Plotting
 Ω_sf = Ωt[2:length(TOV_sol.r), :]
 #t_plots = [0.12, 0.6, 3.0, 30]
 t_plots = [0.3, 1.8, 6.0];
