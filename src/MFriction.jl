@@ -140,7 +140,7 @@ density/radius profile. `Param.ρs`, `Param.r`, and any explicit `ρ_drip` or
 `Rcci` values use `input_units`. Supported systems are `"SI"` (kg/m³, m) and
 `"CGS"` (g/cm³, cm). The interpolation tables are always evaluated in kg/m³.
 
-The defaults represent `ρ_drip = 4e14 kg/m³` and `Rcci = 10 km`.
+The defaults represent `ρ_b = ρ_drip = 4e14 kg/m³` and `Rcci = 10 km`.
 """
 function MutualFrictionCoefficients(
     Param,
