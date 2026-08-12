@@ -33,6 +33,7 @@ function VNparaGraber2018(file_path; units = "CGS")
     N = zeros(length(data)-1)
     x = zeros(length(data)-1)
     ns = zeros(length(data)-1)
+    ρ = zeros(length(data)-1) # in g * cm^-3
     a = zeros(length(data)-1)
     Rn = zeros(length(data)-1)
     Es = zeros(length(data)-1)
@@ -49,6 +50,7 @@ function VNparaGraber2018(file_path; units = "CGS")
         N[dd-1] = row["N"]
         x[dd-1] = row["x"]
         ns[dd-1] = row["ns"]
+        ρ[dd-1] = row["ρ"]
         a[dd-1] = row["a"]
         Rn[dd-1] = row["RN"]
         Es[dd-1] = row["Es"]
@@ -65,6 +67,7 @@ function VNparaGraber2018(file_path; units = "CGS")
     Rws = (3*(N .+ Z) ./ (4 * π * nb * 1e-4)) .^ (1/3)
     n1 = 3/4/π ./ Rws .^ 3*1e6
     ρs = ns * 1e-4 * neutron_mass * 1e45# in kg * m^-3
+    ρ = ρ * 1e12 * 1e3 # in kg * m^-3
     EpA = sqrt.(Es .^ 2 + Es .* E1 + 0.5 * E1 .^ 2)
     RA =
         2.8 * sqrt.(0.5 * neutron_mass/hbar) * sqrt.(abs.(EpA * MeV) * δ ./ ρs / κ) .* Rn ./
@@ -106,7 +109,7 @@ function VNparaGraber2018(file_path; units = "CGS")
     R = (RA, Reb, Rj)
     B = (BA, Beb, Bj)
     B_itp = (BA_itp, Beb_itp, Bj_itp)
-    output = (; nb, Z, N, x, ns, n1, a, Rn, Es, E1, ΔE, ξ, Ep, A, Rws, ρs, R, B, B_itp)
+    output = (; nb, Z, N, x, ns, ρ, n1, a, Rn, Es, E1, ΔE, ξ, Ep, A, Rws, ρs, R, B, B_itp)
     return output
 end
 """
@@ -143,16 +146,16 @@ function MutualFrictionCoefficients(
     Param,
     B_itp;
     input_units::String = "SI",
-    ρ_drip = nothing,
+    ρ_b = nothing,
     R_cci = nothing,
 )
     if input_units == "SI"
         density_to_si = 1.0
-        ρ_drip = something(ρ_drip, 4e14)
+        ρ_b = something(ρ_b, 4e14)
         R_cci = something(R_cci, 1e4)
     elseif input_units == "CGS"
         density_to_si = 1e3
-        ρ_drip = something(ρ_drip, 4e11)
+        ρ_b = something(ρ_b, 4e11)
         R_cci = something(R_cci, 1e6)
     else
         throw(ArgumentError("input_units must be \"SI\" or \"CGS\""))
@@ -161,9 +164,9 @@ function MutualFrictionCoefficients(
     BA = B_itp[1](Param.ρs .* density_to_si)
     Beb = B_itp[2](Param.ρs .* density_to_si) #exp10.(Beb_itp.(log_ρs))
     Bj = B_itp[3](Param.ρs .* density_to_si) #exp10.(Bj_itp.(log_ρs))
-    BA[Param.ρs .< ρ_drip] .= B_itp[1](0.2*ρ_drip)
-    Beb[Param.ρs .< ρ_drip] .= B_itp[2](0.2*ρ_drip)
-    Bj[Param.ρs .< ρ_drip] .= B_itp[3](0.2*ρ_drip)
+    BA[Param.ρs .< ρ_b] .= B_itp[1](ρ_b)
+    Beb[Param.ρs .< ρ_b] .= B_itp[2](ρ_b)
+    Bj[Param.ρs .< ρ_b] .= B_itp[3](ρ_b)
     Bs = (BA, Beb, Bj)
     return Bs
 

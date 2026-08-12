@@ -48,6 +48,7 @@ Bs = QSpin.MFriction.MutualFrictionCoefficients(
     ),
     mf_output.B_itp;
     R_cci = Sim_Input.R_cci,
+    ρ_b = mf_output.ρ[1],
 )
 
 # Setting initial conditions for the glitch model
