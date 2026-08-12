@@ -21,7 +21,7 @@ plot(
     yaxis = (:log10, [1e-5, 1e-1]),
     label = L"\textrm{(A)} \; \mathcal{B}_\mathrm{EB} \; \textrm{with }\; E_{s,1} ",
 )
-scatter!(output.ρs*1e-3, output.B[1], label = false, mc = :red, lc = :red)
+scatter!(output.ρ*1e-3, output.B[1], label = false, mc = :red, lc = :red)
 plot!(
     ρc_scan*1e-3,
     yBew,
@@ -32,7 +32,7 @@ plot!(
     yaxis = (:log10, [1e-5, 1e-1]),
     label = L"\textrm{(B)} \; \mathcal{B}_\mathrm{EB} \; \textrm{with }\; E_{p} ",
 )
-scatter!(output.ρs*1e-3, output.B[2], label = false, mc = :blue, lc = :blue)
+scatter!(output.ρ*1e-3, output.B[2], label = false, mc = :blue, lc = :blue)
 plot!(
     ρc_scan*1e-3,
     yBj,
@@ -44,7 +44,7 @@ plot!(
     label = L"\textrm{(C)} \; \mathcal{B}_\mathrm{J} \; \textrm{with }\; E_{p} ",
 )
 scatter!(
-    output.ρs*1e-3,
+    output.ρ*1e-3,
     output.B[3],
     label = false,
     mc = RGB(0.94, 0.65, 0.25),

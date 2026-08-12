@@ -85,7 +85,7 @@ function VNparaGraber2018(file_path; units = "CGS")
     BA_itp = dlog10_fit(
         QuadraticSpline(
             log10.(BA),
-            log10.(ρs);
+            log10.(ρ);
             extrapolation_right = ExtrapolationType.Extension,
             extrapolation_left = ExtrapolationType.Constant,
         ),
@@ -93,7 +93,7 @@ function VNparaGraber2018(file_path; units = "CGS")
     Beb_itp = dlog10_fit(
         QuadraticSpline(
             log10.(Beb),
-            log10.(ρs);
+            log10.(ρ);
             extrapolation_right = ExtrapolationType.Extension,
             extrapolation_left = ExtrapolationType.Constant,
         ),
@@ -101,7 +101,7 @@ function VNparaGraber2018(file_path; units = "CGS")
     Bj_itp = dlog10_fit(
         QuadraticSpline(
             log10.(Bj),
-            log10.(ρs);
+            log10.(ρ);
             extrapolation_right = ExtrapolationType.Extension,
             extrapolation_left = ExtrapolationType.Constant,
         ),
