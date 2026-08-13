@@ -78,7 +78,7 @@ M_SoftScan = zeros(length(ρc_scan));
 R_SoftScan = zeros(length(ρc_scan));
 
 for cc = 1:length(ρc_scan)
-    ρc = ρc_scan[Int.(cc)];
+    ρc = ρc_scan[Int.(cc)]
     println(cc, ": Solving TOV eq. for central density ρc = ", ρc/1e14, "1e14 g/cm^3")
     TOV_sol = TOV_Solve(
         EoS_inv_Stiff,
