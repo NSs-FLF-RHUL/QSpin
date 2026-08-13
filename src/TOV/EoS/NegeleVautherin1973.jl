@@ -21,7 +21,7 @@ function EoS_NegeleVautherin1973(
         P = if ρ <= 0
             0.0
         else
-            nb = ρ / (neutron_mass * 1e3); # in the unit of g/cm^3
+            nb = ρ / (neutron_mass * 1e3) # in the unit of g/cm^3
             nb_scaled = nb * 1e-35
             x = log.(nb_scaled)
             energy_sum = zeros(size(nb))

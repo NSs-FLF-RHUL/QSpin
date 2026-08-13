@@ -26,16 +26,16 @@ function EoS_GCA2018(
     ρ_drip = 4.e11, # in g/cm^3
     Ye = 0.4,
 )
-    ħ = hbar * 1e3 * 1e4; # convert to g * cm^2 / s
-    mn = neutron_mass * 1e3; # convert to g
-    c = speed_of_light_vacuum * 1e2; # convert to cm / s
+    ħ = hbar * 1e3 * 1e4 # convert to g * cm^2 / s
+    mn = neutron_mass * 1e3 # convert to g
+    c = speed_of_light_vacuum * 1e2 # convert to cm / s
     function EoS_P_from_rho(ρ)
         P = if ρ < 0
             0.0
         elseif ρ < ρ_drip
             ħ * c * (3 * π^2 * Ye * ρ / mn)^(4/3) / 12 / π^2
         else
-            nb = ρ / (neutron_mass * 1e3); # in the unit of g/cm^3
+            nb = ρ / (neutron_mass * 1e3) # in the unit of g/cm^3
             nb_scaled = nb * 1e-35
             x = log.(nb_scaled)
             energy_sum = zeros(size(nb))
