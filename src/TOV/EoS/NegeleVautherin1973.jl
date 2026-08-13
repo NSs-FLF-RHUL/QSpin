@@ -18,7 +18,7 @@ function EoS_NegeleVautherin1973(
     ],
 )
     function EoS_P_from_rho(ρ)
-        P = if ρ < 0
+        P = if ρ <= 0
             0.0
         else
             nb = ρ / (neutron_mass * 1e3); # in the unit of g/cm^3
@@ -37,7 +37,7 @@ function EoS_NegeleVautherin1973(
     end
 
     function EoS_rho_from_P(P)
-        ρ = if P < 0
+        ρ = if P <= 0
             0.0
         else
             rho_guess = if log(P) > 76.0

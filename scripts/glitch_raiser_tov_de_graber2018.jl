@@ -42,7 +42,8 @@ Bs = QSpin.MFriction.MutualFrictionCoefficients(
     (ρs = TOV_sol.ρr, r = TOV_sol.r, Beb_core = 1e-4, Bj_core = 1e-4),
     output.Beb_itp,
     output.Bj_itp;
-    Rcci = 1.2e4,
+    input_units = "CGS",
+    Rcci = 1.2e6,
 )
 yBeb = Bs.Beb
 yBj = Bs.Bj
