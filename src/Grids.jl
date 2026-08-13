@@ -62,17 +62,17 @@ function CartGrid(CompDomain::AbstractVector{<:Real}, GridSize::AbstractVector{<
     elseif dims == 2
         X = repeat(x', Ny, 1)
         Y = repeat(y, 1, Nx)
-        Kx = repeat(kx', Ny, 1);
-        Ky = repeat(ky, 1, Nx);
+        Kx = repeat(kx', Ny, 1)
+        Ky = repeat(ky, 1, Nx)
         println("    Creating 2D Cartesian grid with ", Nx, " x ", Ny, " points.")
         return x, y, X, Y, kx, ky, Kx, Ky, facx, facy
     elseif dims == 3
-        X = repeat(x', GridSize[2], 1, GridSize[3]);
-        Y = repeat(y, 1, GridSize[1], GridSize[3]);
-        Z = permutedims(repeat(z, 1, GridSize[1], GridSize[2]), [3 2 1]);
+        X = repeat(x', GridSize[2], 1, GridSize[3])
+        Y = repeat(y, 1, GridSize[1], GridSize[3])
+        Z = permutedims(repeat(z, 1, GridSize[1], GridSize[2]), [3 2 1])
         Kx = repeat((kx)', GridSize[2], 1, GridSize[3])
         Ky = repeat((ky), 1, GridSize[1], GridSize[3])
-        Kz = permutedims(repeat((kz), 1, GridSize[1], GridSize[2]), [3 2 1]); # Meshgrid K_sq
+        Kz = permutedims(repeat((kz), 1, GridSize[1], GridSize[2]), [3 2 1]) # Meshgrid K_sq
         println(
             "    Creating 3D Cartesian grid with ",
             Nx,
@@ -208,8 +208,8 @@ function Pfft_Lzψ(
         parameters::ParameterType,
         time::Float64,
     )
-        ψk = PFFT * ψ;
-        return -(Y .* (PiFFT * (Kx .* ψk)) - X .* (PiFFT * (Ky .* ψk)));
+        ψk = PFFT * ψ
+        return -(Y .* (PiFFT * (Kx .* ψk)) - X .* (PiFFT * (Ky .* ψk)))
     end
     return angular_momentum_z
 end

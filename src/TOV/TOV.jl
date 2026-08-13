@@ -90,10 +90,10 @@ function tov_eq!(
     rho_ref::Float64 = 2.8e14, # nuclear saturation density in g/cm^3
 )
     tovUnits = TOV_ref_units(input_units = units, rho_ref = rho_ref)
-    P_ref = tovUnits.pressure_ref;
-    rho_ref = tovUnits.rho_ref;
-    G0 = tovUnits.G0;
-    c0 = tovUnits.c0;
+    P_ref = tovUnits.pressure_ref
+    rho_ref = tovUnits.rho_ref
+    G0 = tovUnits.G0
+    c0 = tovUnits.c0
 
     function tov_inner!(du, u, params, r)
         P = u[1]
@@ -163,9 +163,9 @@ function TOV_Solve(
     end
 
     # Building the dimensionless TOV equation function using the provided inverse EoS function
-    tov! = tov_eq!(EoS_inv; units = input_units, rho_ref = rho_ref);
+    tov! = tov_eq!(EoS_inv; units = input_units, rho_ref = rho_ref)
     # Scale the initial conditions and radial parameters to dimensionless units
-    tovUnits = TOV_ref_units(; input_units = input_units, rho_ref = rho_ref);
+    tovUnits = TOV_ref_units(; input_units = input_units, rho_ref = rho_ref)
 
     u0 = u0 ./ [tovUnits.pressure_ref, tovUnits.mass_ref]
     dt = dt / tovUnits.length_ref
