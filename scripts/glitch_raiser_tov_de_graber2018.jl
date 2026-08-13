@@ -100,7 +100,7 @@ end
 # Data Plotting
 Ω_sf = Ωt[2:length(TOV_sol.r), :]
 #t_plots = [0.12, 0.6, 3.0, 30]
-t_plots = [0.3, 1.8, 6.0];
+t_plots = [0.3, 1.8, 6.0, 18.0];
 idt = 1
 plt1 = plot(
     TOV_sol.r[1:(end-1)]*1e-5,
