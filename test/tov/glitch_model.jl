@@ -15,7 +15,7 @@ using OrdinaryDiffEqTsit5: Tsit5
 
     end
     @testset "moment of inertia spherical cyl" begin
-        r = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]
+        r = 0.0:5.0
         ρ = ones(size(r))
         @test isapprox(integral_moi_cyl(ρ, r), sum(r .^ 3)*2*π)
 
