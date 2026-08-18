@@ -5,6 +5,17 @@ using ..Parameters: ParameterType
 
 """
 $(TYPEDSIGNATURES)
+
+Construct the set of equation of motion for a three-component pulsar glitch model, consisting of a crust, a superfluid component, and a core component.
+Each component is represented by its angular velocity while they are regarded as rigid bodies.
+The equations of motion are based on the mutual friction coefficients and the external torque applied to the crust.
+
+# Arguments
+- 'Param::ParameterType': A struct containing the parameters for the glitch model, including the mutual friction coefficients (B_sf and B_core), the external torque (N_ext), and the moments of inertia (I_crust, I_sf, I_core) for each component.
+
+# Returns
+- `ThreeCompSolid!::Function`: The function that evaluates the equations of motion for the three-component pulsar glitch model.
+
 """
 function ThreeCompSolid!(
     dΩ::AbstractArray,
@@ -22,6 +33,20 @@ function ThreeCompSolid!(
         Param.I_core / Param.I_crust * dΩ[3];
 end
 
+"""
+$(TYPEDSIGNATURES)
+
+Construct the set of equation of motion for a three-component pulsar glitch model, consisting of a crust, a superfluid component, and a core component according to [Graber et al. (2018)](http://arxiv.org/abs/1804.02706).
+Here the superfluid component has a radial dependence, so as the mutual friction coefficient for the sf part, with a self constent determination on the moment of inertia, while the other two regmain essentially treated as rigid bodies.
+The equations of motion are based on the mutual friction coefficients and the external torque applied to the crust.
+
+# Arguments
+- 'EoMSetup::ParameterType': A struct containing the parameters for the glitch model
+
+# Returns
+- 'ThreeComMod_inner!::Function`: The function that evaluates the EoM.
+
+"""
 function ThreeCompGCA2018!(
     EoMSetup::ParameterType;
     ρ_drip::Float64 = 4e11,
@@ -88,6 +113,20 @@ function ThreeCompGCA2018!(
     return ThreeComMod_inner!
 end
 
+"""
+$(TYPEDSIGNATURES)
+
+The integral for the moment of inertia in the spherical coordinate, given the density profile `ρ` and the radial profile `r`.
+
+# Arguments
+- 'ρ::AbstractArray': The density profile of the star.
+- 'r::AbstractArray': The radial profile of the star.
+- 'r_range::Union{Tuple{Float64,Float64},AbstractArray,Nothing}': The range of radii over which to integrate.
+
+# Returns
+- '8 * π * sum(dV[i_low:i_up]) / 3': The result of the integral for the moment of inertia in the spherical coordinate.
+
+"""
 function integral_moi_sph(
     ρ::AbstractArray,
     r::AbstractArray;
@@ -112,6 +151,20 @@ function integral_moi_sph(
     end
 end
 
+"""
+$(TYPEDSIGNATURES)
+
+The integral for the moment of inertia elementin the cylindrical coordinate, given the density profile `ρ` and the radial profile `r`.
+
+# Arguments
+- 'ρ::AbstractArray': The density profile of the star.
+- 'r::AbstractArray': The radial profile of the star.
+- 'r_range::Union{Tuple{Float64,Float64},AbstractArray,Nothing}': The range of radii over which to integrate.
+
+# Returns
+- '2 * π * sum(dV[i_low:i_up])': The result of the integral for the moment of inertia in the cylindrical coordinate.
+
+"""
 function integral_moi_cyl(
     ρ::AbstractArray,
     r::AbstractArray;
@@ -136,7 +189,17 @@ function integral_moi_cyl(
     end
 end
 
+"""
+$(TYPEDSIGNATURES)
 
+Reading the input JSON file for the glitch model, and return a struct containing the parameters for the glitch model.
+
+# Arguments
+- 'file_path::String': The path to the input JSON file.
+
+# Returns
+- 'Sim_Input::ParameterType': A struct containing the parameters for the glitch model, including the mutual friction coefficients, initial conditions and the EoM solver setup.
+"""
 function gm_input(file_path::String)
     data = JSON.parsefile(file_path)
     @info "JSON data successfully loaded from $(file_path)"
