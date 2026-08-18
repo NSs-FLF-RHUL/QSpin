@@ -83,19 +83,16 @@ EoM! = ThreeCompGCA2018!(EoMSetup; value_check = true)
 Ωt = Array(sol);
 t = sol.t;
 
-# Data JSON output
-jwrap_out = Dict(
-    "t" => t,
-    "r" => TOV_sol.r,
-    "ρ" => TOV_sol.ρr,
-    "Ω_crust" => Ωt[1, :],
-    "Ω_sf" => Ωt[2:(length(TOV_sol.r)+1), :],
-    "Ω_core" => Ωt[end, :],
-    "B_core" => Sim_Input.B_core,
-)
-jsave_name = string(save_path, "/", "glitch_riser_output.json")
-open(jsave_name, "w") do io
-    JSON.print(io, jwrap_out, 4)
+# Data hdf5 output
+file_name = string(save_path, "/glitch_riser_output.h5")
+h5open(file_name, "w") do file
+    file["Om_crust"] = Ωt[1, :]
+    file["Om_core"] = Ωt[end, :]
+    file["Om_sf"] = Ωt[2:(length(TOV_sol.r)+1), :]
+    file["r"] = TOV_sol.r
+    file["t"] = t
+    meta = create_group(file, "metadata")
+    meta["time"] = Dates.format(now(), "yyyy-mm-dd HH:MM:SS")
 end
 
 # Data Plotting
