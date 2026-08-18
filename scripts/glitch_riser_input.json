@@ -1,25 +1,28 @@
-[
 {
-    "B_core" : 5e-5,
-    "Ω_crust" : 70.34,
-    "Ω_sf" : 70.3463,
-    "Ω_core" : 70.34,
-    "N_ext" : 0.0,
-    "B_sf_type" : 1
-},
-{
-    "dt" : 1e-6,
-    "Dt" : 0.02,
-    "t_start" : 0.0,
-    "t_end" : 120.0
-},
-{
-    "ρ0" : 1.339942000448e14,
-    "dr" : 5.0,
-    "Dr" : 20.0,
-    "r_beg" : 1e6,
-    "R_cci" : 1e6,
-    "M_core" : 2.78397e33,
-    "tov_units" : "CGS"
+    "TOV": {
+        "Units" : "CGS",
+        "ρ0" : 1.339942000448e14,
+        "dr" : 5.0,
+        "Dr" : 20.0,
+        "r_beg" : 1e6,
+        "R_cci" : 1e6,
+        "M_core" : 2.78397e33
+    },
+    "EoM_Setup" : {
+            "Units" : "CGS",
+            "B_units" : "Dimensionless",
+            "B_core" : 5e-5,
+            "N_ext" : 0.0,
+            "B_sf_type" : 1,
+            "dt" : 1e-6,
+            "Dt" : 0.02,
+            "t_start" : 0.0,
+            "t_end" : 120.0
+    },
+    "EoM_Initial_Conditions" : {
+        "Units" : "1/s",
+       "Ω_crust" : 70.34,
+        "Ω_sf" : 70.3463,
+        "Ω_core" : 70.34
+    }
 }
-]

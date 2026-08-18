@@ -15,12 +15,12 @@ import OrdinaryDiffEqTsit5: Tsit5
 save_path = "local_tests"
 gm_input_path = "scripts/glitch_riser_input.json"
 mf_input_path = "scripts/mutual_friction_input.json"
-mf_output = QSpin.MFriction.VNparaGraber2018(mf_input_path)
 
 # Input Parameters for the TOV solver
 Sim_Input = gm_input(gm_input_path)
+MF_Output = QSpin.MFriction.VNparaGraber2018(mf_input_path)
 
-# Fucntion Setup for inverse EoS and TOV equation for the solver
+# Setup for inverse EoS and TOV equation for the solver
 EoS, EoS_inv = EoS_GCA2018();
 # Setting up initial condition accordingly to the EoS for a given central density ρ0.
 u0 = [EoS(Sim_Input.ρ0); Sim_Input.M_core]; # Initial conditions: central pressure and enclosed mass
@@ -46,9 +46,9 @@ Bs = QSpin.MFriction.MutualFrictionCoefficients(
         Bj_core = Sim_Input.B_core,
         input_units = Sim_Input.tov_units,
     ),
-    mf_output.B_itp;
+    MF_Output.B_itp;
     R_cci = Sim_Input.R_cci,
-    ρ_b = mf_output.ρ[1],
+    ρ_b = MF_Output.ρ[1],
 )
 
 # Setting initial conditions for the glitch model
