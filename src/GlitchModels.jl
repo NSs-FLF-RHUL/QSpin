@@ -145,7 +145,7 @@ function integral_moi_sph(
         i_up = argmin(abs.(r .- r_up))
 
         dV = ρ .* r .^ 4 .* [diff(r); diff(r)[end]];
-        return 8 * π * sum(dV[i_low:i_up]) / 3
+        return 8 * π * sum(@view dV[i_low:i_up]) / 3
     else
         error("Input ρ and r are not in the same size.")
     end
