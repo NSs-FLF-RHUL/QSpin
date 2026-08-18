@@ -113,6 +113,23 @@ function ThreeCompGCA2018!(
     return ThreeComMod_inner!
 end
 
+function integral_range(
+    r::AbstractArray,
+    r_range::Union{Tuple{Float64,Float64},AbstractArray,Nothing},
+)
+    r_low = isnothing(r_range) ? r[1] : r_range[1]
+    r_up = isnothing(r_range) ? r[end] : r_range[2]
+    if r_low < minimum(r)
+        error("The lower bound of r_range is not in the range of r")
+    end
+    if r_up > maximum(r)
+        error("The upper bound of r_range is not in the range of r")
+    end
+    i_low = argmin(abs.(r .- r_low))
+    i_up = argmin(abs.(r .- r_up))
+    return i_low, i_up
+end
+
 """
 $(TYPEDSIGNATURES)
 
@@ -133,16 +150,7 @@ function integral_moi_sph(
     r_range::Union{Tuple{Float64,Float64},AbstractArray,Nothing} = nothing,
 )
     if length(ρ) == length(r)
-        r_low = isnothing(r_range) ? r[1] : r_range[1]
-        r_up = isnothing(r_range) ? r[end] : r_range[2]
-        if r_low < minimum(r)
-            error("The lower bound of r_range is not in the range of r")
-        end
-        if r_up > maximum(r)
-            error("The upper bound of r_range is not in the range of r")
-        end
-        i_low = argmin(abs.(r .- r_low))
-        i_up = argmin(abs.(r .- r_up))
+        i_low, i_up = integral_range(r, r_range)
 
         dr = diff(r)
         dV = ρ .* r .^ 4 .* [dr; dr[end]];
@@ -172,18 +180,10 @@ function integral_moi_cyl(
     r_range::Union{Tuple{Float64,Float64},AbstractArray,Nothing} = nothing,
 )
     if length(ρ) == length(r)
-        r_low = isnothing(r_range) ? r[1] : r_range[1]
-        r_up = isnothing(r_range) ? r[end] : r_range[2]
-        if r_low < minimum(r)
-            error("The lower bound of r_range is not in the ragne of r")
-        end
-        if r_up > maximum(r)
-            error("The upper bound of r_range is not in the range of r")
-        end
-        i_low = argmin(abs.(r .- r_low))
-        i_up = argmin(abs.(r .- r_up))
+        i_low, i_up = integral_range(r, r_range)
 
-        dV = ρ .* r .^ 3 .* [diff(r); diff(r)[end]];
+        dr = diff(r)
+        dV = ρ .* r .^ 3 .* [dr; dr[end]];
         return 2 * π * sum(dV[i_low:i_up])
     else
         error("Input ρ and r are not in the same size.")
