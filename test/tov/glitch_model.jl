@@ -9,7 +9,7 @@ using OrdinaryDiffEqTsit5: Tsit5
 
 @testset "glith_riser" begin
     @testset "moment of inertia spherical integral" begin
-        r = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]
+        r = 0.0:5.0
         ρ = ones(size(r))
         @test isapprox(integral_moi_sph(ρ, r), sum(r .^ 4)*8*π/3)
 
