@@ -3,7 +3,9 @@ using QSpin.Parameters: ParameterType
 import QSpin.OdeSolve: evolve
 import QSpin.GlitchModels: ThreeCompSolid!, integral_moi_sph, integral_moi_cyl
 import CommonSolve as DE
-import OrdinaryDiffEqTsit5: Tsit5
+using QSpin.OdeSolve: evolve
+using QSpin.GlitchModels: ThreeCompSolid!, integral_moi_sph, integral_moi_cyl
+using OrdinaryDiffEqTsit5: Tsit5
 
 @testset "glith_riser" begin
     @testset "moment of inertia spherical integral" begin
