@@ -97,7 +97,7 @@ function integral_moi_sph(
         r_low = isnothing(r_range) ? r[1] : r_range[1]
         r_up = isnothing(r_range) ? r[end] : r_range[2]
         if r_low < minimum(r)
-            error("The lower bound of r_range is not in the ragne of r")
+            error("The lower bound of r_range is not in the range of r")
         end
         if r_up > maximum(r)
             error("The upper bound of r_range is not in the range of r")
