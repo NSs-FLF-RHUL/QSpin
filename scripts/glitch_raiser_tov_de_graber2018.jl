@@ -9,7 +9,7 @@ using QSpin.PhysicalConstants: neutron_mass
 using Plots, LaTeXStrings
 import QSpin.OdeSolve: evolve
 import CommonSolve as DE
-using JSON
+using HDF5, Dates
 import OrdinaryDiffEqTsit5: Tsit5
 
 save_path = "local_tests"
