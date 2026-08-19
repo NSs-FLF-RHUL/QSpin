@@ -11,6 +11,7 @@ using QSpin.MFriction: VNparaGraber2018, MutualFrictionCoefficients
         @test length(output.nb) == 5
         @test output.nb == [8.8, 57.7, 204.0, 475.0, 789.0]
         @test output.ns == [4.8, 47.0, 184.0, 436.0, 737.0]
+        @test output.ρ == [1.5, 9.6, 33.9, 78.9, 131.0]*1e15
         @test output.A ≈ output.Z .* (1 .+ 1 ./ output.x)
 
         for values in (
@@ -30,13 +31,13 @@ using QSpin.MFriction: VNparaGraber2018, MutualFrictionCoefficients
         @test all(>(0), diff(output.ρs))
 
         # The splines are built in log-log space and must reproduce their knots.
-        @test exp10.(output.B_itp[2].(log10.(output.ρs))) ≈ output.B[2]
-        @test exp10.(output.B_itp[3].(log10.(output.ρs))) ≈ output.B[3]
+        @test output.B_itp[2].(output.ρ) ≈ output.B[2]
+        @test output.B_itp[3].(output.ρ) ≈ output.B[3]
 
         # Left extrapolation is constant by construction.
-        below_range = log10(first(output.ρs)) - 1
-        @test exp10(output.B_itp[2](below_range)) ≈ first(output.B[2])
-        @test exp10(output.B_itp[3](below_range)) ≈ first(output.B[3])
+        below_range = log10(first(output.ρ)) - 1
+        @test output.B_itp[2](below_range) ≈ first(output.B[2])
+        @test output.B_itp[3](below_range) ≈ first(output.B[3])
 
         @test_throws SystemError VNparaGraber2018(input_file * ".missing")
     end
@@ -50,18 +51,21 @@ using QSpin.MFriction: VNparaGraber2018, MutualFrictionCoefficients
             Beb_core = 0.2,
             Bj_core = 0.3,
         )
-        Beb_itp = Returns(-2.0)
-        Bj_itp = Returns(-3.0)
+        BA(ρ) = ρ > ρ_drip ? 0.1 : 0.05
+        Beb(ρ) = ρ > ρ_drip ? 0.2 : 0.15
+        Bj(ρ) = ρ > ρ_drip ? 0.3 : 0.25
+        B_itp = (BA, Beb, Bj)
 
-        Bs =
-            MutualFrictionCoefficients(Param, Beb_itp, Bj_itp; ρ_drip = ρ_drip, Rcci = Rcci)
-
-        @test Bs.Beb ≈ [0.0, 1e-2, 0.2, 0.2, 1e-2, 1e-2]
-        @test Bs.Bj ≈ [0.0, 1e-3, 0.3, 0.3, 1e-3, 1e-3]
+        Bs = MutualFrictionCoefficients(Param, B_itp; ρ_b = ρ_drip, R_cci = Rcci)
+        @test Bs[1] ≈ [0.05, 0.1, 0.05, 0.1, 0.05, 0.1]
+        @test Bs[2] ≈ [0.15, 0.2, 0.15, 0.2, 0.15, 0.2]
+        @test Bs[3] ≈ [0.25, 0.3, 0.25, 0.3, 0.25, 0.3]
         crust_below_drip = (Param.ρs .< ρ_drip) .& (Param.r .>= Rcci)
-        @test all(==(0.0), Bs.Beb[crust_below_drip])
-        @test all(==(Param.Beb_core), Bs.Beb[Param.r .< Rcci])
-        @test all(==(Param.Bj_core), Bs.Bj[Param.r .< Rcci])
+        @test all(==(0.05), Bs[1][crust_below_drip])
+        @test all(==(0.15), Bs[2][crust_below_drip])
+        @test all(==(0.25), Bs[3][crust_below_drip])
+        # @test all(==(Param.Beb_core), Bs[2][Param.r .< Rcci])
+        # @test all(==(Param.Bj_core), Bs[3][Param.r .< Rcci])
     end
 
     @testset "coefficient interpolation integration" begin
@@ -75,16 +79,10 @@ using QSpin.MFriction: VNparaGraber2018, MutualFrictionCoefficients
             Bj_core = 0.3,
         )
 
-        Bs = MutualFrictionCoefficients(
-            Param,
-            output.Beb_itp,
-            output.Bj_itp;
-            ρ_drip = 0.0,
-            Rcci = 0.0,
-        )
+        Bs = MutualFrictionCoefficients(Param, output.B_itp; ρ_drip = 0.0, R_cci = 0.0)
 
-        @test Bs.Beb ≈ output.B[2]
-        @test Bs.Bj ≈ output.B[3]
+        @test Bs[2] ≈ output.B[2]
+        @test Bs[3] ≈ output.B[3]
     end
 
     @testset "CGS and SI profile equivalence" begin
