@@ -23,14 +23,14 @@ function ThreeCompSolid!(
     Param::ParameterType,
     time::Float64,
 )
-    Ω_sf = Ω[2];
-    Ω_core = Ω[3];
-    Ω_crust = Ω[1];
-    dΩ[2] = Param.B_sf * (Ω_crust - Ω_sf);
-    dΩ[3] = Param.B_core * (Ω_crust - Ω_core);
+    Ω_sf = Ω[2]
+    Ω_core = Ω[3]
+    Ω_crust = Ω[1]
+    dΩ[2] = Param.B_sf * (Ω_crust - Ω_sf)
+    dΩ[3] = Param.B_core * (Ω_crust - Ω_core)
     dΩ[1] =
         -Param.N_ext / Param.I_crust - Param.I_sf / Param.I_crust * dΩ[2] -
-        Param.I_core / Param.I_crust * dΩ[3];
+        Param.I_core / Param.I_crust * dΩ[3]
 end
 
 """
@@ -53,7 +53,7 @@ function ThreeCompGCA2018!(
     value_check::Bool = false,
 )
     dr = [diff(EoMSetup.r); diff(EoMSetup.r)[end]]
-    Nr = length(EoMSetup.r);
+    Nr = length(EoMSetup.r)
     I_total = 0.35 * EoMSetup.M_NS * EoMSetup.R_NS^2
     R_drip = EoMSetup.r[argmin(abs.(EoMSetup.rho .- ρ_drip))]
     I_sf = integral_moi_sph(EoMSetup.rho, EoMSetup.r; r_range = (EoMSetup.R_cci, R_drip))
@@ -93,10 +93,10 @@ function ThreeCompGCA2018!(
         time::Float64,
     )
         # dΩ_sf/dt
-        Ω_sf = Ω[2:(Nr+1)];
+        Ω_sf = Ω[2:(Nr+1)]
         #Bsf = Param.B_sf * Param.ρr ./ maximum(Param.ρr); # Scaling B_sf with the local density profile
-        dΩ_sfdr = [diff(Ω_sf); 0.0] ./ dr;
-        dΩ[2:(Nr+1)] = EoMSetup.B_sf .* (2 * Ω_sf + EoMSetup.r .* dΩ_sfdr) .* (Ω[1] .- Ω_sf);
+        dΩ_sfdr = [diff(Ω_sf); 0.0] ./ dr
+        dΩ[2:(Nr+1)] = EoMSetup.B_sf .* (2 * Ω_sf + EoMSetup.r .* dΩ_sfdr) .* (Ω[1] .- Ω_sf)
         dΩ_sf_net =
             2 *
             h_eff *
@@ -106,9 +106,9 @@ function ThreeCompGCA2018!(
                 r_range = (EoMSetup.R_cci, R_drip),
             )
         # dΩ_core/dt
-        dΩ[Nr+2] = 2 * EoMSetup.B_core * Ω[end] * (Ω[1] - Ω[end]);
+        dΩ[Nr+2] = 2 * EoMSetup.B_core * Ω[end] * (Ω[1] - Ω[end])
         # dΩ_crust/dt
-        dΩ[1] = -EoMSetup.N_ext/I_crust - I_core/I_crust * dΩ[end] - dΩ_sf_net/I_crust;
+        dΩ[1] = -EoMSetup.N_ext/I_crust - I_core/I_crust * dΩ[end] - dΩ_sf_net/I_crust
     end
     return ThreeComMod_inner!
 end
@@ -153,7 +153,7 @@ function integral_moi_sph(
         i_low, i_up = integral_range(r, r_range)
 
         dr = diff(r)
-        dV = ρ .* r .^ 4 .* [dr; dr[end]];
+        dV = ρ .* r .^ 4 .* [dr; dr[end]]
         return 8 * π * sum(@view dV[i_low:i_up]) / 3
     else
         error("Input ρ and r are not in the same size.")
@@ -183,7 +183,7 @@ function integral_moi_cyl(
         i_low, i_up = integral_range(r, r_range)
 
         dr = diff(r)
-        dV = ρ .* r .^ 3 .* [dr; dr[end]];
+        dV = ρ .* r .^ 3 .* [dr; dr[end]]
         return 2 * π * sum(dV[i_low:i_up])
     else
         error("Input ρ and r are not in the same size.")

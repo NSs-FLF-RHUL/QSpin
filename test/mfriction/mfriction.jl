@@ -13,23 +13,30 @@ using QSpin.MFriction: VNparaGraber2018, MutualFrictionCoefficients
         @test output.ns == [4.8, 47.0, 184.0, 436.0, 737.0]
         @test output.A ≈ output.Z .* (1 .+ 1 ./ output.x)
 
-        for values in
-            (output.n1, output.Rws, output.ρs, output.Reb, output.Rj, output.Beb, output.Bj)
+        for values in (
+            output.n1,
+            output.Rws,
+            output.ρs,
+            output.R[2],
+            output.R[3],
+            output.B[2],
+            output.B[3],
+        )
             @test all(isfinite, values)
             @test all(>(0), values)
         end
-        @test all(<=(0.5), output.Beb)
-        @test all(<=(0.5), output.Bj)
+        @test all(<=(0.5), output.B[2])
+        @test all(<=(0.5), output.B[3])
         @test all(>(0), diff(output.ρs))
 
         # The splines are built in log-log space and must reproduce their knots.
-        @test exp10.(output.Beb_itp.(log10.(output.ρs))) ≈ output.Beb
-        @test exp10.(output.Bj_itp.(log10.(output.ρs))) ≈ output.Bj
+        @test exp10.(output.B_itp[2].(log10.(output.ρs))) ≈ output.B[2]
+        @test exp10.(output.B_itp[3].(log10.(output.ρs))) ≈ output.B[3]
 
         # Left extrapolation is constant by construction.
         below_range = log10(first(output.ρs)) - 1
-        @test exp10(output.Beb_itp(below_range)) ≈ first(output.Beb)
-        @test exp10(output.Bj_itp(below_range)) ≈ first(output.Bj)
+        @test exp10(output.B_itp[2](below_range)) ≈ first(output.B[2])
+        @test exp10(output.B_itp[3](below_range)) ≈ first(output.B[3])
 
         @test_throws SystemError VNparaGraber2018(input_file * ".missing")
     end
@@ -76,8 +83,8 @@ using QSpin.MFriction: VNparaGraber2018, MutualFrictionCoefficients
             Rcci = 0.0,
         )
 
-        @test Bs.Beb ≈ output.Beb
-        @test Bs.Bj ≈ output.Bj
+        @test Bs.Beb ≈ output.B[2]
+        @test Bs.Bj ≈ output.B[3]
     end
 
     @testset "CGS and SI profile equivalence" begin

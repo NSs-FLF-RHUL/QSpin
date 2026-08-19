@@ -30,14 +30,14 @@ using OrdinaryDiffEqTsit5: Tsit5
             I_core = 0.8 * 4.5e30, # Moment of inertia of the core in kg m
             I_sf = 0.05*4.5e30,
             N_ext = 0.0,
-            B_core = 5e-4, # Mutual Friction Parameter
-            B_sf = 5e-4, # Mutual Friction Parameter
+            B_core = 0, # Mutual Friction Parameter
+            B_sf = 0, # Mutual Friction Parameter
             # Glitch Model Solver Setup
             Dt = 0.1, # Time interval for recording values in the glitch model in seconds
             t_start = 0.0, # Start time for the glitch model simulation in seconds
             t_end = 120.0, # End time for the glitch model simulation in seconds
         )
-
+        # A null propagation while the coulping is zero.
         Ω_ini = [Sim_Input.Ω_crust; Sim_Input.Ω_sf; Sim_Input.Ω_core]
         sol = evolve(
             ThreeCompSolid!,
@@ -48,7 +48,9 @@ using OrdinaryDiffEqTsit5: Tsit5
             alg = Tsit5(),
             saveat = Sim_Input.Dt,
         )
-        @test isapprox(sol[1, end], sol[1, end])
+        @test isapprox(sol[1, end], Ω_ini[1])
+        @test isapprox(sol[2, end], Ω_ini[2])
+        @test isapprox(sol[3, end], Ω_ini[3])
 
     end
 end
