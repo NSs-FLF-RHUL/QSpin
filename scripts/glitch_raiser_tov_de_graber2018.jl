@@ -40,7 +40,7 @@ u0 = [EoS(Sim_Input.ρ0); Sim_Input.M_core]; # Initial conditions: central press
 
 Bs = QSpin.MFriction.MutualFrictionCoefficients(
     (
-        ρs = TOV_sol.ρr*1e3,
+        ρ = TOV_sol.ρr*1e3,
         r = TOV_sol.r*1e-2,
         Beb_core = Sim_Input.B_core,
         Bj_core = Sim_Input.B_core,
