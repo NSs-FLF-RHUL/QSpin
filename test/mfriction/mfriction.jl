@@ -46,7 +46,7 @@ using QSpin.MFriction: VNparaGraber2018, MutualFrictionCoefficients
         ρ_drip = 4e14
         Rcci = 1e4
         Param = (
-            ρs = [1e13, 1e15, 1e13, 1e15, ρ_drip, 1e15],
+            ρ = [1e13, 1e15, 1e13, 1e15, ρ_drip, 1e15],
             r = [2e4, 2e4, 5e3, 5e3, 2e4, Rcci],
             Beb_core = 0.2,
             Bj_core = 0.3,
@@ -60,7 +60,7 @@ using QSpin.MFriction: VNparaGraber2018, MutualFrictionCoefficients
         @test Bs[1] ≈ [0.05, 0.1, 0.05, 0.1, 0.05, 0.1]
         @test Bs[2] ≈ [0.15, 0.2, 0.15, 0.2, 0.15, 0.2]
         @test Bs[3] ≈ [0.25, 0.3, 0.25, 0.3, 0.25, 0.3]
-        crust_below_drip = (Param.ρs .< ρ_drip) .& (Param.r .>= Rcci)
+        crust_below_drip = (Param.ρ .< ρ_drip) .& (Param.r .>= Rcci)
         @test all(==(0.05), Bs[1][crust_below_drip])
         @test all(==(0.15), Bs[2][crust_below_drip])
         @test all(==(0.25), Bs[3][crust_below_drip])
@@ -72,36 +72,35 @@ using QSpin.MFriction: VNparaGraber2018, MutualFrictionCoefficients
         output = @test_logs (:info, r"JSON data successfully loaded") VNparaGraber2018(
             input_file,
         )
-        Param = (
-            ρs = output.ρs,
-            r = fill(2e4, length(output.ρs)),
-            Beb_core = 0.2,
-            Bj_core = 0.3,
-        )
+        Param =
+            (ρ = output.ρ, r = fill(2e4, length(output.ρs)), Beb_core = 0.2, Bj_core = 0.3)
 
-        Bs = MutualFrictionCoefficients(Param, output.B_itp; ρ_drip = 0.0, R_cci = 0.0)
+        Bs = MutualFrictionCoefficients(Param, output.B_itp; ρ_b = 0.0, R_cci = 0.0)
 
+        @test Bs[1] ≈ output.B[1]
         @test Bs[2] ≈ output.B[2]
         @test Bs[3] ≈ output.B[3]
     end
 
     @testset "CGS and SI profile equivalence" begin
-        Beb_itp(log_ρs) = -2 + 0.1 * (log_ρs - 15)
-        Bj_itp(log_ρs) = -3 + 0.1 * (log_ρs - 15)
+        BA_itp(ρs) = -1.0 + 0.1 * (log10.(ρs)-15.0)
+        Beb_itp(ρs) = -2.0 + 0.2 * (log10.(ρs)-15.0)
+        Bj_itp(ρs) = -3.0 + 0.3 * (log10.(ρs)-15.0)
+
+        B_itp = (BA_itp, Beb_itp, Bj_itp)
         common = (Beb_core = 0.2, Bj_core = 0.3)
-        si = (; common..., ρs = [1e13, 1e15], r = [2e4, 2e4])
-        cgs = (; common..., ρs = si.ρs ./ 1e3, r = si.r .* 1e2)
+        Param_si = (; common..., ρ = [1e13, 1e15], r = [2e4, 2e4])
+        Param_cgs = (; common..., ρ = Param_si.ρ ./ 1e3, r = Param_si.r .* 1e2)
 
-        Bs_si = MutualFrictionCoefficients(si, Beb_itp, Bj_itp; input_units = "SI")
-        Bs_cgs = MutualFrictionCoefficients(cgs, Beb_itp, Bj_itp; input_units = "CGS")
+        Bs_si = MutualFrictionCoefficients(Param_si, B_itp; input_units = "SI")
+        Bs_cgs = MutualFrictionCoefficients(Param_cgs, B_itp; input_units = "CGS")
 
-        @test Bs_cgs.Beb ≈ Bs_si.Beb
-        @test Bs_cgs.Bj ≈ Bs_si.Bj
-        @test Bs_cgs.Beb[1] == Bs_si.Beb[1] == 0.0
+        @test Bs_cgs[1] ≈ Bs_si[1]
+        @test Bs_cgs[2] ≈ Bs_si[2]
+        @test Bs_cgs[3] == Bs_si[3]
         @test_throws ArgumentError MutualFrictionCoefficients(
-            si,
-            Beb_itp,
-            Bj_itp;
+            Param_si,
+            B_itp;
             input_units = "invalid",
         )
     end
