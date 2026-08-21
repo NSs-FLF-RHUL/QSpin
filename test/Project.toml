@@ -10,6 +10,6 @@ QSpin = {path = ".."}
 
 [compat]
 Aqua = "0.8"
-CommonSolve = "0.2.6"
+OrdinaryDiffEqTsit5 = 2
 ExplicitImports = "1.15"
 Test = "<0.0.1, 1"
