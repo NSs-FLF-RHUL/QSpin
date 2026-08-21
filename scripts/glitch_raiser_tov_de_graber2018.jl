@@ -8,7 +8,6 @@ using QSpin.MFriction: MutualFrictionCoefficients
 using QSpin.PhysicalConstants: neutron_mass
 using Plots, LaTeXStrings
 using QSpin.OdeSolve: evolve
-import CommonSolve as DE
 using HDF5, Dates
 using OrdinaryDiffEqTsit5: Tsit5
 
