@@ -41,4 +41,8 @@ jobs:
 
       - uses: julia-actions/cache@v3
 
+      - name: Instantiate and install dependencies
+        run: |
+          julia --project -e "import Pkg; Pkg.instantiate()"
+
       - uses: julia-actions/julia-runtest@v1
