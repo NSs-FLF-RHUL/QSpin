@@ -1,8 +1,5 @@
 using QSpin
 using QSpin.Parameters: ParameterType
-import QSpin.OdeSolve: evolve
-import QSpin.GlitchModels: ThreeCompSolid!, integral_moi_sph, integral_moi_cyl
-import CommonSolve as DE
 using QSpin.OdeSolve: evolve
 using QSpin.GlitchModels: ThreeCompSolid!, integral_moi_sph, integral_moi_cyl
 using OrdinaryDiffEqTsit5: Tsit5
