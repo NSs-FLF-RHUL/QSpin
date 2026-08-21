@@ -7,10 +7,10 @@ using QSpin.GlitchModels: ThreeCompGCA2018!, gm_input
 using QSpin.MFriction: MutualFrictionCoefficients
 using QSpin.PhysicalConstants: neutron_mass
 using Plots, LaTeXStrings
-import QSpin.OdeSolve: evolve
+using QSpin.OdeSolve: evolve
 import CommonSolve as DE
 using HDF5, Dates
-import OrdinaryDiffEqTsit5: Tsit5
+using OrdinaryDiffEqTsit5: Tsit5
 
 save_path = "local_tests"
 gm_input_path = "scripts/glitch_riser_input.json"
