@@ -106,9 +106,9 @@ function VNparaGraber2018(file_path; units = "CGS")
             extrapolation_left = ExtrapolationType.Constant,
         ),
     )
-    R = (RA, Reb, Rj)
-    B = (BA, Beb, Bj)
-    B_itp = (BA_itp, Beb_itp, Bj_itp)
+    R = (; RA, Reb, Rj)
+    B = (; BA, Beb, Bj)
+    B_itp = (; BA_itp, Beb_itp, Bj_itp)
     output = (; nb, Z, N, x, ns, ρ, n1, a, Rn, Es, E1, ΔE, ξ, Ep, A, Rws, ρs, R, B, B_itp)
     return output
 end
