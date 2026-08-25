@@ -167,7 +167,7 @@ function MutualFrictionCoefficients(
     BA[Param.ρ .< ρ_b] .= B_itp[1].(ρ_b * density_to_si)
     Beb[Param.ρ .< ρ_b] .= B_itp[2].(ρ_b * density_to_si)
     Bj[Param.ρ .< ρ_b] .= B_itp[3].(ρ_b * density_to_si)
-    Bs = (BA, Beb, Bj)
+    Bs = (; BA, Beb, Bj)
     return Bs
 
 end
