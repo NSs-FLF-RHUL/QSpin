@@ -12,8 +12,8 @@ using HDF5, Dates
 using OrdinaryDiffEqTsit5: Tsit5
 
 save_path = "local_tests"
-gm_input_path = "scripts/glitch_riser_input.json"
-mf_input_path = "scripts/mutual_friction_input.json"
+gm_input_path = joinpath(@__DIR__, "glitch_riser_input.json")
+mf_input_path = joinpath(@__DIR__, "mutual_friction_input.json")
 
 # Input Parameters for the TOV solver
 Sim_Input = gm_input(gm_input_path)
