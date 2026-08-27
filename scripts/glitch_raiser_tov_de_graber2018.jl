@@ -61,7 +61,15 @@ EoMSetup = (
     R_NS = TOV_sol.R,
     R_cci = Sim_Input.R_cci, # 10 km in cm
     B_core = Sim_Input.B_core, # Mutual Friction Parameter
-    B_sf = Bs[Sim_Input.B_sf_type], # Mutual Friction Parameter
+    B_sf =  B_sf = if Sim_Input.B_sf_type == "BA"
+        Bs.BA
+    elseif Sim_Input.B_sf_type == "Beb"
+        Bs.Beb
+    elseif Sim_Input.B_sf_type == "Bj"
+        Bs.Bj
+    else
+        error("Invalid B_sf_type. Must be \"BA\", \"Beb\", or \"Bj\".")
+    end , # Mutual Friction Parameter
     N_ext = Sim_Input.N_ext,
 )
 
@@ -95,4 +103,4 @@ h5open(file_name, "w") do file
 end
 
 # Data Plotting
-include(joinpath(@__DIR__, "plotting", "glitch_riser_summary_plot.jl")
+include(joinpath(@__DIR__, "plotting", "glitch_riser_summary_plot.jl"))

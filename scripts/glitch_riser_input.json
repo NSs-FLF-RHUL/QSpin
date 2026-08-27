@@ -13,7 +13,7 @@
             "B_units" : "Dimensionless",
             "B_core" : 5e-5,
             "N_ext" : 0.0,
-            "B_sf_type" : 1,
+            "B_sf_type" : "Bj",
             "dt" : 1e-6,
             "Dt" : 0.02,
             "t_start" : 0.0,
