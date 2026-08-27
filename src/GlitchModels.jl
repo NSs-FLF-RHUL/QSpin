@@ -184,7 +184,7 @@ function integral_moi_cyl(
 
         dr = diff(r)
         dV = ρ .* r .^ 3 .* [dr; dr[end]]
-        return 2 * π * sum(dV[i_low:i_up])
+        return 2 * π * sum(@view dV[i_low:i_up])
     else
         error("Input ρ and r are not in the same size.")
     end
