@@ -16,10 +16,14 @@ include("hamiltonian.jl")
 @testset "TOV" begin
     include("tov/tov_eq.jl")
     include("tov/eos.jl")
+    include("tov/glitch_model.jl")
 end
 
 @testset "MFriction" begin
     include("mfriction/mfriction.jl")
+end
+@testset "gltich model" begin
+    include("tov/glitch_model.jl")
 end
 
 @testset "Quality assurance" begin

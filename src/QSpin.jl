@@ -14,4 +14,6 @@ include("Hamiltonian.jl")
 include("TOV/TOV.jl")
 # Mutual Friction module
 include("MFriction.jl")
+# Glitch Modol module
+include("GlitchModels.jl")
 end

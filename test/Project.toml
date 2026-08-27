@@ -1,6 +1,7 @@
 [deps]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
 ExplicitImports = "7d51a73a-1435-4ff3-83d9-f097790105c7"
+OrdinaryDiffEqTsit5 = "b1df2697-797e-41e3-8120-5422d3b24e4a"
 QSpin = "3f62d152-8970-4ff6-93e2-b431c80450c4"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
@@ -9,5 +10,6 @@ QSpin = {path = ".."}
 
 [compat]
 Aqua = "0.8"
+OrdinaryDiffEqTsit5 = "2"
 ExplicitImports = "1.15"
 Test = "<0.0.1, 1"
