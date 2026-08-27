@@ -64,8 +64,6 @@ using QSpin.MFriction: VNparaGraber2018, MutualFrictionCoefficients
         @test all(==(0.05), Bs.BA[crust_below_drip])
         @test all(==(0.15), Bs.Beb[crust_below_drip])
         @test all(==(0.25), Bs.Bj[crust_below_drip])
-        # @test all(==(Param.Beb_core), Bs.Beb[Param.r .< Rcci])
-        # @test all(==(Param.Bj_core), Bs.Bj[Param.r .< Rcci])
     end
 
     @testset "coefficient interpolation integration" begin
