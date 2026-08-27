@@ -95,4 +95,4 @@ h5open(file_name, "w") do file
 end
 
 # Data Plotting
-include("plotting/glitch_riser_summary_plot.jl")
+include(joinpath(@__DIR__, "plotting", "glitch_riser_summary_plot.jl")
