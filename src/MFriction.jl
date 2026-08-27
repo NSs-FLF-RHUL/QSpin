@@ -71,9 +71,9 @@ function VNparaGraber2018(file_path; units = "CGS")
     EpA = @. sqrt(Es ^ 2 + Es * E1 + 0.5 * E1 ^ 2)
     RA = @. 2.8 * sqrt(0.5 * neutron_mass / hbar) * sqrt(abs(EpA * MeV) * δ / ρs / κ) * Rn /
        a ^ 1.5 * 10 ^ 7.5
-    Reb =
-        2.8 * sqrt.(0.5 * neutron_mass/hbar) * sqrt.(abs.(Ep * MeV) * δ ./ ρs / κ) .* Rn ./
-        a .^ (1.5) * 10^(7.5)
+Reb =
+@. 2.8 * sqrt(0.5 * neutron_mass / hbar * abs.(Ep * MeV) * δ / ρs / κ) * Rn /
+a ^ 1.5 * 10 ^ 7.5
     Rj =
         0.5 / sqrt(π) *
         (0.5 * neutron_mass/hbar)^(1/2) *
