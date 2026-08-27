@@ -75,9 +75,9 @@ using QSpin.MFriction: VNparaGraber2018, MutualFrictionCoefficients
 
         Bs = MutualFrictionCoefficients(Param, output.B_itp; ρ_b = 0.0, R_cci = 0.0)
 
-        @test Bs[1] ≈ output.B[1]
-        @test Bs[2] ≈ output.B[2]
-        @test Bs[3] ≈ output.B[3]
+        @test Bs.BA ≈ output.B.BA
+        @test Bs.Beb ≈ output.B.Beb
+        @test Bs.Bj ≈ output.B.Bj
     end
 
     @testset "CGS and SI profile equivalence" begin
