@@ -26,7 +26,7 @@ QSpin = {path = ".."}
 CSV = "0.10.16"
 CommonSolve = "0.2.6"
 DataFrames = "1.8.2"
-DataInterpolations = "9"
+DataInterpolations = "9, 10.1"
 DocStringExtensions = "0.9.5"
 FFTW = "1.10.0"
 JSON = "1.6.1"
