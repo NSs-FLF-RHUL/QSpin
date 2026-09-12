@@ -29,12 +29,12 @@ function EoS_LInterpSkyrme(
         16,
     ),
 )
-    i_rho, i_press, i_nb, i_Yp, i_mnast, i_kFe, i_kFn = EoS_indices
+    i_rho, i_press, i_nb, i_Yp, i_mp_ast, i_kFe, i_kFn = EoS_indices
     rho = sort(input[:, i_rho])
     press = sort(input[:, i_press])
     nb = sort(input[:, i_nb])
     Yp = sort(input[:, i_Yp])
-    mp_ast = sort(input[:, i_mnast])
+    mp_ast = sort(input[:, i_mp_ast])
     kFe = sort(input[:, i_kFe])
     kFn = sort(input[:, i_kFn])
     EoS_P_from_rho =
