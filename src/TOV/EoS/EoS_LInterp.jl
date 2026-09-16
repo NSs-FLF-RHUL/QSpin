@@ -22,6 +22,8 @@ function EoS_LInterp(
     EoS_indices::Tuple{Int64,Int64},
 )
     i_rho, i_press = EoS_indices
+    input = Array(input)
+    input = sortslices(input, dims = i_rho)
     rho = sort(input[:, i_rho])
     press = sort(input[:, i_press])
     EoS_P_from_rho =
