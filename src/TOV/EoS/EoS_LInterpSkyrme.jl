@@ -30,32 +30,34 @@ function EoS_LInterpSkyrme(
     ),
 )
     i_rho, i_press, i_nb, i_Yp, i_mp_ast, i_kFe, i_kFn = EoS_indices
-    rho = sort(input[:, i_rho])
-    press = sort(input[:, i_press])
-    nb = sort(input[:, i_nb])
-    Yp = sort(input[:, i_Yp])
-    mp_ast = sort(input[:, i_mp_ast])
-    kFe = sort(input[:, i_kFe])
-    kFn = sort(input[:, i_kFn])
+    input = Array(input)
+    input = sortslices(input, dims = i_rho)
+    rho = input[:, i_rho]
+    press = input[:, i_press]
+    nb = input[:, i_nb]
+    Yp = input[:, i_Yp] # Do we really need this? It seems not used in the mutual fricition evaluations.
+    mp_ast = input[:, i_mp_ast]
+    kFe = input[:, i_kFe]
+    kFn = input[:, i_kFn]
     EoS_P_from_rho =
         QuadraticSpline(press, rho; extrapolation = ExtrapolationType.Extension)
     EoS_rho_from_P =
         QuadraticSpline(rho, press; extrapolation = ExtrapolationType.Extension)
-    EoS_rho_from_nb = QuadraticSpline(rho, nb; extrapolation = ExtrapolationType.Extension)
-    EoS_rho_from_Yp = QuadraticSpline(rho, Yp; extrapolation = ExtrapolationType.Extension)
-    EoS_rho_from_mp_ast =
-        QuadraticSpline(rho, mp_ast; extrapolation = ExtrapolationType.Extension)
-    EoS_rho_from_kFe =
-        QuadraticSpline(rho, kFe; extrapolation = ExtrapolationType.Extension)
-    EoS_rho_from_kFn =
-        QuadraticSpline(rho, kFn; extrapolation = ExtrapolationType.Extension)
+    EoS_nb_from_rho = QuadraticSpline(nb, rho; extrapolation = ExtrapolationType.Extension)
+    EoS_Yp_from_rho = QuadraticSpline(Yp, rho; extrapolation = ExtrapolationType.Extension)
+    EoS_mp_ast_from_rho =
+        QuadraticSpline(mp_ast, rho; extrapolation = ExtrapolationType.Extension)
+    EoS_kFe_from_rho =
+        QuadraticSpline(kFe, rho; extrapolation = ExtrapolationType.Extension)
+    EoS_kFn_from_rho =
+        QuadraticSpline(kFn, rho; extrapolation = ExtrapolationType.Extension)
     return EoS_P_from_rho,
     EoS_rho_from_P,
-    EoS_rho_from_nb,
-    EoS_rho_from_Yp,
-    EoS_rho_from_mp_ast,
-    EoS_rho_from_kFe,
-    EoS_rho_from_kFn
+    EoS_nb_from_rho,
+    EoS_Yp_from_rho,
+    EoS_mp_ast_from_rho,
+    EoS_kFe_from_rho,
+    EoS_kFn_from_rho
 end
 
 function EoS_LInterpSkyrme(
