@@ -23,7 +23,11 @@ Equation of motion control
 - 'EoS_inv': The density presure relation of the specific EoS.
 
 """
-function EoS_Type(EoSName::String; Parameters::ParameterType = nothing, FileInput = nothing)
+function EoS_Type(
+    EoSName::String;
+    Parameters::Union{ParameterType,Nothing} = nothing,
+    FileInput = nothing,
+)
     if EoSName == "LinterpSkyrme"
         EoS, EoS_inv, EoS_ρ2nb, EoS_ρ2Yp, EoS_ρ2mp_ast, EoS_ρ2kFe, EoS_ρ2kFn =
             EoS_LInterpSkyrme(FileInput)
