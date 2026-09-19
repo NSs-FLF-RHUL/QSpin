@@ -1,3 +1,6 @@
+using SciMLBase: ContinuousCallback, terminate!, ODEProblem
+using CommonSolve: CommonSolve
+using SpecialFunctions: besselj1
 """
 $(TYPEDSIGNATURES)
 
@@ -41,13 +44,31 @@ function mfrictionGraber2016(type::String)
     Δn[kFn .< g0] .= 1e-9
     Δn[kFn .> g2] .= 1e-9
     β1 = @. 4.1 *
-       sqrt((1/mnast) * (mnstar - 1 + mpstar)^(-1) * ρ * 1e-14 * (yp/0.05)) *
+       sqrt((1/mn_ast) * (mn_star - 1 + mp_star)^(-1) * ρ * 1e-14 * (yp/0.05)) *
        (kFn / 2.0) *
        (0.05 / Δn)
-    β2 = @. 8e2 * (1/mnast) * (kFe / 0.75) * (kFb / 2)
-    B_core
+    (0.05 / Δn)
+    β2 = @. 8e2 * (1/mn_ast) * (kFe / 0.75) * (kFb / 2)
+    B_core = @. 3 * π / 2 * xp ./ (1-xp) * (1/mn_ast)^2 * (1 - mp_ast)^2 * β1^4 / β2^3 *
+       B_integral(β2)
 
 end
+
+function skyrme_effective_mass(
+    nb::Union{Float64,AbstractArray},
+    x::Union{Float64,AbstractArray},
+    a::Float64,
+    b::Float64,
+)
+    δ = 1 .- 2 * Yp
+
+    mp_ast = @. 1 / (1 + a * nb + b * nb * δ)
+    mn_ast = @. 1 / (1 + a * nb - b * nb * δ)
+
+    return mn_ast, mp_ast
+end
+
+
 
 function gap_n(kFn::Union{Float64,AbstractArray}, type::String)
     if type == "s"
@@ -75,4 +96,26 @@ function gap_n(kFn::Union{Float64,AbstractArray}, type::String)
     Δn[kFn .< g0] .= 1e-9
     Δn[kFn .> g2] .= 1e-9
     return Δn
+end
+
+function jinc(x::Union{Float64,AbstractArray,AbstractVector})
+    @. iszero(x) ? 0.5 : besselj1(x) / (x)
+end
+
+function Bcore_integrand(u, params, t)
+    β1, β2 = params
+    return (β2^2 + 0.5 * t .^ 2) ./ (β1 + t .^ 2)^2 * (jinc(t)) .^ 2
+end
+
+function B_integral(integrand::Function, params::Tuple{Float64,Float64})
+    u0 = 0.0
+    problem = ODEProblem(integrand, u0, (0.0, params[2]), params)
+    sol = CommonSolve.solve(
+        problem,
+        alg = Tsit5(),
+        reltol = 1e-6,
+        abstol = 1e-6,
+        saveat = params[2],
+    )
+    return sol.u[end][1]
 end

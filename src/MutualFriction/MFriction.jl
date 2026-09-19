@@ -6,9 +6,9 @@ using DocStringExtensions: TYPEDSIGNATURES
 using ..PhysicalConstants: hbar, neutron_mass, electron_volt
 using ..Parameters: ParameterType
 
-include("mfrictionGraber2016.jl")
-include("mfrictionGraber2018.jl")
 
+include("mfrictionInnerCrust.jl")
+include("mfrictionOuterCore.jl")
 
 """
 
