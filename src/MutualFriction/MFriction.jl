@@ -9,7 +9,6 @@ using ..Parameters: ParameterType
 
 include("mfrictionInnerCrust.jl")
 include("mfrictionOuterCore.jl")
-
 """
 
 $(TYPEDSIGNATURES)

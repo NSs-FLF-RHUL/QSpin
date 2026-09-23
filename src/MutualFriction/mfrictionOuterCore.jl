@@ -17,7 +17,7 @@ Here things are converted in the SI units so as MutualFrictionCoefficients
 - 'output': A tuple containing the input parameters (in their original units from the input JSON file) and the calculated mutual friction parameters in array forms. The qubic spline interpolations for the mutual friction coefficients, B_EW and B_J, as functions of the superfluid density (in kg * m^-3, while the coverted input is in kg fm^-3) are included.
 """
 
-function mfrictionGraber2016(type::String)
+function mfrictionGraber2016(type::String, Params::ParameterType)
     if type == "s"
         Δ0 = 68.0
         g0 = 0.1
@@ -37,7 +37,10 @@ function mfrictionGraber2016(type::String)
             ),
         )
     end
-    kFn = kFe = B_sf = 4e-4
+    kFn = Params.kFn
+    kFb = Params.kFb
+    kFe = Params.kFe
+    B_sf = 4e-4
 
     Δn = @. Δ0 * (kFn - g0) ^ 2 / ((kFn - g0) ^ 2 + g1) * (kFn - g2) ^ 2 /
        ((kFn-g2) .^ 2 + g3)
@@ -50,8 +53,8 @@ function mfrictionGraber2016(type::String)
     (0.05 / Δn)
     β2 = @. 8e2 * (1/mn_ast) * (kFe / 0.75) * (kFb / 2)
     B_core = @. 3 * π / 2 * xp ./ (1-xp) * (1/mn_ast)^2 * (1 - mp_ast)^2 * β1^4 / β2^3 *
-       B_integral(β2)
-
+       B_integral(Bcore_integrand, (β1, β2))
+    return B_sf, B_core
 end
 
 function skyrme_effective_mass(
