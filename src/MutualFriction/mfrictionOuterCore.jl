@@ -1,6 +1,8 @@
 using SciMLBase: ContinuousCallback, terminate!, ODEProblem
 using CommonSolve: CommonSolve
+using OrdinaryDiffEqTsit5: Tsit5
 using SpecialFunctions: besselj1
+
 """
 $(TYPEDSIGNATURES)
 
@@ -40,26 +42,38 @@ function mfrictionGraber2016(type::String, Params::ParameterType)
     kFn = Params.kFn
     kFb = Params.kFb
     kFe = Params.kFe
-    B_sf = 4e-4
+    B_sf = Params.B_sf
 
     Δn = @. Δ0 * (kFn - g0) ^ 2 / ((kFn - g0) ^ 2 + g1) * (kFn - g2) ^ 2 /
        ((kFn-g2) .^ 2 + g3)
     Δn[kFn .< g0] .= 1e-9
     Δn[kFn .> g2] .= 1e-9
+
+    mn_ast, mp_ast = skyrme_effective_mass(Params.nb, Params.Yp, Params.a, Params.b)
+    println(mn_ast)
+
+    println(mp_ast)
     β1 = @. 4.1 *
-       sqrt((1/mn_ast) * (mn_star - 1 + mp_star)^(-1) * ρ * 1e-14 * (yp/0.05)) *
+       sqrt(
+           (1.0 / mn_ast) *
+           (mn_ast - 1.0 + mp_ast)^(-1) *
+           Params.nb *
+           1e-14 *
+           (Params.Yp/0.05),
+       ) *
        (kFn / 2.0) *
        (0.05 / Δn)
-    (0.05 / Δn)
-    β2 = @. 8e2 * (1/mn_ast) * (kFe / 0.75) * (kFb / 2)
-    B_core = @. 3 * π / 2 * xp ./ (1-xp) * (1/mn_ast)^2 * (1 - mp_ast)^2 * β1^4 / β2^3 *
-       B_integral(Bcore_integrand, (β1, β2))
+    β2 = @. 8e2 * (1.0 / mn_ast) * (kFe / 0.75) * (kFb / 2.0)
+
+    B_core =
+        @. 3 * π / 2 * Params.Yp / (1-Params.Yp) * (1/mn_ast)^2 * (1 - mp_ast)^2 * β1^4 /
+           β2^3 * B_integral(Bcore_integrand, (β1, β2))
     return B_sf, B_core
 end
 
 function skyrme_effective_mass(
     nb::Union{Float64,AbstractArray},
-    x::Union{Float64,AbstractArray},
+    Yp::Union{Float64,AbstractArray},
     a::Float64,
     b::Float64,
 )
@@ -110,7 +124,7 @@ function Bcore_integrand(u, params, t)
     return (β2^2 + 0.5 * t .^ 2) ./ (β1 + t .^ 2)^2 * (jinc(t)) .^ 2
 end
 
-function B_integral(integrand::Function, params::Tuple{Float64,Float64})
+function B_integral(integrand::Function, params)
     u0 = 0.0
     problem = ODEProblem(integrand, u0, (0.0, params[2]), params)
     sol = CommonSolve.solve(
