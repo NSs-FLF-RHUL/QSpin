@@ -68,7 +68,7 @@ function mfrictionGraber2016(type::String, Params::ParameterType)
     B_core =
         @. 3 * π / 2 * Params.Yp / (1-Params.Yp) * (1/mn_ast)^2 * (1 - mp_ast)^2 * β1^4 /
            β2^3 * B_integral(Bcore_integrand, (β1, β2))
-    return B_sf, B_core
+    return Bs = (; B_sf, B_core)
 end
 
 function skyrme_effective_mass(
