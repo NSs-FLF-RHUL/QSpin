@@ -4,7 +4,7 @@ using QSpin.Parameters: ParameterType
 using QSpin.TOV: TOV_Solve
 using QSpin.TOV.EquationOfState: EoS_Type
 using Plots, LaTeXStrings
-
+using QSpin.MFriction: mfrictionGraber2016
 file_name = "src/TOV/EoS/WNewton/eos_SkXi450_28.0_40.00_-100.00_glitch.dat"
 
 Sim_Input = (
@@ -30,6 +30,20 @@ u0 = [EoS(Sim_Input.ρ0); 0.0];
     abstol = 1e-13,
     input_units = Sim_Input.units, # optional
     rho_ref = 2.8e14, # optional - nuclear saturation density in g/cm^3
-)
+);
 
 plot!(TOV_sol.r*1e-5, TOV_sol.ρr)
+
+
+kFn = EoS_kFn(TOV_sol.ρr)
+kFn[kFn .< 0.0] .= 0.0;
+kFe = EoS_kFe(TOV_sol.ρr)
+kFe[kFe .< 0.0] .= 0.0;
+Yp = EoS_Yp(TOV_sol.ρr)
+Yp[Yp .< 0.0] .= 0.0;
+nb = EoS_nb(TOV_sol.ρr)
+nb[nb .< 0.0] .= 0.0;
+
+Params = (kFn = kFn, kFe = kFe, nb = nb, Yp = Yp, B_sf = 4e-4, a = 3.5, b = -4.0)
+
+Bs = mfrictionGraber2016("p", Params)

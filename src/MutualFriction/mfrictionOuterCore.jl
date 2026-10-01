@@ -40,7 +40,6 @@ function mfrictionGraber2016(type::String, Params::ParameterType)
         )
     end
     kFn = Params.kFn
-    kFb = Params.kFb
     kFe = Params.kFe
     B_sf = Params.B_sf
 
@@ -50,9 +49,7 @@ function mfrictionGraber2016(type::String, Params::ParameterType)
     Δn[kFn .> g2] .= 1e-9
 
     mn_ast, mp_ast = skyrme_effective_mass(Params.nb, Params.Yp, Params.a, Params.b)
-    println(mn_ast)
 
-    println(mp_ast)
     β1 = @. 4.1 *
        sqrt(
            (1.0 / mn_ast) *
@@ -63,7 +60,7 @@ function mfrictionGraber2016(type::String, Params::ParameterType)
        ) *
        (kFn / 2.0) *
        (0.05 / Δn)
-    β2 = @. 8e2 * (1.0 / mn_ast) * (kFe / 0.75) * (kFb / 2.0)
+    β2 = @. 8e2 * (1.0 / mn_ast) * (kFe / 0.75) * (kFn / 2.0)
 
     B_core =
         @. 3 * π / 2 * Params.Yp / (1-Params.Yp) * (1/mn_ast)^2 * (1 - mp_ast)^2 * β1^4 /

@@ -51,6 +51,8 @@ function EoS_LInterpSkyrme(
         QuadraticSpline(kFe, rho; extrapolation = ExtrapolationType.Extension)
     EoS_kFn_from_rho =
         QuadraticSpline(kFn, rho; extrapolation = ExtrapolationType.Extension)
+
+
     return EoS_P_from_rho,
     EoS_rho_from_P,
     EoS_nb_from_rho,
