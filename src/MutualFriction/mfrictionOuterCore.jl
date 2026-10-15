@@ -19,7 +19,7 @@ Here things are converted in the SI units so as MutualFrictionCoefficients
 - 'output': A tuple containing the input parameters (in their original units from the input JSON file) and the calculated mutual friction parameters in array forms. The qubic spline interpolations for the mutual friction coefficients, B_EW and B_J, as functions of the superfluid density (in kg * m^-3, while the coverted input is in kg fm^-3) are included.
 """
 
-function mfrictionGraber2016(type::String, Params::ParameterType)
+function mfrictionGraber2016(type, Params)
     if type == "s"
         Δ0 = 68.0
         g0 = 0.1
@@ -48,23 +48,30 @@ function mfrictionGraber2016(type::String, Params::ParameterType)
     Δn[kFn .< g0] .= 1e-9
     Δn[kFn .> g2] .= 1e-9
 
-    mn_ast, mp_ast = skyrme_effective_mass(Params.nb, Params.Yp, Params.a, Params.b)
+    mn_ast, mp_ast = skyrme_effective_mass(Params.nb*1e-39, Params.Yp, Params.a, Params.b)
 
     β1 = @. 4.1 *
        sqrt(
            (1.0 / mn_ast) *
-           (mn_ast - 1.0 + mp_ast)^(-1) *
-           Params.nb *
+           abs(mn_ast - 1.0 + mp_ast)^(-1) *
+           Params.ρ *
            1e-14 *
            (Params.Yp/0.05),
        ) *
        (kFn / 2.0) *
        (0.05 / Δn)
-    β2 = @. 8e2 * (1.0 / mn_ast) * (kFe / 0.75) * (kFn / 2.0)
+    β2 = @. 8e2 * (1.0 / mn_ast) * (kFe / 0.75) * (kFn / 2.0) * (0.05 / Δn)
+
+
+    integral = ifelse.(
+        (kFn .> g0) .& (kFn .< g2),
+        B_integral.(Bcore_integrand, 0.0, β2, β1, β2),
+        0.0,
+    )
 
     B_core =
         @. 3 * π / 2 * Params.Yp / (1-Params.Yp) * (1/mn_ast)^2 * (1 - mp_ast)^2 * β1^4 /
-           β2^3 * B_integral(Bcore_integrand, (β1, β2))
+           β2^3 * integral
     return Bs = (; B_sf, B_core)
 end
 
@@ -118,18 +125,35 @@ end
 
 function Bcore_integrand(u, params, t)
     β1, β2 = params
-    return (β2^2 + 0.5 * t .^ 2) ./ (β1 + t .^ 2)^2 * (jinc(t)) .^ 2
+    return (β2^2 + 0.5 * t .^ 2) ./ (β1^2 + t .^ 2)^2 * (jinc(t)) .^ 2
 end
 
-function B_integral(integrand::Function, params)
+function integral_output(kFn, g0, g2, β1, β2)
+    output = if kFn > g0 && kFn < g2
+        B_integral(Bcore_integrand, (β1, β2))
+    elseif g2 - kFn < 0.02 && kFn < g2
+        0.0
+    elseif g2 - kFn < 0.1 && kFn < g2
+        B_integral(Bcore_integrand, (β1, β2))
+    elseif kFn > g2 || kFn < g0
+        0.0
+    end
+    return output
+end
+
+function B_integral(
+    integrand::Function,
+    lower_bound,
+    upper_bound,
+    β1::Union{Float64,AbstractArray},
+    β2::Union{Float64,AbstractArray},
+)
     u0 = 0.0
-    problem = ODEProblem(integrand, u0, (0.0, params[2]), params)
-    sol = CommonSolve.solve(
-        problem,
-        alg = Tsit5(),
-        reltol = 1e-6,
-        abstol = 1e-6,
-        saveat = params[2],
-    )
+    if β2 == 0.0
+        return 0.0
+    end
+    problem = ODEProblem(integrand, u0, (lower_bound, upper_bound), (β1, β2))
+    sol =
+        CommonSolve.solve(problem, alg = Tsit5(), reltol = 1e-6, abstol = 1e-6, saveat = β2)
     return sol.u[end][1]
 end

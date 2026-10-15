@@ -3,12 +3,13 @@ using QSpin
 using QSpin.Parameters: ParameterType
 using QSpin.TOV: TOV_Solve
 using QSpin.TOV.EquationOfState: EoS_Type
+using QSpin.GlitchModels: ThreeCompGCA2018!, gm_input
 using Plots, LaTeXStrings
 using QSpin.MFriction: mfrictionGraber2016
 file_name = "src/TOV/EoS/WNewton/eos_SkXi450_28.0_40.00_-100.00_glitch.dat"
 
 Sim_Input = (
-    ρ0 = 5e15, # Initial central density in g/cm^3, above 2e16 seems to be unstable
+    ρ0 = 1e15, # Initial central density in g/cm^3, above 2e16 seems to be unstable
     dr = 0.0001*1e5, # Radial step in cm
     Dr = 0.005*1e5, # Radial interval for recording values in cm
     r_beg = 0.e5,
@@ -18,6 +19,8 @@ Sim_Input = (
 EoS, EoS_inv, EoS_nb, EoS_Yp, EoS_mp, EoS_kFe, EoS_kFn =
     EoS_Type("LinterpSkyrme", FileInput = file_name);
 u0 = [EoS(Sim_Input.ρ0); 0.0];
+
+
 
 # Callback setup to terminate the integration when the pressure drops below zero
 @time TOV_sol = TOV_Solve(
@@ -44,6 +47,39 @@ Yp[Yp .< 0.0] .= 0.0;
 nb = EoS_nb(TOV_sol.ρr)
 nb[nb .< 0.0] .= 0.0;
 
-Params = (kFn = kFn, kFe = kFe, nb = nb, Yp = Yp, B_sf = 4e-4, a = 3.5, b = -4.0)
+Params =
+    (kFn = kFn, kFe = kFe, nb = nb, Yp = Yp, ρ = TOV_sol.ρr, B_sf = 4e-4, a = 4.2, b = 2.7)
 
 Bs = mfrictionGraber2016("p", Params)
+
+# Setting initial conditions for the glitch model
+Ω_ini = [Sim_Input.Ω_crust; Sim_Input.Ω_sf*ones(size(TOV_sol.r)); Sim_Input.Ω_core]
+
+# Wrap the parameters in the glith model
+EoMSetup = (
+    rho = TOV_sol.ρr,
+    r = TOV_sol.r,
+    M_NS = TOV_sol.M,
+    R_NS = TOV_sol.R,
+    R_cci = Sim_Input.R_cci, # 10 km in cm
+    B_sf = Sim_Input.B_sf, # Mutual Friction Parameter
+    B_core = Bs.B_core, # Mutual Friction Parameter
+    N_ext = Sim_Input.N_ext,
+)
+
+EoM! = ThreCompGeneral!!(EoMSetup; value_check = true)
+@time sol = evolve(
+    EoM!,
+    Ω_ini,
+    0.0,
+    Sim_Input.t_end,
+    Sim_Input;
+    alg = Tsit5(),
+    saveat = Sim_Input.Dt,
+    reltol = 1e-14,
+    abstol = 1e-14,
+)
+
+# Data Reading and Plotting
+Ωt = Array(sol);
+t = sol.t;
