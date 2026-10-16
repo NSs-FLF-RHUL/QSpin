@@ -52,6 +52,9 @@ function EoS_LInterpSkyrme(
     EoS_kFn_from_rho =
         QuadraticSpline(kFn, rho; extrapolation = ExtrapolationType.Extension)
 
+    imp_zero = findall(iszero, EoS_mp_ast_from_rho.u)
+    inb_cci = findlast(x->x<0.2, EoS_nb_from_rho.u[imp_zero]*1e-39)
+    ρ_cci = EoS_rho_from_P.u[imp_zero[inb_cci]]
 
     return EoS_P_from_rho,
     EoS_rho_from_P,
@@ -59,7 +62,8 @@ function EoS_LInterpSkyrme(
     EoS_Yp_from_rho,
     EoS_mp_ast_from_rho,
     EoS_kFe_from_rho,
-    EoS_kFn_from_rho
+    EoS_kFn_from_rho,
+    ρ_cci
 end
 
 function EoS_LInterpSkyrme(
