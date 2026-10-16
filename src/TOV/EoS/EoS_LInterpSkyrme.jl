@@ -19,22 +19,24 @@ Loading the data from a pre-computed equation of state (EoS) and using quadratic
 """
 function EoS_LInterpSkyrme(
     input::Union{DataFrame,AbstractMatrix{Float64}};
-    EoS_indices::Tuple{Int64,Int64,Int64,Int64,Int64,Int64,Int64} = (
+    EoS_indices::Tuple{Int64,Int64,Int64,Int64,Int64,Int64,Int64,Int64} = (
         1,
         2,
         3,
+        4,
         9,
         10,
         14,
         16,
     ),
 )
-    i_rho, i_press, i_nb, i_Yp, i_mp_ast, i_kFe, i_kFn = EoS_indices
+    i_rho, i_press, i_nb, i_rhoN, i_Yp, i_mp_ast, i_kFe, i_kFn = EoS_indices
     input = Array(input)
     input = sortslices(input, dims = i_rho)
     rho = input[:, i_rho]
     press = input[:, i_press]
     nb = input[:, i_nb]
+    rhoN = input[:, i_rhoN]
     Yp = input[:, i_Yp] # Do we really need this? It seems not used in the mutual fricition evaluations.
     mp_ast = input[:, i_mp_ast]
     kFe = input[:, i_kFe]
@@ -44,6 +46,8 @@ function EoS_LInterpSkyrme(
     EoS_rho_from_P =
         QuadraticSpline(rho, press; extrapolation = ExtrapolationType.Extension)
     EoS_nb_from_rho = QuadraticSpline(nb, rho; extrapolation = ExtrapolationType.Extension)
+    EoS_rhoN_from_rho =
+        QuadraticSpline(rhoN, rho; extrapolation = ExtrapolationType.Extension)
     EoS_Yp_from_rho = QuadraticSpline(Yp, rho; extrapolation = ExtrapolationType.Extension)
     EoS_mp_ast_from_rho =
         QuadraticSpline(mp_ast, rho; extrapolation = ExtrapolationType.Extension)
@@ -59,6 +63,7 @@ function EoS_LInterpSkyrme(
     return EoS_P_from_rho,
     EoS_rho_from_P,
     EoS_nb_from_rho,
+    EoS_rhoN_from_rho,
     EoS_Yp_from_rho,
     EoS_mp_ast_from_rho,
     EoS_kFe_from_rho,
@@ -68,10 +73,11 @@ end
 
 function EoS_LInterpSkyrme(
     file_input::String;
-    EoS_indices::Tuple{Int64,Int64,Int64,Int64,Int64,Int64,Int64} = (
+    EoS_indices::Tuple{Int64,Int64,Int64,Int64,Int64,Int64,Int64,Int64} = (
         1,
         2,
         3,
+        4,
         9,
         10,
         14,
