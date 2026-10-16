@@ -136,7 +136,8 @@ function ThreeCompGeneral!(
     dr = diff(EoMSetup.r)
     dr = [dr; dr[end]]
     Nr = length(EoMSetup.r);
-    R_drip = EoMSetup.r[argmin(abs.(EoMSetup.rho .- ρ_drip))]
+    i_drip = argmin(abs.(EoMSetup.rho .- ρ_drip))
+    R_drip = EoMSetup.r[i_drip]
     R_cci = EoMSetup.R_cci
 
     # R_ccit = Chat with Will
@@ -160,7 +161,7 @@ function ThreeCompGeneral!(
     I_total_n = integral_moi_sph(EoMSetup.rhoN, EoMSetup.r; r_range = (0.0, EoMSetup.R_NS))
 
     I_proton = I_total - I_crust_total - I_core_n
-    I_charged = I_total - I_total_n
+    I_c = I_total - I_total_n  # I_charged in WN's code
 
     h_eff = 0.5 * I_crust_total / I_crust_unit
     if value_check
@@ -185,33 +186,33 @@ function ThreeCompGeneral!(
         time::Float64,
     )
         # dΩ_sf/dt
-        Ω_sf = Ω[2:(Nr+1)];
-        Ω_core = Ω[(Nr+2):end];
+        Ω_sf = Ω[2:(i_drip+1)];
+        Ω_core = Ω[(i_drip+2):end];
         #Bsf = Param.B_sf * Param.ρr ./ maximum(Param.ρr); # Scaling B_sf with the local density profile
         dΩ_sfdr = [diff(Ω_sf); 0.0] ./ dr;
-        dΩ[2:(Nr+1)] = EoMSetup.B_sf .* (2 * Ω_sf + EoMSetup.r .* dΩ_sfdr) .* (Ω[1] .- Ω_sf);
+        dΩ[2:(i_drip+1)] =
+            EoMSetup.B_sf .* (2 * Ω_sf + EoMSetup.r .* dΩ_sfdr) .* (Ω[1] .- Ω_sf);
         dΩ_sf_net =
             2 *
             h_eff *
             integral_moi_cyl(
-                EoMSetup.rho .* dΩ[2:(Nr+1)],
+                EoMSetup.rho .* dΩ[2:(i_drip+1)],
                 EoMSetup.r;
                 r_range = (EoMSetup.R_cci, R_drip),
             )
         # dΩ_core/dt
         dΩ_coredr = [diff(Ω_core); 0.0] ./ dr;
-        dΩ[(Nr+2):end] =
+        dΩ[(i_drip+2):end] =
             EoMSetup.B_core * (2 * Ω_core + EoMSetup.r .* dΩ_coredr) .* (Ω[1] .- Ω_core);
         dΩ_core_net =
             2 *
             h_eff * # should h_eff be different?
             integral_moi_cyl(
-                EoMSetup.rho .* dΩ[(Nr+2):end],
+                EoMSetup.rho .* dΩ[(i_drip+2):end],
                 EoMSetup.r;
                 r_range = (0.0, R_cci),
             )
         # dΩ_crust/dt
-        # I_charged or I crust?
         dΩ[1] = (-EoMSetup.N_ext - dΩ_core_net - dΩ_sf_net)/I_c;
     end
     return ThreeComMod_inner!
