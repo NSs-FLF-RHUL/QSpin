@@ -128,7 +128,7 @@ The equations of motion are based on the mutual friction coefficients and the ex
 - 'ThreeComMod_inner!::Function`: The function that evaluates the EoM.
 
 """
-function ThreCompGeneral!(
+function ThreeCompGeneral!(
     EoMSetup::ParameterType;
     ρ_drip::Float64 = 4e11, # cgs units
     value_check::Bool = false,
@@ -137,6 +137,8 @@ function ThreCompGeneral!(
     dr = [dr; dr[end]]
     Nr = length(EoMSetup.r);
     R_drip = EoMSetup.r[argmin(abs.(EoMSetup.rho .- ρ_drip))]
+    R_cci = EoMSetup.R_cci
+
     # R_ccit = Chat with Will
     I_total = integral_moi_sph(EoMSetup.rho, EoMSetup.r; r_range = (0.0, EoMSetup.R_NS))
 
@@ -144,7 +146,7 @@ function ThreCompGeneral!(
     I_crust_total =
         integral_moi_sph(EoMSetup.rho, EoMSetup.r; r_range = (R_cci, EoMSetup.R_NS))
     I_core = integral_moi_sph(EoMSetup.rho, EoMSetup.r; r_range = (0.0, EoMSetup.R_cci))
-
+    I_crust = I_total - I_core - I_sf
     I_crust_unit = integral_moi_cyl(
         EoMSetup.rho,
         EoMSetup.r;
