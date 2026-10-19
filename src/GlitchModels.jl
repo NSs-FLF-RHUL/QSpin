@@ -184,15 +184,20 @@ function ThreeCompGeneral!(
         println(" * I_crust = ", I_crust)
         println(" * R_drip = ", R_drip)
     end
+
+
     function ThreeComMod_inner!(
         dΩ::AbstractArray,
         Ω::AbstractArray,
         Param::ParameterType,
         time::Float64,
     )
+
         # dΩ_sf/dt
         Ω_sf = Ω[2:(i_drip-i_cci+1)];
         Ω_core = Ω[(i_drip-i_cci+2):end];
+
+
         #Bsf = Param.B_sf * Param.ρr ./ maximum(Param.ρr); # Scaling B_sf with the local density profile
         dΩ_sfdr = diff(Ω[2:(i_drip-i_cci+2)]) ./ dr_sf;
         dΩ[2:(i_drip-i_cci+1)] =
@@ -219,6 +224,9 @@ function ThreeCompGeneral!(
             )
         # dΩ_crust/dt
         dΩ[1] = (-EoMSetup.N_ext - dΩ_core_net - dΩ_sf_net)/I_c
+
+        #    @assert length(Ω) == i_drip + 1  "Ω has wrong length: $(length(Ω)), expected $(i_drip+1)"
+
     end
     return ThreeComMod_inner!
 

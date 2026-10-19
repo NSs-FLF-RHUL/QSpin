@@ -6,6 +6,8 @@ using QSpin.TOV.EquationOfState: EoS_Type
 using QSpin.GlitchModels: ThreeCompGeneral!, gm_input
 using Plots, LaTeXStrings
 using QSpin.MFriction: mfrictionGraber2016
+using QSpin.OdeSolve: evolve
+using OrdinaryDiffEqTsit5: Tsit5
 file_name = "src/TOV/EoS/WNewton/eos_SkXi450_28.0_40.00_-100.00_glitch.dat"
 
 Sim_Input = (
@@ -17,8 +19,8 @@ Sim_Input = (
     B_sf = 1e-3, # Mutual Friction Parameter for the SF component
     N_ext = 0,
     Ω_crust = 70.0, # Initial angular velocity of the crust in rad/s
-    Ω_sf = 70.0, # Initial angular velocity of the superfluid in rad/s
-    Ω_core = 70.0, # Initial angular velocity of the core in rad
+    Ω_sf = 70.2, # Initial angular velocity of the superfluid in rad/s
+    Ω_core = 70.3, # Initial angular velocity of the core in rad
     ρ_drip = 4e11, # cgs units
     t_end = 1e6, # Total simulation time in seconds
     Dt = 1e3, # Time step for saving data in seconds
@@ -59,14 +61,15 @@ Params =
 
 Bs = mfrictionGraber2016("p", Params)
 
-icci = findfirst(x->x<=ρ_cci, TOV_sol.ρr)
-idrip = findfirst(x->x<=Sim_Input.ρ_drip, TOV_sol.ρr)
-
+#i_cci = findfirst(x->x<=ρ_cci, TOV_sol.ρr)
+#i_drip = findfirst(x->x<=Sim_Input.ρ_drip, TOV_sol.ρr)
+i_drip = argmin(abs.(TOV_sol.ρr .- Sim_Input.ρ_drip))
+i_cci = argmin(abs.(TOV_sol.ρr .- ρ_cci))
 # Setting initial conditions for the glitch model
 Ω_ini = [
     Sim_Input.Ω_crust;
-    Sim_Input.Ω_sf*ones(size(TOV_sol.r[(icci+1):idrip]));
-    Sim_Input.Ω_core*ones(size(TOV_sol.r[1:icci]))
+    Sim_Input.Ω_sf*ones(size(TOV_sol.r[(i_cci+1):i_drip]));
+    Sim_Input.Ω_core*ones(size(TOV_sol.r[1:i_cci]))
 ]
 
 
@@ -74,18 +77,23 @@ idrip = findfirst(x->x<=Sim_Input.ρ_drip, TOV_sol.ρr)
 # Wrap the parameters in the glith model
 EoMSetup = (
     rho = TOV_sol.ρr,
-    rhoN = TOV_sol.ρr,
+    rhoN = EoS_ρN(TOV_sol.ρr),
     r = TOV_sol.r,
     M_NS = TOV_sol.M,
     R_NS = TOV_sol.R,
-    R_cci = TOV_sol.r[icci], # 10 km in cm
+    ρ_cci = TOV_sol.ρr[i_cci], # 10 km in cm
     B_sf = Sim_Input.B_sf, # Mutual Friction Parameter
-    B_core = Bs.B_core, # Mutual Friction Parameter
+    B_core = Bs.B_core[1:i_cci], # Mutual Friction Parameter
     N_ext = Sim_Input.N_ext,
     ρ_drip = Sim_Input.ρ_drip, # Drip density in g/cm^3
 )
 
-EoM! = ThreeCompGeneral!(EoMSetup; ρ_drip = Sim_Input.ρ_drip, value_check = true)
+EoM! = ThreeCompGeneral!(
+    EoMSetup;
+    ρ_drip = Sim_Input.ρ_drip,
+    ρ_cci = EoMSetup.ρ_cci,
+    value_check = true,
+)
 @time sol = evolve(
     EoM!,
     Ω_ini,
