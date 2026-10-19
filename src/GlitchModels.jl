@@ -131,14 +131,22 @@ The equations of motion are based on the mutual friction coefficients and the ex
 function ThreeCompGeneral!(
     EoMSetup::ParameterType;
     ρ_drip::Float64 = 4e11, # cgs units
+    ρ_cci::Float64 = 1e14, # cgs units
     value_check::Bool = false,
 )
-    dr = diff(EoMSetup.r)
-    dr = [dr; dr[end]]
-    Nr = length(EoMSetup.r);
     i_drip = argmin(abs.(EoMSetup.rho .- ρ_drip))
+    i_cci = argmin(abs.(EoMSetup.rho .- ρ_cci))
     R_drip = EoMSetup.r[i_drip]
-    R_cci = EoMSetup.R_cci
+    R_cci = EoMSetup.r[i_cci]
+
+    ρ_sf = EoMSetup.rho[(i_cci+1):i_drip]
+    ρ_core = EoMSetup.rho[1:i_cci]
+    r_sf = EoMSetup.r[(i_cci+1):i_drip]
+    r_core = EoMSetup.r[1:i_cci]
+    dr_sf = diff(EoMSetup.r[(i_cci+1):(i_drip+1)])
+    dr_core = diff(EoMSetup.r[1:(i_cci+1)])
+
+
 
     # R_ccit = Chat with Will
     I_total = integral_moi_sph(EoMSetup.rho, EoMSetup.r; r_range = (0.0, EoMSetup.R_NS))
@@ -146,17 +154,14 @@ function ThreeCompGeneral!(
     I_sf = integral_moi_sph(EoMSetup.rho, EoMSetup.r; r_range = (R_cci, R_drip))
     I_crust_total =
         integral_moi_sph(EoMSetup.rho, EoMSetup.r; r_range = (R_cci, EoMSetup.R_NS))
-    I_core = integral_moi_sph(EoMSetup.rho, EoMSetup.r; r_range = (0.0, EoMSetup.R_cci))
+    I_core = integral_moi_sph(EoMSetup.rho, EoMSetup.r; r_range = (0.0, R_cci))
     I_crust = I_total - I_core - I_sf
-    I_crust_unit = integral_moi_cyl(
-        EoMSetup.rho,
-        EoMSetup.r;
-        r_range = (EoMSetup.R_cci, EoMSetup.R_NS),
-    )
+    I_crust_unit =
+        integral_moi_cyl(EoMSetup.rho, EoMSetup.r; r_range = (R_cci, EoMSetup.R_NS))
 
     I_core_n_total = integral_moi_sph(EoMSetup.rhoN, EoMSetup.r; r_range = (0.0, R_cci))
 
-    I_core_n = integral_moi_sph(EoMSetup.rhoN, EoMSetup.r; r_range = (0.0, EoMSetup.R_cci))
+    I_core_n = integral_moi_sph(EoMSetup.rhoN, EoMSetup.r; r_range = (0.0, R_cci))
 
     I_total_n = integral_moi_sph(EoMSetup.rhoN, EoMSetup.r; r_range = (0.0, EoMSetup.R_NS))
 
@@ -186,34 +191,34 @@ function ThreeCompGeneral!(
         time::Float64,
     )
         # dΩ_sf/dt
-        Ω_sf = Ω[2:(i_drip+1)];
-        Ω_core = Ω[(i_drip+2):end];
+        Ω_sf = Ω[2:(i_drip-i_cci+1)];
+        Ω_core = Ω[(i_drip-i_cci+2):end];
         #Bsf = Param.B_sf * Param.ρr ./ maximum(Param.ρr); # Scaling B_sf with the local density profile
-        dΩ_sfdr = [diff(Ω_sf); 0.0] ./ dr;
-        dΩ[2:(i_drip+1)] =
-            EoMSetup.B_sf .* (2 * Ω_sf + EoMSetup.r .* dΩ_sfdr) .* (Ω[1] .- Ω_sf);
+        dΩ_sfdr = diff(Ω[2:(i_drip-i_cci+2)]) ./ dr_sf;
+        dΩ[2:(i_drip-i_cci+1)] =
+            EoMSetup.B_sf .* (2 * Ω_sf + r_sf .* dΩ_sfdr) .* (Ω[1] .- Ω_sf);
         dΩ_sf_net =
             2 *
             h_eff *
             integral_moi_cyl(
-                EoMSetup.rho .* dΩ[2:(i_drip+1)],
-                EoMSetup.r;
-                r_range = (EoMSetup.R_cci, R_drip),
+                ρ_sf .* dΩ[2:(i_drip-i_cci+1)],
+                r_sf;
+                r_range = (R_cci+dr_sf[1], R_drip),
             )
         # dΩ_core/dt
-        dΩ_coredr = [diff(Ω_core); 0.0] ./ dr;
-        dΩ[(i_drip+2):end] =
-            EoMSetup.B_core * (2 * Ω_core + EoMSetup.r .* dΩ_coredr) .* (Ω[1] .- Ω_core);
+        dΩ_coredr = diff(Ω[(i_drip-i_cci+1):end]) ./ dr_core;
+        dΩ[(i_drip-i_cci+2):end] =
+            EoMSetup.B_core .* (2 * Ω_core + r_core .* dΩ_coredr) .* (Ω[1] .- Ω_core);
         dΩ_core_net =
             2 *
             h_eff * # should h_eff be different?
             integral_moi_cyl(
-                EoMSetup.rho .* dΩ[(i_drip+2):end],
-                EoMSetup.r;
+                ρ_core .* dΩ[(i_drip-i_cci+2):end],
+                r_core;
                 r_range = (0.0, R_cci),
             )
         # dΩ_crust/dt
-        dΩ[1] = (-EoMSetup.N_ext - dΩ_core_net - dΩ_sf_net)/I_c;
+        dΩ[1] = (-EoMSetup.N_ext - dΩ_core_net - dΩ_sf_net)/I_c
     end
     return ThreeComMod_inner!
 
