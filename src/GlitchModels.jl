@@ -151,7 +151,7 @@ function ThreeCompGeneral!(
     # R_ccit = Chat with Will
     I_total = integral_moi_sph(EoMSetup.rho, EoMSetup.r; r_range = (0.0, EoMSetup.R_NS))
 
-    I_sf = integral_moi_sph(EoMSetup.rho, EoMSetup.r; r_range = (R_cci, R_drip))
+    I_sf = integral_moi_sph(EoMSetup.rhoN, EoMSetup.r; r_range = (R_cci, R_drip))
     I_crust_total =
         integral_moi_sph(EoMSetup.rho, EoMSetup.r; r_range = (R_cci, EoMSetup.R_NS))
     I_core = integral_moi_sph(EoMSetup.rho, EoMSetup.r; r_range = (0.0, R_cci))
@@ -182,6 +182,7 @@ function ThreeCompGeneral!(
         println(" * I_crust_unit = ", I_crust_unit)
         println(" * h_eff = ", h_eff)
         println(" * I_crust = ", I_crust)
+        println(" * I_c = ", I_c)
         println(" * R_drip = ", R_drip)
     end
 
