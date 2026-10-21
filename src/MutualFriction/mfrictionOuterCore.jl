@@ -2,6 +2,7 @@ using SciMLBase: ContinuousCallback, terminate!, ODEProblem
 using CommonSolve: CommonSolve
 using OrdinaryDiffEqTsit5: Tsit5
 using SpecialFunctions: besselj1
+using DataInterpolations: ExtrapolationType, QuadraticSpline
 
 """
 $(TYPEDSIGNATURES)

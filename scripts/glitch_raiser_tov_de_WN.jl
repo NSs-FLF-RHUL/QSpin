@@ -125,16 +125,3 @@ plt1 = plot(
     color = :blue,
     label = "",
 )
-plt2 = heatmap(
-    t[2:i_drip -i_cci+1],
-    TOV_sol.r[i_cci:i_drip]*1e-5,
-    Ωt[2:(i_drip-i_cci+1), 2:end],
-    xaxis = :log10,
-    yaxis = :log10,
-    xlabel = L"t\;(\textrm{s})",
-    ylabel = L"r\;(\textrm{mm})",
-    xticks = [1e-2, 1e-1, 1e0, 1e1, 1e2, 1e3, 1e4],
-    framestyle = :box,
-    color = :viridis,
-    label = "",
-)

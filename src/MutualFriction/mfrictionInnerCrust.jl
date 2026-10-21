@@ -1,3 +1,7 @@
+using JSON: JSON
+using DataInterpolations: ExtrapolationType, QuadraticSpline
+using ..PhysicalConstants: hbar, neutron_mass, electron_volt
+
 """
 $(TYPEDSIGNATURES)
 
