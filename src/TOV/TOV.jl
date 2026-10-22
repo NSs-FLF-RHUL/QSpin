@@ -214,7 +214,7 @@ function MassRadius(
     ρ_centre::Float64;
     r_beg::Float64 = 0.0,
     alg = OrdinaryDiffEqLowOrderRK.DP5(),
-    dr::Float64 = 10.0,
+    dr::Float64 = 0.1,
     Dr::Float64 = 100.0,
     input_units::Union{String} = "CGS",
     rho_ref::Float64 = 2.8e14, # nuclear saturation density in g/cm^3
