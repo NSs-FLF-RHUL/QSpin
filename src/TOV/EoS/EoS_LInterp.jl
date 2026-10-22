@@ -1,6 +1,4 @@
 using DocStringExtensions: TYPEDSIGNATURES
-using ....Parameters: ParameterType
-using Roots: find_zero
 using CSV: File
 using DataFrames: DataFrame, select!
 using DataInterpolations: ExtrapolationType, QuadraticSpline

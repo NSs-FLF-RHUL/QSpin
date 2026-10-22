@@ -1,5 +1,4 @@
 using DocStringExtensions: TYPEDSIGNATURES
-using ....Parameters: ParameterType
 using ....PhysicalConstants: electron_volt, hbar, neutron_mass, speed_of_light_vacuum
 using Roots: find_zero
 """
