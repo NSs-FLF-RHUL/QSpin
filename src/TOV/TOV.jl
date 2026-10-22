@@ -210,6 +210,7 @@ Returns the mass and radius of a neustron star for a given equation of state and
 
 """
 function MassRadius(
+    EoS::Union{Function,QuadraticSpline},
     EoS_inv::Union{Function,QuadraticSpline},
     ρ_centre::Float64;
     r_beg::Float64 = 0.0,
@@ -224,7 +225,7 @@ function MassRadius(
 )
     TOV_sol = TOV_Solve(
         EoS_inv,
-        [EoS_inv(ρ_centre), 0.0],
+        [EoS(ρ_centre); 0.0],
         dr,
         Dr,
         r_beg;
@@ -256,6 +257,7 @@ Returns the mass and radius of a neustron star for a given equation of state and
 
 """
 function rho_c_from_M(
+    EoS::Union{Function,QuadraticSpline},
     EoS_inv::Union{Function,QuadraticSpline},
     M_target::Float64;
     r_beg::Float64 = 0.0,
@@ -269,6 +271,7 @@ function rho_c_from_M(
     abstol = 1e-13,
 )
     func(x) = MassRadius(
+        EoS,
         EoS_inv,
         x;
         r_beg = r_beg,
