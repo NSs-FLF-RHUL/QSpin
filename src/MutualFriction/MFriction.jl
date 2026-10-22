@@ -1,9 +1,7 @@
 module MFriction
 
-
 using DocStringExtensions: TYPEDSIGNATURES
 using ..Parameters: ParameterType
-
 
 include("mfrictionInnerCrust.jl")
 include("mfrictionOuterCore.jl")
