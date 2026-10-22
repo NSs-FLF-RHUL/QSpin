@@ -241,6 +241,20 @@ function MassRadius(
 
 end
 
+"""
+
+$(TYPEDSIGNATURES)
+
+Returns the mass and radius of a neustron star for a given equation of state and a central density, by solving the TOV equation.
+
+# Arguments
+- `EoS_inv::Function`: Single-argument inverse equation-of-state function that maps pressure (``P``) to density (``\\rho``).
+- `M_target::Float64`: Target neutron star mass
+
+# Returns
+- `ρ_cen`: the central desnity for the target mass based on the input equation of state.
+
+"""
 function rho_c_from_M(
     EoS_inv::Union{Function,QuadraticSpline},
     M_target::Float64;
@@ -268,8 +282,7 @@ function rho_c_from_M(
         abstol = abstol,
     )[1]
 
-    ρ_centre = find_zero(x -> func(x) - M_target, (1e13, 1e16))
-    return ρ_centre
+    return find_zero(x -> func(x) - M_target, (1e13, 1e16))
 
 end
 
