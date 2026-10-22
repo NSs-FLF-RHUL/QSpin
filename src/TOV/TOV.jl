@@ -285,7 +285,7 @@ function rho_c_from_M(
         abstol = abstol,
     )[1]
 
-    return find_zero(x -> func(x) - M_target, (1e13, 1e16))
+    return find_zero(x -> func(x) - M_target, (1e13, 5e16))
 
 end
 
