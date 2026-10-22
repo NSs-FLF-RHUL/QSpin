@@ -37,7 +37,7 @@ density/radius profile. `Param.ρs`, `Param.r`, and any explicit `ρ_drip` or
 The defaults represent `ρ_b = ρ_drip = 4e14 kg/m³` and `Rcci = 10 km`.
 """
 function MutualFrictionCoefficients(
-    Param,
+    Param::ParameterType,
     B_itp;
     input_units::String = "SI",
     ρ_b = nothing,
