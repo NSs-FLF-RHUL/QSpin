@@ -269,6 +269,8 @@ function rho_c_from_M(
     r_max::Union{Nothing,Float64} = nothing,
     reltol = 1e-13,
     abstol = 1e-13,
+    lower_bound = 1e13,
+    upper_bound = 5e15,
 )
     func(x) = MassRadius(
         EoS,
@@ -285,7 +287,7 @@ function rho_c_from_M(
         abstol = abstol,
     )[1]
 
-    return find_zero(x -> func(x) - M_target, (1e13, 5e16))
+    return find_zero(x -> func(x) - M_target, (lower_bound, upper_bound))
 
 end
 

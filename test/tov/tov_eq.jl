@@ -337,8 +337,8 @@ using QSpin.PhysicalConstants:
             ρ_b = ρ_b,
         ))
 
-        ρ_c = rho_c_from_M(EoS_inv_Stiff, 1.4*mass_sun*1e3)
-        M, R = MassRadius(EoS_inv_Stiff, ρ_c)
+        ρ_c = rho_c_from_M(EoS_Stiff, EoS_inv_Stiff, 1.4*mass_sun*1e3)
+        M, R = MassRadius(EoS_Stiff, EoS_inv_Stiff, ρ_c)
         @test isapprox(1.4*mass_sun*1e3, M)
     end
 end
