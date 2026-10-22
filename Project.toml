@@ -23,7 +23,7 @@ SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 
 [compat]
 CommonSolve = "0.2.6"
-CSV = "0.10.16"
+CSV = "0.10.16, 1.0"
 DataFrames = "1.8.2"
 DataInterpolations = "9"
 DocStringExtensions = "0.9.5"

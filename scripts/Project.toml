@@ -24,7 +24,7 @@ SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 QSpin = {path = ".."}
 
 [compat]
-CSV = "0.10.16"
+CSV = "0.10.16, 1.0"
 CommonSolve = "0.2.6"
 DataFrames = "1.8.2"
 DataInterpolations = "9"
