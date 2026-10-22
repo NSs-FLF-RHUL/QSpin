@@ -31,7 +31,6 @@ using SciMLBase: ContinuousCallback, terminate!, ODEProblem
 using CommonSolve: CommonSolve
 using DataInterpolations: QuadraticSpline
 using Roots: find_zero
-using QSpin.PhysicalConstants: mass_sun
 
 # Include the equations of state module as a submodule of the TOV module
 include("EoS/EquationOfState.jl")
