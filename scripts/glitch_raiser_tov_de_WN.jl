@@ -1,14 +1,15 @@
 
 using QSpin
 using QSpin.Parameters: ParameterType
-using QSpin.TOV: TOV_Solve
+using QSpin.TOV: TOV_Solve, rho_c_from_M
 using QSpin.TOV.EquationOfState: EoS_Type
 using QSpin.GlitchModels: ThreeCompGeneral!, gm_input
 using Plots, LaTeXStrings
 using QSpin.MFriction: mfrictionGraber2016
 using QSpin.OdeSolve: evolve
 using OrdinaryDiffEqTsit5: Tsit5
-file_name = "src/TOV/EoS/WNewton/eos_SkXi450_28.0_40.00_-100.00_glitch.dat"
+using QSpin.PhysicalConstants: mass_sun
+file_name = "src/TOV/EoS/WNewton/eos_SkXi450_31.0_60.00_-100.00_glitch.dat"
 
 Sim_Input = (
     ρ0 = 1e15, # Initial central density in g/cm^3, above 2e16 seems to be unstable
@@ -28,7 +29,9 @@ Sim_Input = (
 
 EoS, EoS_inv, EoS_nb, EoS_ρN, EoS_Yp, EoS_mp, EoS_kFe, EoS_kFn, ρ_cci =
     EoS_Type("LinterpSkyrme", FileInput = file_name);
-u0 = [EoS(Sim_Input.ρ0); 0.0];
+ρ0 = rho_c_from_M(EoS, EoS_inv, 1.4*1e3*mass_sun)
+
+u0 = [EoS(ρ0); 0.0];
 
 
 
