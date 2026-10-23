@@ -1,8 +1,12 @@
 using DocStringExtensions: TYPEDSIGNATURES
 using Roots: find_zero
-using ....Parameters: ParameterType
 using ....PhysicalConstants: electron_volt, neutron_mass
 
+"""
+$(TYPEDSIGNATURES)
+
+Create EoS functions according to J. Negele & D. Vautherin, Nuclear Physics A 207, 298 (1973).
+"""
 function EoS_NegeleVautherin1973(
     report_transition_pressure::Bool = false,
     ;
