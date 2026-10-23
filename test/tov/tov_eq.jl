@@ -1,4 +1,4 @@
-using QSpin.TOV: TOV_ref_units, tov_eq!, TOV_Solve
+using QSpin.TOV: TOV_ref_units, tov_eq!, TOV_Solve, MassRadius, rho_c_from_M
 using QSpin.TOV.EquationOfState:
     EoS_two_component_polytrope, EoS_GCA2018, EoS_NegeleVautherin1973
 using QSpin.PhysicalConstants:
@@ -326,5 +326,19 @@ using QSpin.PhysicalConstants:
             r_max = 100.0,
         )
         @test si_truncated.R == si_truncated.r[end] == 100.0
+    end
+    @testset "mass-radius relation" begin
+        K_crust = (3 * π^2)^(2 / 3) * (hbar * 1e7)^2 / (5 * (neutron_mass * 1e3)^(8 / 3))
+        ρ_b = 3e14
+        EoS_Stiff, EoS_inv_Stiff = EoS_two_component_polytrope((
+            K_crust = K_crust,
+            γ_crust = 5.0 / 3.0,
+            γ_core = 3.0,
+            ρ_b = ρ_b,
+        ))
+
+        ρ_c = rho_c_from_M(EoS_Stiff, EoS_inv_Stiff, 1.4*mass_sun*1e3)
+        M, R = MassRadius(EoS_Stiff, EoS_inv_Stiff, ρ_c)
+        @test isapprox(1.4*mass_sun*1e3, M)
     end
 end

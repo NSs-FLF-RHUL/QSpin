@@ -30,6 +30,7 @@ using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK
 using SciMLBase: ContinuousCallback, terminate!, ODEProblem
 using CommonSolve: CommonSolve
 using DataInterpolations: QuadraticSpline
+using Roots: find_zero
 
 # Include the equations of state module as a submodule of the TOV module
 include("EoS/EquationOfState.jl")
@@ -190,6 +191,103 @@ function TOV_Solve(
     TOV_sol = (; r, Pr, mr, ρr, R = r[end], M = mr[end])
 
     return TOV_sol
+end
+
+"""
+
+$(TYPEDSIGNATURES)
+
+Returns the mass and radius of a neustron star for a given equation of state and a central density, by solving the TOV equation.
+
+# Arguments
+- `EoS_inv::Function`: Single-argument inverse equation-of-state function that maps pressure (``P``) to density (``\\rho``).
+- `rho_centre::Float64`: Central density of the neutron star in the selected input units.
+
+# Returns
+- `M`: The total mass of the star, defined as the enclosed mass at the radius `R`.
+- `R`: The radius of the star, defined as the radius at which the pressure drops to zero.
+
+"""
+function MassRadius(
+    EoS::Union{Function,QuadraticSpline},
+    EoS_inv::Union{Function,QuadraticSpline},
+    ρ_centre::Float64;
+    r_beg::Float64 = 0.0,
+    alg = OrdinaryDiffEqLowOrderRK.DP5(),
+    dr::Float64 = 0.1,
+    Dr::Float64 = 100.0,
+    input_units::Union{String} = "CGS",
+    rho_ref::Float64 = 2.8e14, # nuclear saturation density in g/cm^3
+    r_max::Union{Nothing,Float64} = nothing,
+    reltol = 1e-13,
+    abstol = 1e-13,
+)
+    TOV_sol = TOV_Solve(
+        EoS_inv,
+        [EoS(ρ_centre); 0.0],
+        dr,
+        Dr,
+        r_beg;
+        alg = alg,
+        dt = dr,
+        saveat = Dr,
+        input_units = input_units,
+        rho_ref = rho_ref,
+        r_max = r_max,
+        reltol = reltol,
+        abstol = abstol,
+    )
+    return TOV_sol.M, TOV_sol.R
+
+end
+
+"""
+
+$(TYPEDSIGNATURES)
+
+Returns the mass and radius of a neustron star for a given equation of state and a central density, by solving the TOV equation.
+
+# Arguments
+- `EoS_inv::Function`: Single-argument inverse equation-of-state function that maps pressure (``P``) to density (``\\rho``).
+- `M_target::Float64`: Target neutron star mass
+
+# Returns
+- `ρ_cen`: the central desnity for the target mass based on the input equation of state.
+
+"""
+function rho_c_from_M(
+    EoS::Union{Function,QuadraticSpline},
+    EoS_inv::Union{Function,QuadraticSpline},
+    M_target::Float64;
+    r_beg::Float64 = 0.0,
+    alg = OrdinaryDiffEqLowOrderRK.DP5(),
+    dr::Float64 = 10.0,
+    Dr::Float64 = 100.0,
+    input_units::Union{String} = "CGS",
+    rho_ref::Float64 = 2.8e14, # nuclear saturation density in g/cm^3
+    r_max::Union{Nothing,Float64} = nothing,
+    reltol = 1e-13,
+    abstol = 1e-13,
+    lower_bound = 1e13,
+    upper_bound = 5e15,
+)
+    func(x) = MassRadius(
+        EoS,
+        EoS_inv,
+        x;
+        r_beg = r_beg,
+        alg = alg,
+        dr = dr,
+        Dr = Dr,
+        input_units = input_units,
+        rho_ref = rho_ref,
+        r_max = r_max,
+        reltol = reltol,
+        abstol = abstol,
+    )[1]
+
+    return find_zero(x -> func(x) - M_target, (lower_bound, upper_bound))
+
 end
 
 end
