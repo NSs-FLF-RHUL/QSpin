@@ -1,4 +1,4 @@
-using SciMLBase: ContinuousCallback, terminate!, ODEProblem
+using SciMLBase: ODEProblem
 using CommonSolve: CommonSolve
 using OrdinaryDiffEqTsit5: Tsit5
 using SpecialFunctions: besselj1
@@ -89,8 +89,6 @@ function skyrme_effective_mass(
 
     return mn_ast, mp_ast
 end
-
-
 
 function gap_n(kFn::Union{Float64,AbstractArray}, type::String)
     if type == "s"
