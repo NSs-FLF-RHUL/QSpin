@@ -124,7 +124,7 @@ end
 
 function Bcore_integrand(u, params, t)
     β1, β2 = params
-    return (β2^2 + 0.5 * t .^ 2) ./ (β1^2 + t .^ 2)^2 * (jinc(t)) .^ 2
+    return @. (β2^2 + 0.5 * t ^ 2) / (β1^2 + t ^ 2) ^ 2 * jinc(t) ^ 2
 end
 
 function integral_output(kFn, g0, g2, β1, β2)
