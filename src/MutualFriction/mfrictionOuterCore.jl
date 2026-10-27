@@ -118,8 +118,8 @@ function gap_n(kFn::Union{Float64,AbstractArray}, type::String)
     return Δn
 end
 
-function jinc(x::Union{Float64,AbstractArray,AbstractVector})
-    @. iszero(x) ? 0.5 : besselj1(x) / (x)
+function jinc(x)
+    iszero(x) ? 0.5 : besselj1(x) / (x)
 end
 
 function Bcore_integrand(u, params, t)
