@@ -195,14 +195,14 @@ function ThreeCompGeneral!(
     )
 
         # dΩ_sf/dt
-        Ω_sf = Ω[2:(i_drip-i_cci+1)];
-        Ω_core = Ω[(i_drip-i_cci+2):end];
+        Ω_sf = Ω[2:(i_drip-i_cci+1)]
+        Ω_core = Ω[(i_drip-i_cci+2):end]
 
 
         #Bsf = Param.B_sf * Param.ρr ./ maximum(Param.ρr); # Scaling B_sf with the local density profile
-        dΩ_sfdr = diff(Ω[2:(i_drip-i_cci+2)]) ./ dr_sf;
+        dΩ_sfdr = diff(Ω[2:(i_drip-i_cci+2)]) ./ dr_sf
         dΩ[2:(i_drip-i_cci+1)] =
-            EoMSetup.B_sf .* (2 * Ω_sf + r_sf .* dΩ_sfdr) .* (Ω[1] .- Ω_sf);
+            EoMSetup.B_sf .* (2 * Ω_sf + r_sf .* dΩ_sfdr) .* (Ω[1] .- Ω_sf)
         dΩ_sf_net =
             2 *
             h_eff *
@@ -212,9 +212,9 @@ function ThreeCompGeneral!(
                 r_range = (R_cci+dr_sf[1], R_drip),
             )
         # dΩ_core/dt
-        dΩ_coredr = diff(Ω[(i_drip-i_cci+1):end]) ./ dr_core;
+        dΩ_coredr = diff(Ω[(i_drip-i_cci+1):end]) ./ dr_core
         dΩ[(i_drip-i_cci+2):end] =
-            EoMSetup.B_core .* (2 * Ω_core + r_core .* dΩ_coredr) .* (Ω[1] .- Ω_core);
+            EoMSetup.B_core .* (2 * Ω_core + r_core .* dΩ_coredr) .* (Ω[1] .- Ω_core)
         dΩ_core_net =
             2 *
             h_eff * # should h_eff be different?

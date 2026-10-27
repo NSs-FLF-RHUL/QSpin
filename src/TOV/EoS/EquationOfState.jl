@@ -55,7 +55,7 @@ function EoS_Type(
         elseif EoSName == "NV1973"
             EoS_NegeleVautherin1973()
         elseif EoSName == "Interp"
-            EoS_LInterp(Parameters.file_name, Parameters.EoS_indices);
+            EoS_LInterp(Parameters.file_name, Parameters.EoS_indices)
         else
             error(
                 "EoS Type only supports specific types: GCA2018, TwoCompPoly, NV1973, and Interp",
