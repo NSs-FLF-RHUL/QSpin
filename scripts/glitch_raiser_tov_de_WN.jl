@@ -49,7 +49,7 @@ u0 = [EOS.EoS(ρ0); 0.0];
 
 mp = EOS.EoS_mp(TOV_sol.ρr)
 mp[mp .< 0] .= 0.0;
-kFn = EOS>EoS_kFn(TOV_sol.ρr)
+kFn = EOS.EoS_kFn(TOV_sol.ρr)
 kFn[kFn .< 0.0] .= 0.0;
 kFe = EOS.EoS_kFe(TOV_sol.ρr)
 kFe[kFe .< 0.0] .= 0.0;
@@ -66,7 +66,7 @@ Bs = mfrictionGraber2016("p", Params)
 #i_cci = findfirst(x->x<=ρ_cci, TOV_sol.ρr)
 #i_drip = findfirst(x->x<=Sim_Input.ρ_drip, TOV_sol.ρr)
 i_drip = argmin(abs.(TOV_sol.ρr .- Sim_Input.ρ_drip))
-i_cci = argmin(abs.(TOV_sol.ρr .- ρ_cci))
+i_cci = argmin(abs.(TOV_sol.ρr .- EOS.ρ_cci))
 # Setting initial conditions for the glitch model
 Ω_ini = [
     Sim_Input.Ω_crust;

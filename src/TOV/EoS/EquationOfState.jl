@@ -29,24 +29,8 @@ function EoS_Type(
     FileInput = nothing,
 )
     if EoSName == "LinterpSkyrme"
-        EoS,
-        EoS_inv,
-        EoS_ρ2nb,
-        EoS_ρ2rhoN,
-        EoS_ρ2Yp,
-        EoS_ρ2mp_ast,
-        EoS_ρ2kFe,
-        EoS_ρ2kFn,
-        ρ_cci = EoS_LInterpSkyrme(FileInput)
-        return EoS,
-        EoS_inv,
-        EoS_ρ2nb,
-        EoS_ρ2rhoN,
-        EoS_ρ2Yp,
-        EoS_ρ2mp_ast,
-        EoS_ρ2kFe,
-        EoS_ρ2kFn,
-        ρ_cci
+        EOS = EoS_LInterpSkyrme(FileInput)
+        return EOS
     else
         EoS, EoS_inv = if EoSName == "GCA2018"
             EoS_GCA2018()
