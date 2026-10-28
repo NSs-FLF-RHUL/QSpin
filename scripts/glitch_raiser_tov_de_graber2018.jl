@@ -20,13 +20,13 @@ Sim_Input = gm_input(gm_input_path)
 MF_Output = QSpin.MFriction.VNparaGraber2018(mf_input_path)
 
 # Setup for inverse EoS and TOV equation for the solver
-EoS, EoS_inv = EoS_GCA2018();
+EOS = EoS_GCA2018();
 # Setting up initial condition accordingly to the EoS for a given central density ρ0.
-u0 = [EoS(Sim_Input.ρ0); Sim_Input.M_core]; # Initial conditions: central pressure and enclosed mass
+u0 = [EOS.EoS(Sim_Input.ρ0); Sim_Input.M_core]; # Initial conditions: central pressure and enclosed mass
 
 # Sovling the TOV equation using the RK4 method with QSpin OdeSolve module for Stiff and Soft EoSs.
 @time TOV_sol = TOV_Solve(
-    EoS_inv,
+    EOS.EoS_inv,
     u0,
     Sim_Input.dr,
     Sim_Input.Dr,

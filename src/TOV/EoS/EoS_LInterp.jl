@@ -28,7 +28,7 @@ function EoS_LInterp(
         QuadraticSpline(press, rho; extrapolation = ExtrapolationType.Extension)
     EoS_rho_from_P =
         QuadraticSpline(rho, press; extrapolation = ExtrapolationType.Extension)
-    return EoS_P_from_rho, EoS_rho_from_P#, rho, press
+    return (EoS = EoS_P_from_rho, EoS_inv = EoS_rho_from_P)#, rho, press
 end
 
 function EoS_LInterp(file_input::String, EoS_indices::Tuple{Int64,Int64})

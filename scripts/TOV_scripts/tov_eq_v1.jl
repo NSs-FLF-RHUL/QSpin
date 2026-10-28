@@ -24,12 +24,12 @@ Sim_Input = (
 );
 
 # Calling EoS_GCA2018
-EoS, EoS_inv = EoS_GCA2018();
-u0 = [EoS(Sim_Input.ρ0); Sim_Input.M_core];
+EOS = EoS_GCA2018();
+u0 = [EOS.EoS(Sim_Input.ρ0); Sim_Input.M_core];
 
 # Callback setup to terminate the integration when the pressure drops below zero
 @time TOV_sol = TOV_Solve(
-    EoS_inv,
+    EOS.EoS_inv,
     u0,
     Sim_Input.dr,
     Sim_Input.Dr,

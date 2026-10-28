@@ -15,12 +15,12 @@ Sim_Input = (
     units = "CGS", # optional
 );
 
-EoS, EoS_inv = EoS_Type("LinterpSkyrme", FileInput = file_name);
-u0 = [EoS(Sim_Input.ρ0); 0.0];
+EOS = EoS_Type("LinterpSkyrme", FileInput = file_name);
+u0 = [EOS.EoS(Sim_Input.ρ0); 0.0];
 
 # Callback setup to terminate the integration when the pressure drops below zero
 @time TOV_sol = TOV_Solve(
-    EoS_inv,
+    EOS.EoS_inv,
     u0,
     Sim_Input.dr,
     Sim_Input.Dr,

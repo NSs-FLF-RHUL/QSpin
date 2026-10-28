@@ -61,7 +61,7 @@ function EoS_LInterpSkyrme(
     inb_cci = findlast(x->x<0.2, EoS_nb_from_rho.u[imp_zero]*1e-39)
     ρ_cci = EoS_rho_from_P.u[imp_zero[inb_cci]]
 
-    output = (
+    return (
         EoS = EoS_P_from_rho,
         EoS_inv = EoS_rho_from_P,
         EoS_nb = EoS_nb_from_rho,
@@ -72,7 +72,6 @@ function EoS_LInterpSkyrme(
         EoS_kFn = EoS_kFn_from_rho,
         ρ_cci = ρ_cci,
     )
-    return output
 end
 
 function EoS_LInterpSkyrme(

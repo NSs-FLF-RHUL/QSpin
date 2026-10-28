@@ -32,7 +32,7 @@ function EoS_Type(
         EOS = EoS_LInterpSkyrme(FileInput)
         return EOS
     else
-        EoS, EoS_inv = if EoSName == "GCA2018"
+        EOS = if EoSName == "GCA2018"
             EoS_GCA2018()
         elseif EoSName == "TwoCompPoly"
             EoS_two_component_polytrope(Parameters)
@@ -45,7 +45,7 @@ function EoS_Type(
                 "EoS Type only supports specific types: GCA2018, TwoCompPoly, NV1973, and Interp",
             )
         end
-        return EoS, EoS_inv
+        return EOS
     end
 end
 
