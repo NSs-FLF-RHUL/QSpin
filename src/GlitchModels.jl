@@ -151,9 +151,9 @@ function ThreeCompGeneral!(
     # R_ccit = Chat with Will
     I_total = integral_moi_sph(EoMSetup.rho, EoMSetup.r; r_range = (0.0, EoMSetup.R_NS))
 
-    I_sf = integral_moi_sph(EoMSetup.rhoN, EoMSetup.r; r_range = (R_cci, R_drip))
+    I_sf = integral_moi_sph(EoMSetup.rhoN, EoMSetup.r; r_range = (r_sf[1], R_drip))
     I_crust_total =
-        integral_moi_sph(EoMSetup.rho, EoMSetup.r; r_range = (R_cci, EoMSetup.R_NS))
+        integral_moi_sph(EoMSetup.rho, EoMSetup.r; r_range = (r_sf[1], EoMSetup.R_NS))
     I_core = integral_moi_sph(EoMSetup.rho, EoMSetup.r; r_range = (0.0, R_cci))
     I_crust = I_total - I_core - I_sf
     I_crust_unit =
@@ -203,14 +203,7 @@ function ThreeCompGeneral!(
         dΩ_sfdr = diff(Ω[2:(i_drip-i_cci+2)]) ./ dr_sf
         dΩ[2:(i_drip-i_cci+1)] =
             EoMSetup.B_sf .* (2 * Ω_sf + r_sf .* dΩ_sfdr) .* (Ω[1] .- Ω_sf)
-        dΩ_sf_net =
-            2 *
-            h_eff *
-            integral_moi_cyl(
-                ρ_sf .* dΩ[2:(i_drip-i_cci+1)],
-                r_sf;
-                r_range = (R_cci+dr_sf[1], R_drip),
-            )
+        dΩ_sf_net = 2 * h_eff * integral_moi_cyl(ρ_sf .* dΩ[2:(i_drip-i_cci+1)], r_sf)
         # dΩ_core/dt
         dΩ_coredr = diff(Ω[(i_drip-i_cci+1):end]) ./ dr_core
         dΩ[(i_drip-i_cci+2):end] =
@@ -218,11 +211,7 @@ function ThreeCompGeneral!(
         dΩ_core_net =
             2 *
             h_eff * # should h_eff be different?
-            integral_moi_cyl(
-                ρ_core .* dΩ[(i_drip-i_cci+2):end],
-                r_core;
-                r_range = (0.0, R_cci),
-            )
+            integral_moi_cyl(ρ_core .* dΩ[(i_drip-i_cci+2):end], r_core)
         # dΩ_crust/dt
         dΩ[1] = (-EoMSetup.N_ext - dΩ_core_net - dΩ_sf_net)/I_c
 
@@ -271,8 +260,11 @@ function integral_moi_sph(
     r_range::Union{Tuple{Float64,Float64},AbstractArray,Nothing} = nothing,
 )
     if length(ρ) == length(r)
-        i_low, i_up = integral_range(r, r_range)
-
+        if r_range == nothing
+            i_low, i_up = (1, length(r))
+        else
+            i_low, i_up = integral_range(r, r_range)
+        end
         dr = diff(r)
         dV = ρ .* r .^ 4 .* [dr; dr[end]]
         return 8 * π * sum(@view dV[i_low:i_up]) / 3
@@ -301,8 +293,11 @@ function integral_moi_cyl(
     r_range::Union{Tuple{Float64,Float64},AbstractArray,Nothing} = nothing,
 )
     if length(ρ) == length(r)
-        i_low, i_up = integral_range(r, r_range)
-
+        if r_range == nothing
+            i_low, i_up = (1, length(r))
+        else
+            i_low, i_up = integral_range(r, r_range)
+        end
         dr = diff(r)
         dV = ρ .* r .^ 3 .* [dr; dr[end]]
         return 2 * π * sum(@view dV[i_low:i_up])
