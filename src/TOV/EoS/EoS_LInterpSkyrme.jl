@@ -16,6 +16,7 @@ Loading the data from a pre-computed equation of state (EoS) and using quadratic
 # Returns
 - `EoS_P_from_rho`: The interpolation for the equation of state.
 - `EoS_rho_from_P`: The interpolation for the inverse equation of state.
+- 'EoS
 """
 function EoS_LInterpSkyrme(
     input::Union{DataFrame,AbstractMatrix{Float64}};
@@ -60,15 +61,18 @@ function EoS_LInterpSkyrme(
     inb_cci = findlast(x->x<0.2, EoS_nb_from_rho.u[imp_zero]*1e-39)
     ρ_cci = EoS_rho_from_P.u[imp_zero[inb_cci]]
 
-    return EoS_P_from_rho,
-    EoS_rho_from_P,
-    EoS_nb_from_rho,
-    EoS_rhoN_from_rho,
-    EoS_Yp_from_rho,
-    EoS_mp_ast_from_rho,
-    EoS_kFe_from_rho,
-    EoS_kFn_from_rho,
-    ρ_cci
+    output = (
+        EoS = EoS_P_from_rho,
+        EoS_inv = EoS_rho_from_P,
+        EoS_nb = EoS_nb_from_rho,
+        EoS_rhoN = EoS_rhoN_from_rho,
+        EoS_Yp = EoS_Yp_from_rho,
+        EoS_mp = EoS_mp_ast_from_rho,
+        EoS_kFe = EoS_kFe_from_rho,
+        EoS_kFn = EoS_kFn_from_rho,
+        ρ_cci = ρ_cci,
+    )
+    return output
 end
 
 function EoS_LInterpSkyrme(

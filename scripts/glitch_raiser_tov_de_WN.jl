@@ -27,17 +27,16 @@ Sim_Input = (
     Dt = 1e-1, # Time step for saving data in seconds
 );
 
-EoS, EoS_inv, EoS_nb, EoS_ρN, EoS_Yp, EoS_mp, EoS_kFe, EoS_kFn, ρ_cci =
-    EoS_Type("LinterpSkyrme", FileInput = file_name);
-ρ0 = rho_c_from_M(EoS, EoS_inv, 1.4*1e3*mass_sun)
+EOS = EoS_Type("LinterpSkyrme", FileInput = file_name)
+ρ0 = rho_c_from_M(EOS.EoS, EOS.EoS_inv, 1.4*1e3*mass_sun)
 
-u0 = [EoS(ρ0); 0.0];
+u0 = [EOS.EoS(ρ0); 0.0];
 
 
 
 # Callback setup to terminate the integration when the pressure drops below zero
 @time TOV_sol = TOV_Solve(
-    EoS_inv,
+    EOS.EoS_inv,
     u0,
     Sim_Input.dr,
     Sim_Input.Dr,
@@ -48,15 +47,15 @@ u0 = [EoS(ρ0); 0.0];
     rho_ref = 2.8e14, # optional - nuclear saturation density in g/cm^3
 );
 
-mp = EoS_mp(TOV_sol.ρr)
+mp = EOS.EoS_mp(TOV_sol.ρr)
 mp[mp .< 0] .= 0.0;
-kFn = EoS_kFn(TOV_sol.ρr)
+kFn = EOS>EoS_kFn(TOV_sol.ρr)
 kFn[kFn .< 0.0] .= 0.0;
-kFe = EoS_kFe(TOV_sol.ρr)
+kFe = EOS.EoS_kFe(TOV_sol.ρr)
 kFe[kFe .< 0.0] .= 0.0;
-Yp = EoS_Yp(TOV_sol.ρr)
+Yp = EOS.EoS_Yp(TOV_sol.ρr)
 Yp[Yp .< 0.0] .= 0.0;
-nb = EoS_nb(TOV_sol.ρr)
+nb = EOS.EoS_nb(TOV_sol.ρr)
 nb[nb .< 0.0] .= 0.0;
 
 Params =
@@ -80,7 +79,7 @@ i_cci = argmin(abs.(TOV_sol.ρr .- ρ_cci))
 # Wrap the parameters in the glith model
 EoMSetup = (
     rho = TOV_sol.ρr,
-    rhoN = EoS_ρN(TOV_sol.ρr),
+    rhoN = EOS.EoS_rhoN(TOV_sol.ρr),
     r = TOV_sol.r,
     M_NS = TOV_sol.M,
     R_NS = TOV_sol.R,
