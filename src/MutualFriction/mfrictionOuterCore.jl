@@ -7,20 +7,17 @@ using DataInterpolations: ExtrapolationType, QuadraticSpline
 """
 $(TYPEDSIGNATURES)
 
-This function reads in JSON data for a given file path and calculates the mutual friction parameters for a neutron star crust based on the Graber et al. 2018 model.
-According to Graber et al. 2018, the mutual friction coefficients are calculated based on the superfluid density and other physical parameters.
-The function returns a tuple containing the input parameters and the calculated mutual friction parameters, including the qubic spline interpolations for the mutual friction coefficients as functions of the superfluid density (in kg * m^-3, while the coverted input is in kg fm^-3) in log-log space.
-
-Here things are converted in the SI units so as MutualFrictionCoefficients
+This fucntion computes the mutual friction coefficient for the outer core region of a neutron star, B_core, using the model descibed in Graber's thesis in 2016 and reading that for the inner crust region, B_sf, that can be an arbitary input in the Params input arguement. The types of neutron superfluid have different gap parameters, controlled by "type" of the input argruments.
 
 # Arguments
-- `file_path`: A string representing the path to the JSON file containing the input parameters for the mutual friction calculations. The JSON file should contain an array of objects, each representing a different region of the neutron star crust with specific parameters such as baryon number density (nb), proton number (Z), neutron number (N), proton fraction (x), superfluid density (ns), lattice spacing (a), nuclear radius (RN), and pinning energy parameters (Es, E1, DE, xi, Ep).
+- 'type': A string for the type of neutron superfluid. It can be "s" or "p" for singlet and triplet pairings.
+- `Params`: A parameter set contains B_sf, Yp, kFe, kFn and the Skyrme model parameters, a and b.
 
 # Returns
-- 'output': A tuple containing the input parameters (in their original units from the input JSON file) and the calculated mutual friction parameters in array forms. The qubic spline interpolations for the mutual friction coefficients, B_EW and B_J, as functions of the superfluid density (in kg * m^-3, while the coverted input is in kg fm^-3) are included.
+- 'B_sf' and 'B_core' in NamedTuple format.
 """
 
-function mfrictionGraber2016(type, Params)
+function mfrictionGraber2016(type::String, Params::ParameterType)
     if type == "s"
         Δ0 = 68.0
         g0 = 0.1
@@ -73,7 +70,7 @@ function mfrictionGraber2016(type, Params)
     B_core =
         @. 3 * π / 2 * Params.Yp / (1-Params.Yp) * (1/mn_ast)^2 * (1 - mp_ast)^2 * β1^4 /
            β2^3 * integral
-    return Bs = (; B_sf, B_core)
+    return (; B_sf, B_core)
 end
 
 function skyrme_effective_mass(
