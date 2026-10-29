@@ -10,13 +10,11 @@ $(TYPEDSIGNATURES)
 Loading the data from a pre-computed equation of state (EoS) and using quadraticspline interpolation to get the function of equation of state for TOV equation computations.
 
 # Arguments
-- `file_input::`: the file directory and file name of the pre-computed equation of state in dat format or lading them in an N-by-x array with a correct EoS_indices.
-- `EoS_indices::tuple`: the indices in the dat for density, rho, and pressure, press.
+- `file_input::Union{DataFrame,AbstractMatrix{Float64}}`: the file directory and file name of the pre-computed equation of state in dat format or lading them in an N-by-x array with a correct EoS_indices.
+- `EoS_indices::tuple`: the indices in the dat for density - rho, and pressure - press, baryonic number density - nb, neutron density - rhoN, proton fraction - Yp, effecive proton mass - mp, and fermi momenta for electrons and neutrons - kFe and kFn respectively.
 
 # Returns
-- `EoS_P_from_rho`: The interpolation for the equation of state.
-- `EoS_rho_from_P`: The interpolation for the inverse equation of state.
-- 'EoS
+- 'EoS': The NamedTuple contains EoS, EoS_inv, EoS_nb, EoS_rhoN, EoS_Yp, EoS_mp, EoS_kFe and EoS_kFn are in the format of ::DataInterpolations, and that maps ρ to different quantities listed above and EoS_inv is the inverse of EoS, that ρ as a function of press. ρ_cci is a Floating number about the core-crust interface density.
 """
 function EoS_LInterpSkyrme(
     input::Union{DataFrame,AbstractMatrix{Float64}};
