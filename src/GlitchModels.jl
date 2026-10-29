@@ -170,20 +170,16 @@ function ThreeCompGeneral!(
 
     h_eff = 0.5 * I_crust_total / I_crust_unit
     if value_check
-        println(" * I_total = ", I_total)
-        println(" * I_core = ", I_core)
-        println(" * I_sf = ", I_sf, ", I_sf/_total = ", I_sf/I_total)
-        println(
-            " * I_crust_total = ",
-            I_crust_total,
-            ", I_crust_total/I_total = ",
-            I_crust_total/I_total,
-        )
-        println(" * I_crust_unit = ", I_crust_unit)
-        println(" * h_eff = ", h_eff)
-        println(" * I_crust = ", I_crust)
-        println(" * I_c = ", I_c)
-        println(" * R_drip = ", R_drip)
+        @info " I_total      = $I_total"
+        @info " I_sf         = $I_sf"
+        @info " I_core       = $I_core"
+        @info " I_sf         = $I_sf , I_sf/_total = $(I_sf/I_total)"
+        @info " I_crust_total = $I_crust_total , I_crust_total/I_total = $(I_crust_total/I_total)"
+        @info " I_crust_unit = $I_crust_unit"
+        @info " h_eff        = $h_eff"
+        @info " I_crust      = $I_crust"
+        @info " I_c          = $I_c"
+        @info " R_drip       = $R_drip"
     end
 
 
