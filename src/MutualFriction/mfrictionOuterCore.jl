@@ -87,34 +87,6 @@ function skyrme_effective_mass(
     return mn_ast, mp_ast
 end
 
-function gap_n(kFn::Union{Float64,AbstractArray}, type::String)
-    if type == "s"
-        Δ0 = 68.0
-        g0 = 0.1
-        g1 = 4.0
-        g2 = 1.7
-        g3 = 4.0
-    elseif type == "p"
-        Δ0 = 0.068
-        g0 = 1.28
-        g1 = 0.1
-        g2 = 2.37
-        g3 = 0.02
-    else
-        throw(
-            ArgumentError(
-                "type must be 's' or 'p' for single and triplet pairing SFs respectively",
-            ),
-        )
-    end
-
-    Δn = @. Δ0 * (kFn - g0) ^ 2 / ((kFn - g0) ^ 2 + g1) * (kFn - g2) ^ 2 /
-       ((kFn-g2) .^ 2 + g3)
-    Δn[kFn .< g0] .= 1e-9
-    Δn[kFn .> g2] .= 1e-9
-    return Δn
-end
-
 function jinc(x)
     iszero(x) ? 0.5 : besselj1(x) / (x)
 end
