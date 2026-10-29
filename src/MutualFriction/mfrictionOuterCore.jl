@@ -73,6 +73,21 @@ function mfrictionGraber2016(type::String, Params::ParameterType)
     return (; B_sf, B_core)
 end
 
+
+"""
+$(TYPEDSIGNATURES)
+
+Computing the effective proton and neutron masses in the Skyrme model.
+
+# Arguments
+- 'nb::Union{Float64,AbstractArray}': bayronic number density.
+- 'Yp::Union{Float64,AbstractArray};: Proton fraction.
+- 'a::Float64': Skyrme model parameter.
+- 'b::Float64': Skyrme model parameter.
+# Returns
+- 'mn_ast': effective neutron mass.
+- 'mp_ast': effective proton mass.
+"""
 function skyrme_effective_mass(
     nb::Union{Float64,AbstractArray},
     Yp::Union{Float64,AbstractArray},
@@ -86,33 +101,73 @@ function skyrme_effective_mass(
 
     return mn_ast, mp_ast
 end
+"""
+$(TYPEDSIGNATURES)
+
+Computing a and b in the Skyrme model parameters for given set of effective isoscalar and effective mass splitting ratio and baryonic number density.
+
+# Arguments
+- 'nb::Union{Float64,AbstractArray}': bayronic number density.
+- 'ms::Union{Float64,AbstractArray}': isoscalar mass ratio.
+- 'Δm::Union{Float64,AbstractArray': effective mass splitting ratio.
+
+# Returns
+- 'a::Float64': Skyrme model parameter.
+- 'b::Float64': Skyrme model parameter.
+"""
+function skyrme_effective_mass_inv(
+    nb::Union{Float64,AbstractArray},
+    ms::Union{Float64,AbstractArray},
+    Δm::Union{Float64,AbstractArray},
+)
+    a = @. (1 / ms - 1) / nb
+    b = @. 0.5 / nb * Δm / ms^2
+    return a, b
+end
 
 function jinc(x)
     iszero(x) ? 0.5 : besselj1(x) / (x)
 end
 
+"""
+$(TYPEDSIGNATURES)
+
+The integrand function in the computation of mutual friction coefficient in the core componont.
+
+# Arguments
+- 'u': general sytax for using ODE solver.
+- 'params::Union{Float64,AbstractArray}': β1 and β2 set.
+- 't': Integrated variable.
+
+# Returns
+- 'a::Float64': Skyrme model parameter.
+- 'b::Float64': Skyrme model parameter.
+"""
 function Bcore_integrand(u, params, t)
     β1, β2 = params
     return @. (β2^2 + 0.5 * t ^ 2) / (β1^2 + t ^ 2) ^ 2 * jinc(t) ^ 2
 end
 
-function integral_output(kFn, g0, g2, β1, β2)
-    output = if kFn > g0 && kFn < g2
-        B_integral(Bcore_integrand, (β1, β2))
-    elseif g2 - kFn < 0.02 && kFn < g2
-        0.0
-    elseif g2 - kFn < 0.1 && kFn < g2
-        B_integral(Bcore_integrand, (β1, β2))
-    elseif kFn > g2 || kFn < g0
-        0.0
-    end
-    return output
-end
+"""
+$(TYPEDSIGNATURES)
 
+Computing the integral of mutual friction coefficient in the core componont.
+
+# Arguments
+- 'integrand::Function': general sytax for using ODE solver.
+- 'lower_bound::Union{Float64,AbstractArray}': lower bound of the integral.
+- 'upper_bound::Union{Float64,AbstractArray}': upper bound of the integral.
+- 'β1::Union{Float64,AbstractArray}': β1 coefficient.
+- 'β2::Union{Float64,AbstractArray}': β2 coefficient.
+
+# Returns
+- 'a::Float64': Skyrme model parameter.
+- 'b::Float64': Skyrme model parameter.
+"""
 function B_integral(
     integrand::Function,
-    lower_bound,
-    upper_bound,
+    lower_bound::Union{Float64,AbstractArray},
+    upper_bound::Union{Float64,AbstractArray},
     β1::Union{Float64,AbstractArray},
     β2::Union{Float64,AbstractArray},
 )
