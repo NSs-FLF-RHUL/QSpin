@@ -47,7 +47,7 @@ function EoS_Type(
             EoS_LInterp(Parameters.file_name, Parameters.EoS_indices)
         else
             error(
-                "EoS Type only supports specific types: GCA2018, TwoCompPoly, NV1973, and Interp",
+                "EoS Type only supports specific types: GCA2018, TwoCompPoly, NV1973, Interp and LinterpSkyrme",
             )
         end
         return EOS
