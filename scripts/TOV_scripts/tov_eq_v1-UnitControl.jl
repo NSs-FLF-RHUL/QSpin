@@ -48,12 +48,12 @@ SI_Input = (
 Sim_Input = CGS_Input; # Choose between CGS_Input and SI_Input for sovling the TOV equation.
 
 # Calling EoS_two_component_polytrope
-EoS, EoS_inv = EoS_two_component_polytrope(Sim_Input);;
-u0 = [EoS(Sim_Input.ρ0); 0.0];
+EOS = EoS_two_component_polytrope(Sim_Input);;
+u0 = [EOS.EoS(Sim_Input.ρ0); 0.0];
 
 # Callback setup to terminate the integration when the pressure drops below zero
 @time TOV_sol = TOV_Solve(
-    EoS_inv,
+    EOS.EoS_inv,
     u0,
     Sim_Input.dr,
     Sim_Input.Dr,
