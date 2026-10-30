@@ -85,8 +85,8 @@ Computing the effective proton and neutron masses in the Skyrme model.
 - 'a::Float64': Skyrme model parameter.
 - 'b::Float64': Skyrme model parameter.
 # Returns
-- 'mn_ast': effective neutron mass.
-- 'mp_ast': effective proton mass.
+- 'mn_ast': dimensionless effective neutron mass ratio.
+- 'mp_ast': dimensionless effective proton mass ratio.
 """
 function skyrme_effective_mass(
     nb::Union{Float64,AbstractArray},
@@ -107,9 +107,9 @@ $(TYPEDSIGNATURES)
 Computing a and b in the Skyrme model parameters for given set of effective isoscalar and effective mass splitting ratio and baryonic number density.
 
 # Arguments
-- 'nb::Union{Float64,AbstractArray}': bayronic number density.
-- 'ms::Union{Float64,AbstractArray}': isoscalar mass ratio.
-- 'Δm::Union{Float64,AbstractArray': effective mass splitting ratio.
+- 'nb::Union{Float64,AbstractArray}': bayronic number density in fm^-3.
+- 'ms::Union{Float64,AbstractArray}': dimensionless isoscalar mass ratio.
+- 'Δm::Union{Float64,AbstractArray': dimensionless effective mass splitting ratio.
 
 # Returns
 - 'a::Float64': Skyrme model parameter.
