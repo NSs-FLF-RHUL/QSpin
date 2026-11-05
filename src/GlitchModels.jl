@@ -125,12 +125,16 @@ The equations of motion are based on the mutual friction coefficients and the ex
 
 """
 function ThreeCompGeneral!(
-    EoMSetup::ParameterType;
-    ρ_drip::Float64 = 4e11, # cgs units
-    ρ_cci::Float64 = 1e14, # cgs units
+    EoMSetup::ParameterType,
+    MoISetup::ParameterType;
     value_check::Bool = false,
 )
-    MOI = ρ_sf = EoMSetup.rho[(i_cci+1):i_drip]
+    i_cci = MoISetup.i_cci
+    i_drip = MoISetup.i_drip
+    I_c = MoISetup.I_c
+    h_eff = MoISetup.h_eff
+
+    ρ_sf = EoMSetup.rho[(i_cci+1):i_drip]
     ρ_core = EoMSetup.rho[1:i_cci]
     r_sf = EoMSetup.r[(i_cci+1):i_drip]
     r_core = EoMSetup.r[1:i_cci]
@@ -307,6 +311,7 @@ function moment_of_inertia(
         @info " R_drip        = $R_drip"
     end
     return (;
+        I_c,
         i_drip,
         i_cci,
         R_drip,
