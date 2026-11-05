@@ -1,9 +1,8 @@
-
 using QSpin
 using QSpin.Parameters: ParameterType
 using QSpin.TOV: TOV_Solve, rho_c_from_M
 using QSpin.TOV.EquationOfState: EoS_Type
-using QSpin.GlitchModels: ThreeCompGeneral!, gm_input
+using QSpin.GlitchModels: ThreeCompGeneral!, gm_input, moment_of_inertia
 using Plots, LaTeXStrings
 using QSpin.MFriction: mfrictionGraber2016, skyrme_effective_mass_inv
 using QSpin.OdeSolve: evolve
@@ -22,9 +21,8 @@ Sim_Input = (
     units = "CGS", # optional
     B_sf = 1e-3, # Mutual Friction Parameter for the SF component
     N_ext = 0,
-    Ω_crust = 2*π*11.195, # Initial angular velocity of the crust in rad/s
-    Ω_sf = 2*π*11.195+6.3e-3, # Initial angular velocity of the superfluid in rad/s
-    Ω_core = 2*π*11.195, # Initial angular velocity of the core in rad
+    Ω_vela = 2*π*11.195, # Initial angular velocity of the crust in rad/s
+    dnu_vela = 16.0227,
     ρ_drip = 4e11, # cgs units
     t_end = 1e4, # Total simulation time in seconds
     Dt = 1e-1, # Time step for saving data in seconds
@@ -52,16 +50,6 @@ u0 = [EOS.EoS(ρ0); 0.0];
     rho_ref = 2.8e14, # optional - nuclear saturation density in g/cm^3
 );
 
-i_drip = argmin(abs.(TOV_sol.ρr .- Sim_Input.ρ_drip))
-i_cci = argmin(abs.(TOV_sol.ρr .- EOS.ρ_cci))
-
-# Setting initial conditions for the glitch model
-Ω_ini = [
-    Sim_Input.Ω_crust;
-    Sim_Input.Ω_sf*ones(size(TOV_sol.r[(i_cci+1):i_drip]));
-    Sim_Input.Ω_core*ones(size(TOV_sol.r[1:i_cci]))
-]
-
 mp = EOS.EoS_mp(TOV_sol.ρr)
 mp[mp .< 0] .= 0.0;
 kFn = EOS.EoS_kFn(TOV_sol.ρr)
@@ -72,6 +60,28 @@ Yp = EOS.EoS_Yp(TOV_sol.ρr)
 Yp[Yp .< 0.0] .= 0.0;
 nb = EOS.EoS_nb(TOV_sol.ρr)
 nb[nb .< 0.0] .= 0.0;
+
+MOI = moment_of_inertia((
+    rho = TOV_sol.ρr,
+    rhoN = EOS.EoS_rhoN(TOV_sol.ρr),
+    r = TOV_sol.r,
+    R_NS = TOV_sol.R,
+))
+
+i_drip = MOI.i_drip
+i_cci = MOI.i_cci
+
+Ω_c0 = Sim_Input.Ω_vela
+Ω_sf0 = Sim_Input.Ω_vela + 2 * π * 1e-6 * Sim_Input.dnu_vela * MOI.I_total/MOI.I_sf
+Ω_core0 = Sim_Input.Ω_vela
+
+# Setting initial conditions for the glitch model
+Ω_ini = [
+    Ω_c0;
+    Ω_sf0 * ones(size(TOV_sol.r[(i_cci+1):i_drip]));
+    Ω_core0 * ones(size(TOV_sol.r[1:i_cci]))
+]
+
 cc = let cc = 1
     for aa = 1:length(ms_all)
         for bb = 1:length(Δm_all)
@@ -104,11 +114,7 @@ cc = let cc = 1
                 ρ_drip = Sim_Input.ρ_drip, # Drip density in g/cm^3
             )
 
-            EoM! = ThreeCompGeneral!(
-                EoMSetup;
-                ρ_drip = Sim_Input.ρ_drip,
-                ρ_cci = EoMSetup.ρ_cci,
-            )
+            EoM! = ThreeCompGeneral!(EoMSetup, MOI)
             @time sol = evolve(
                 EoM!,
                 Ω_ini,
@@ -129,17 +135,45 @@ cc = let cc = 1
         end
     end
 end
-plt1 = plot(
-    t[2:end],
-    (Ωt[1, 2:end] .- Ωt[1, 1])*1e6/2/π,
-    xaxis = :log10,
-    yaxis = :log10,
-    xlabel = L"t\;(\textrm{s})",
-    ylabel = L"\Delta\nu\;(\textrm{Hz})",
-    xticks = [1e-2, 1e-1, 1e0, 1e1, 1e2, 1e3, 1e4],
-    framestyle = :box,
-    lw = 2,
-    ms = 2,
-    color = :blue,
-    label = "",
-)
+
+t = Data[1, 5:end]
+Ωt = Data[2:end, 5:end]
+pp = let pp = 1
+    for aa = 1:length(ms_all)
+        for bb = 1:length(Δm_all)
+            @info pp, aa, bb
+            if pp == 1
+                plot(
+                    t[2:end],
+                    (Ωt[pp, 2:end] .- Ωt[pp, 1])*1e6/2/π,
+                    xaxis = :log10,
+                    yaxis = :log10,
+                    xlabel = L"t\;(\textrm{s})",
+                    ylabel = L"\Delta\nu\;(\mu\textrm{Hz})",
+                    xticks = [1e-2, 1e-1, 1e0, 1e1, 1e2, 1e3, 1e4],
+                    yticks = [1e-2, 1e-1, 1e0, 1e1, 1e2, 1e3, 1e4],
+                    framestyle = :box,
+                    xminorticks = 10,
+                    yminorticks = 10,
+                    lw = 2,
+                    ms = 2,
+                    label = "m_s= $(ms_all[aa]), δm/δ= $(Δm_all[bb])",
+                    xlims = [0.5, 1e4],
+                    ylims = [0.5, 1e3],
+                    legend = :bottomleft,
+                )
+            else
+                plot!(
+                    t[2:end],
+                    (Ωt[pp, 2:end] .- Ωt[pp, 1])*1e6/2/π,
+                    lw = 2,
+                    ms = 2,
+                    label = "m_s= $(ms_all[aa]), δm/δ= $(Δm_all[bb])",
+                )
+            end
+            pp += 1
+        end
+    end
+
+end
+gui()

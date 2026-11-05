@@ -3,7 +3,7 @@ using QSpin
 using QSpin.Parameters: ParameterType
 using QSpin.TOV: TOV_Solve, rho_c_from_M
 using QSpin.TOV.EquationOfState: EoS_Type
-using QSpin.GlitchModels: ThreeCompGeneral!, gm_input
+using QSpin.GlitchModels: ThreeCompGeneral!, gm_input, moment_of_inertia
 using Plots, LaTeXStrings
 using QSpin.MFriction: mfrictionGraber2016
 using QSpin.OdeSolve: evolve
@@ -19,9 +19,8 @@ Sim_Input = (
     units = "CGS", # optional
     B_sf = 1e-3, # Mutual Friction Parameter for the SF component
     N_ext = 0,
-    Ω_crust = 2*π*11.195, # Initial angular velocity of the crust in rad/s
-    Ω_sf = 2*π*11.195+6.3e-3, # Initial angular velocity of the superfluid in rad/s
-    Ω_core = 2*π*11.195, # Initial angular velocity of the core in rad
+    Ω_vela = 2*π*11.195, # Initial angular velocity of the crust in rad/s
+    dnu_vela = 16.0227,
     ρ_drip = 4e11, # cgs units
     t_end = 1e4, # Total simulation time in seconds
     Dt = 1e-1, # Time step for saving data in seconds
@@ -31,8 +30,6 @@ EOS = EoS_Type("LinterpSkyrme", FileInput = file_name)
 ρ0 = rho_c_from_M(EOS.EoS, EOS.EoS_inv, 1.4*1e3*mass_sun)
 
 u0 = [EOS.EoS(ρ0); 0.0];
-
-
 
 # Callback setup to terminate the integration when the pressure drops below zero
 @time TOV_sol = TOV_Solve(
@@ -58,20 +55,37 @@ Yp[Yp .< 0.0] .= 0.0;
 nb = EOS.EoS_nb(TOV_sol.ρr)
 nb[nb .< 0.0] .= 0.0;
 
+MOI = moment_of_inertia((
+    rho = TOV_sol.ρr,
+    rhoN = EOS.EoS_rhoN(TOV_sol.ρr),
+    r = TOV_sol.r,
+    R_NS = TOV_sol.R,
+))
+
+i_drip = MOI.i_drip
+i_cci = MOI.i_cci
+
+Ω_c0 = Sim_Input.Ω_vela
+Ω_sf0 = Sim_Input.Ω_vela + 2 * π * 1e-6 * Sim_Input.dnu_vela * MOI.I_total/MOI.I_sf
+Ω_core0 = Sim_Input.Ω_vela
+
+# Setting initial conditions for the glitch model
+Ω_ini = [
+    Ω_c0;
+    Ω_sf0 * ones(size(TOV_sol.r[(i_cci+1):i_drip]));
+    Ω_core0 * ones(size(TOV_sol.r[1:i_cci]))
+]
+
 Params =
     (kFn = kFn, kFe = kFe, nb = nb, Yp = Yp, ρ = TOV_sol.ρr, B_sf = 4e-4, a = 4.2, b = 2.7)
 
 Bs = mfrictionGraber2016("p", Params)
 
-#i_cci = findfirst(x->x<=ρ_cci, TOV_sol.ρr)
-#i_drip = findfirst(x->x<=Sim_Input.ρ_drip, TOV_sol.ρr)
-i_drip = argmin(abs.(TOV_sol.ρr .- Sim_Input.ρ_drip))
-i_cci = argmin(abs.(TOV_sol.ρr .- EOS.ρ_cci))
 # Setting initial conditions for the glitch model
 Ω_ini = [
-    Sim_Input.Ω_crust;
-    Sim_Input.Ω_sf*ones(size(TOV_sol.r[(i_cci+1):i_drip]));
-    Sim_Input.Ω_core*ones(size(TOV_sol.r[1:i_cci]))
+    Ω_c0;
+    Ω_sf0 * ones(size(TOV_sol.r[(i_cci+1):i_drip]));
+    Ω_core0 * ones(size(TOV_sol.r[1:i_cci]))
 ]
 
 
@@ -90,12 +104,7 @@ EoMSetup = (
     ρ_drip = Sim_Input.ρ_drip, # Drip density in g/cm^3
 )
 
-EoM! = ThreeCompGeneral!(
-    EoMSetup;
-    ρ_drip = Sim_Input.ρ_drip,
-    ρ_cci = EoMSetup.ρ_cci,
-    value_check = true,
-)
+EoM! = ThreeCompGeneral!(EoMSetup, MOI)
 @time sol = evolve(
     EoM!,
     Ω_ini,
