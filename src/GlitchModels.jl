@@ -273,7 +273,7 @@ function moment_of_inertia(
     R_cci = r[i_cci]
 
 
-    r_sf = EoMSetup.r[(i_cci+1):i_drip]
+    r_sf = r[(i_cci+1):i_drip]
 
     # R_ccit = Chat with Will
     I_total = integral_moi_sph(rho, r; r_range = (0.0, R_NS))
@@ -286,7 +286,7 @@ function moment_of_inertia(
 
     I_core_n_total = integral_moi_sph(rhoN, r; r_range = (0.0, R_cci))
 
-    I_core_n = integral_moi_sph(ErhoN, r; r_range = (0.0, R_cci))
+    I_core_n = integral_moi_sph(rhoN, r; r_range = (0.0, R_cci))
 
     I_total_n = integral_moi_sph(rhoN, r; r_range = (0.0, R_NS))
 
@@ -306,7 +306,7 @@ function moment_of_inertia(
         @info " I_c           = $I_c"
         @info " R_drip        = $R_drip"
     end
-    return (
+    return (;
         i_drip,
         i_cci,
         R_drip,
