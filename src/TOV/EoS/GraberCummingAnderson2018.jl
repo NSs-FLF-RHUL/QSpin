@@ -70,5 +70,5 @@ function EoS_GCA2018(
         end
         return ρ
     end
-    return EoS_P_from_rho, EoS_rho_from_P
+    return (EoS = EoS_P_from_rho, EoS_inv = EoS_rho_from_P)
 end
