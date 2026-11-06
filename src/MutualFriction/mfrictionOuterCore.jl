@@ -70,6 +70,7 @@ function mfrictionGraber2016(type::String, Params::ParameterType)
     B_core =
         @. 3 * π / 2 * Params.Yp / (1-Params.Yp) * (1/mn_ast)^2 * (1 - mp_ast)^2 * β1^4 /
            β2^3 * integral
+    B_core[isnan.(B_core)] .= 0.0
     return (; B_sf, B_core)
 end
 
