@@ -19,7 +19,7 @@ Sim_Input = (
     Dr = 0.0005*1e6, # Radial interval for recording values in cm
     r_beg = 0.e5,
     units = "CGS", # optional
-    B_sf = 1e-3, # Mutual Friction Parameter for the SF component
+    B_sf = 5e-2, # Mutual Friction Parameter for the SF component
     N_ext = 0,
     Ω_vela = 2*π*11.195, # Initial angular velocity of the crust in rad/s
     dnu_vela = 16.0227,
@@ -61,12 +61,13 @@ Yp[Yp .< 0.0] .= 0.0;
 nb = EOS.EoS_nb(TOV_sol.ρr)
 nb[nb .< 0.0] .= 0.0;
 
-MOI = moment_of_inertia((
-    rho = TOV_sol.ρr,
-    rhoN = EOS.EoS_rhoN(TOV_sol.ρr),
-    r = TOV_sol.r,
-    R_NS = TOV_sol.R,
-))
+ρ_cci = EOS.EoS.t[findlast((EOS.EoS_mp.u .== 0) .&& (EOS.EoS_nb.u .< 0.2*1e39))]
+
+
+MOI = moment_of_inertia(
+    (rho = TOV_sol.ρr, rhoN = EOS.EoS_rhoN(TOV_sol.ρr), r = TOV_sol.r, R_NS = TOV_sol.R);
+    ρ_cci = ρ_cci,
+)
 
 i_drip = MOI.i_drip
 i_cci = MOI.i_cci
@@ -98,7 +99,9 @@ cc = let cc = 1
                 a = a,
                 b = b,
             )
-            Bs = mfrictionGraber2016("p", Params)
+            Bp = mfrictionGraber2016("p", Params)
+            Bs = mfrictionGraber2016("s", Params)
+            B_core = maximum([Bs.B_core Bp.B_core]; dims = 2)
 
             # Wrap the parameters in the glith model
             EoMSetup = (
@@ -109,7 +112,7 @@ cc = let cc = 1
                 R_NS = TOV_sol.R,
                 ρ_cci = TOV_sol.ρr[i_cci], # 10 km in cm
                 B_sf = Sim_Input.B_sf, # Mutual Friction Parameter
-                B_core = Bs.B_core[1:i_cci], # Mutual Friction Parameter
+                B_core = B_core[1:i_cci], # Mutual Friction Parameter
                 N_ext = Sim_Input.N_ext,
                 ρ_drip = Sim_Input.ρ_drip, # Drip density in g/cm^3
             )

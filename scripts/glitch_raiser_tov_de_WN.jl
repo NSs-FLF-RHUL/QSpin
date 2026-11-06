@@ -55,12 +55,12 @@ Yp[Yp .< 0.0] .= 0.0;
 nb = EOS.EoS_nb(TOV_sol.ρr)
 nb[nb .< 0.0] .= 0.0;
 
-MOI = moment_of_inertia((
-    rho = TOV_sol.ρr,
-    rhoN = EOS.EoS_rhoN(TOV_sol.ρr),
-    r = TOV_sol.r,
-    R_NS = TOV_sol.R,
-))
+ρ_cci = EOS.EoS.t[findlast((EOS.EoS_mp.u .== 0) .&& (EOS.EoS_nb.u .< 0.2*1e39))]
+
+MOI = moment_of_inertia(
+    (rho = TOV_sol.ρr, rhoN = EOS.EoS_rhoN(TOV_sol.ρr), r = TOV_sol.r, R_NS = TOV_sol.R);
+    ρ_cci = ρ_cci,
+)
 
 i_drip = MOI.i_drip
 i_cci = MOI.i_cci
@@ -79,7 +79,9 @@ i_cci = MOI.i_cci
 Params =
     (kFn = kFn, kFe = kFe, nb = nb, Yp = Yp, ρ = TOV_sol.ρr, B_sf = 4e-4, a = 4.2, b = 2.7)
 
-Bs = mfrictionGraber2016("p", Params)
+Bp = mfrictionGraber2016("p", Params)
+Bs = mfrictionGraber2016("s", Params)
+B_core = maximum([Bs.B_core Bp.B_core]; dims = 2)
 
 # Setting initial conditions for the glitch model
 Ω_ini = [
@@ -99,7 +101,7 @@ EoMSetup = (
     R_NS = TOV_sol.R,
     ρ_cci = TOV_sol.ρr[i_cci], # 10 km in cm
     B_sf = Sim_Input.B_sf, # Mutual Friction Parameter
-    B_core = Bs.B_core[1:i_cci], # Mutual Friction Parameter
+    B_core = B_core[1:i_cci], # Mutual Friction Parameter
     N_ext = Sim_Input.N_ext,
     ρ_drip = Sim_Input.ρ_drip, # Drip density in g/cm^3
 )
