@@ -300,6 +300,7 @@ function moment_of_inertia(
     h_eff = 0.5 * I_crust_total / I_crust_unit
     if value_check
         @info " I_total       = $I_total"
+        @info " I_total_n     = $I_total_n"
         @info " I_sf          = $I_sf"
         @info " I_core        = $I_core"
         @info " I_sf          = $I_sf , I_sf/_total = $(I_sf/I_total)"
@@ -325,6 +326,7 @@ function moment_of_inertia(
         I_core_n,
         I_core_n_total,
         I_proton,
+        I_total_n,
         h_eff,
     )
 
