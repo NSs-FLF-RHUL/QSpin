@@ -8,24 +8,23 @@ using QSpin.MFriction: mfrictionGraber2016, skyrme_effective_mass_inv
 using QSpin.OdeSolve: evolve
 using OrdinaryDiffEqTsit5: Tsit5
 using QSpin.PhysicalConstants: mass_sun
-file_name = "src/TOV/EoS/WNewton/eos_SkXi450_31.0_60.00_-100.00_glitch.dat"
+file_name = "src/TOV/EoS/WNewton/eos_SkXi450_34.0_80.00_0.00_glitch.dat"
 
 ms_all = [0.6, 0.8, 1.0]
 Δm_all = [-0.3, 0.17, 0.64]
 
 Sim_Input = (
-    ρ0 = 1e15, # Initial central density in g/cm^3, above 2e16 seems to be unstable
     dr = 0.0001*1e6, # Radial step in cm
-    Dr = 0.0005*1e6, # Radial interval for recording values in cm
+    Dr = 0.02*1e6, # Radial interval for recording values in cm
     r_beg = 0.e5,
     units = "CGS", # optional
-    B_sf = 5e-2, # Mutual Friction Parameter for the SF component
+    B_sf = 0.01, # Mutual Friction Parameter for the SF component
     N_ext = 0,
     Ω_vela = 2*π*11.195, # Initial angular velocity of the crust in rad/s
     dnu_vela = 16.0227,
     ρ_drip = 4e11, # cgs units
     t_end = 1e4, # Total simulation time in seconds
-    Dt = 1e-1, # Time step for saving data in seconds
+    Dt = 2e-2, # Time step for saving data in seconds
 );
 
 DataLenY = Int(length(ms_all) * length(Δm_all)) + 1
@@ -67,6 +66,7 @@ nb[nb .< 0.0] .= 0.0;
 MOI = moment_of_inertia(
     (rho = TOV_sol.ρr, rhoN = EOS.EoS_rhoN(TOV_sol.ρr), r = TOV_sol.r, R_NS = TOV_sol.R);
     ρ_cci = ρ_cci,
+    value_check = true,
 )
 
 i_drip = MOI.i_drip
@@ -145,7 +145,22 @@ pp = let pp = 1
     for aa = 1:length(ms_all)
         for bb = 1:length(Δm_all)
             @info pp, aa, bb
+            if aa == 1
+                lcolor = :red
+            elseif aa == 2
+                lcolor = :black
+            elseif aa == 3
+                lcolor = :blue
+            end
+            if bb == 1
+                lstyle = :solid
+            elseif bb == 2
+                lstyle = :dash
+            elseif bb == 3
+                lstyle = :dashdot
+            end
             if pp == 1
+
                 plot(
                     t[2:end],
                     (Ωt[pp, 2:end] .- Ωt[pp, 1])*1e6/2/π,
@@ -160,10 +175,12 @@ pp = let pp = 1
                     yminorticks = 10,
                     lw = 2,
                     ms = 2,
-                    label = "m_s= $(ms_all[aa]), δm/δ= $(Δm_all[bb])",
-                    xlims = [0.5, 1e4],
+                    label = string(L"m_s=", ms_all[aa], L", \delta m/\delta=", Δm_all[bb]), #label = "m_s= $(ms_all[aa]), δm/δ= $(Δm_all[bb])",
+                    xlims = [0.05, 1e4],
                     ylims = [0.5, 1e3],
                     legend = :bottomleft,
+                    lc = lcolor,
+                    ls = lstyle,
                 )
             else
                 plot!(
@@ -171,7 +188,9 @@ pp = let pp = 1
                     (Ωt[pp, 2:end] .- Ωt[pp, 1])*1e6/2/π,
                     lw = 2,
                     ms = 2,
-                    label = "m_s= $(ms_all[aa]), δm/δ= $(Δm_all[bb])",
+                    label = string(L"m_s=", ms_all[aa], L", \delta m/\delta=", Δm_all[bb]), #label = "m_s= $(ms_all[aa]), δm/δ= $(Δm_all[bb])",
+                    lc = lcolor,
+                    ls = lstyle,
                 )
             end
             pp += 1
