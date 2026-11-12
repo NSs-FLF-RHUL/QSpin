@@ -271,8 +271,26 @@ function moment_of_inertia(
     rhoN = Params.rhoN
     r = Params.r
     R_NS = Params.R_NS
-    i_drip = argmin(abs.(rho .- ρ_drip))
-    i_cci = argmin(abs.(rho .- ρ_cci))
+    if minimum(rho) > ρ_drip
+        @warn "The minimum density is greater than the neutron drip density. Setting i_drip to the last index."
+        i_drip = length(rho)
+    elseif maximum(rho) < ρ_drip
+        @warn "The maximum density is less than the neutron drip density. Setting i_drip to the 3rd index."
+        i_drip = 3
+    else
+        i_drip = argmin(abs.(rho .- ρ_drip))
+    end
+
+    if minimum(rho) > ρ_cci
+        @warn "The minimum density is greater than the crust-core interface density. Setting i_cci to the second last index."
+        i_cci = length(rho) - 1
+    elseif maximum(rho) < ρ_cci
+        @warn "The maximum density is less than the crust-core interface density. Setting i_cci to the 2nd index."
+        i_cci = 2
+    else
+        i_cci = argmin(abs.(rho .- ρ_cci))
+    end
+
     R_drip = r[i_drip]
     R_cci = r[i_cci]
 
