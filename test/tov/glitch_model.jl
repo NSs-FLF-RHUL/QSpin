@@ -1,7 +1,8 @@
 using QSpin
 using QSpin.Parameters: ParameterType
 using QSpin.OdeSolve: evolve
-using QSpin.GlitchModels: ThreeCompSolid!, integral_moi_sph, integral_moi_cyl
+using QSpin.GlitchModels:
+    ThreeCompSolid!, integral_moi_sph, integral_moi_cyl, moment_of_inertia
 using OrdinaryDiffEqTsit5: Tsit5
 
 @testset "glith_riser" begin
@@ -58,12 +59,12 @@ end
         Rmax = 1e1
         r = range(0.0, stop = Rmax, length = Nr)
 
-        Params = (rho = ones(Nr), rhoN = ρr*0.9, r = r, R_NS = Rmax)
+        Params = (rho = ones(Nr), rhoN = ones(Nr)*0.9, r = r, R_NS = Rmax)
         MOI = moment_of_inertia(Params; ρ_drip = 0.3, ρ_cci = 0.55)
         @test MOI.i_drip == Nr
         @test MOI.i_cci == Nr-1
 
-        Params = (rho = ones(Nr)*0.2, rhoN = ρr*0.9, r = r, R_NS = Rmax)
+        Params = (rho = ones(Nr)*0.2, rhoN = ones(Nr)*0.9, r = r, R_NS = Rmax)
         MOI = moment_of_inertia(Params; ρ_drip = 0.3, ρ_cci = 0.55)
         @test MOI.i_drip == 3
         @test MOI.i_cci == 2

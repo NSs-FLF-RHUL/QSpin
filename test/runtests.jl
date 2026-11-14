@@ -22,7 +22,7 @@ end
 @testset "MFriction" begin
     include("mfriction/mfriction.jl")
 end
-@testset "gltich model" begin
+@testset "GlitchModels" begin
     include("tov/glitch_model.jl")
 end
 
