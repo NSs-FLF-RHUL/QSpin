@@ -1,7 +1,8 @@
 using QSpin
 using QSpin.Parameters: ParameterType
 using QSpin.OdeSolve: evolve
-using QSpin.GlitchModels: ThreeCompSolid!, integral_moi_sph, integral_moi_cyl
+using QSpin.GlitchModels:
+    ThreeCompSolid!, integral_moi_sph, integral_moi_cyl, moment_of_inertia
 using OrdinaryDiffEqTsit5: Tsit5
 
 @testset "glith_riser" begin
@@ -49,5 +50,66 @@ using OrdinaryDiffEqTsit5: Tsit5
         @test isapprox(sol[2, end], Ω_ini[2])
         @test isapprox(sol[3, end], Ω_ini[3])
 
+    end
+end
+
+@testset "Moment of Inertia" begin
+    @testset "i_drip and i_cci failure checks" begin
+        Nr = 101
+        Rmax = 1e1
+        r = range(0.0, stop = Rmax, length = Nr)
+
+        Params = (rho = ones(Nr), rhoN = ones(Nr)*0.9, r = r, R_NS = Rmax)
+        MOI = moment_of_inertia(Params; ρ_drip = 0.3, ρ_cci = 0.55)
+        @test MOI.i_drip == Nr
+        @test MOI.i_cci == Nr-1
+
+        Params = (rho = ones(Nr)*0.2, rhoN = ones(Nr)*0.9, r = r, R_NS = Rmax)
+        MOI = moment_of_inertia(Params; ρ_drip = 0.3, ρ_cci = 0.55)
+        @test MOI.i_drip == 3
+        @test MOI.i_cci == 2
+    end
+    @testset "Moment of Inertia for homogeneous density" begin
+        Nr = 201
+        Rmax = 1e1
+        r = range(0.0, stop = Rmax, length = Nr)
+        ρr = ones(Nr)
+        ρsf = 0.5
+        ρcrust = 0.25
+        ρr[r .> 4.95] .= ρsf
+        ρr[r .> 9.45] .= ρcrust
+        Params = (rho = ρr, rhoN = ρr*0.9, r = r, R_NS = Rmax)
+        MOI = moment_of_inertia(Params; ρ_drip = 0.3, ρ_cci = 0.55)
+        R_drip = r[MOI.i_drip]
+        R_cci = r[MOI.i_cci]
+        # Analytical moment of inertia for a uniform density sphere
+        I_anal(a, b) = 8.0 * π / 15.0 * (b^5 - a^5)
+        tol_riemann_sph(a, b, Nr) = maximum(b .^ 3 * 4) * (b-a)^2 / Nr/2 * 8 * π / 3
+        tol_riemann_cyl(a, b, Nr) = maximum(b .^ 2 * 3) * (b-a)^2 / Nr/2 * 2 * π
+
+        # Riemann sum maximum error estimate
+
+        @test isapprox(MOI.I_total, 1.0e45; rtol = tol_riemann_sph(0, Rmax, Nr))
+        @test isapprox(
+            MOI.I_crust_total,
+            I_anal(R_cci, R_drip)*ρsf+I_anal(R_drip, Rmax)*ρcrust;
+            rtol = tol_riemann_sph(R_cci, R_drip, MOI.i_drip-MOI.i_cci)*ρsf +
+                   tol_riemann_sph(R_drip, Rmax, Nr-MOI.i_drip)*ρcrust,
+        )
+        @test isapprox(
+            MOI.I_total_n,
+            I_anal(0, Rmax)*0.9;
+            rtol = tol_riemann_sph(0, Rmax, Nr),
+        )
+        @test isapprox(
+            MOI.I_sf,
+            I_anal(R_cci, R_drip)*ρsf*0.9;
+            rtol = tol_riemann_sph(R_cci, R_drip, MOI.i_drip-MOI.i_cci)*ρsf,
+        )
+        @test isapprox(
+            MOI.I_core,
+            I_anal(0, R_cci);
+            atol = tol_riemann_sph(0, R_cci, MOI.i_cci),
+        )
     end
 end

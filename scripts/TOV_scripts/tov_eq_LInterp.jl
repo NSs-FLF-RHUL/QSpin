@@ -2,7 +2,7 @@
 using QSpin
 using QSpin.Parameters: ParameterType
 using QSpin.TOV: TOV_Solve
-using QSpin.TOV.EquationOfState: EoS_LInterp
+using QSpin.TOV.EquationOfState: EoS_Type
 using Plots, LaTeXStrings
 
 file_name = "src/TOV/EoS/WNewton/eos_SkXi450_28.0_40.00_-100.00_glitch.dat"
@@ -15,12 +15,12 @@ Sim_Input = (
     units = "CGS", # optional
 );
 
-EoS, EoS_inv = EoS_LInterp(file_name, (1, 2));
-u0 = [EoS(Sim_Input.ρ0); 0.0];
+EOS = EoS_Type("LinterpSkyrme", FileInput = file_name);
+u0 = [EOS.EoS(Sim_Input.ρ0); 0.0];
 
 # Callback setup to terminate the integration when the pressure drops below zero
 @time TOV_sol = TOV_Solve(
-    EoS_inv,
+    EOS.EoS_inv,
     u0,
     Sim_Input.dr,
     Sim_Input.Dr,
