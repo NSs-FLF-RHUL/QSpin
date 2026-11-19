@@ -8,14 +8,14 @@ using QSpin.MFriction: mfrictionGraber2016, skyrme_effective_mass_inv
 using QSpin.OdeSolve: evolve
 using OrdinaryDiffEqTsit5: Tsit5
 using QSpin.PhysicalConstants: mass_sun
-file_name = "src/TOV/EoS/WNewton/eos_SkXi450_34.0_80.00_0.00_glitch.dat"
+file_name = "src/TOV/EoS/WNewton/eos_SkXi450_31.0_60.00_-100.00_glitch.dat"
 
 ms_all = [0.6, 0.8, 1.0]
 Δm_all = [-0.3, 0.17, 0.64]
 
 Sim_Input = (
-    dr = 0.0001*1e6, # Radial step in cm
-    Dr = 0.02*1e6, # Radial interval for recording values in cm
+    dr = 0.00001*1e6, # Radial step in cm
+    Dr = 0.0001*1e6, # Radial interval for recording values in cm
     r_beg = 0.e5,
     units = "CGS", # optional
     B_sf = 0.01, # Mutual Friction Parameter for the SF component
@@ -176,7 +176,7 @@ pp = let pp = 1
                     lw = 2,
                     ms = 2,
                     label = string(L"m_s=", ms_all[aa], L", \delta m/\delta=", Δm_all[bb]), #label = "m_s= $(ms_all[aa]), δm/δ= $(Δm_all[bb])",
-                    xlims = [0.05, 1e4],
+                    xlims = [0.5, 1e4],
                     ylims = [0.5, 1e3],
                     legend = :bottomleft,
                     lc = lcolor,
