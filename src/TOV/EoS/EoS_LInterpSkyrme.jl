@@ -3,11 +3,10 @@ using ....Parameters: ParameterType
 using Roots: find_zero
 using CSV: File
 using DataFrames: DataFrame, select!
-using DataInterpolations: ExtrapolationType, QuadraticSpline
-
+using DataInterpolations: ExtrapolationType, CubicSpline
 """
 $(TYPEDSIGNATURES)
-Loading the data from a pre-computed equation of state (EoS) and using quadraticspline interpolation to get the function of equation of state for TOV equation computations.
+Loading the data from a pre-computed equation of state (EoS) and using cubicspline interpolation to get the function of equation of state for TOV equation computations.
 
 # Arguments
 - `file_input::Union{DataFrame,AbstractMatrix{Float64}}`: the file directory and file name of the pre-computed equation of state in dat format or lading them in an N-by-x array with a correct EoS_indices.
@@ -40,20 +39,15 @@ function EoS_LInterpSkyrme(
     mp_ast = input[:, i_mp_ast]
     kFe = input[:, i_kFe]
     kFn = input[:, i_kFn]
-    EoS_P_from_rho =
-        QuadraticSpline(press, rho; extrapolation = ExtrapolationType.Extension)
-    EoS_rho_from_P =
-        QuadraticSpline(rho, press; extrapolation = ExtrapolationType.Extension)
-    EoS_nb_from_rho = QuadraticSpline(nb, rho; extrapolation = ExtrapolationType.Extension)
-    EoS_rhoN_from_rho =
-        QuadraticSpline(rhoN, rho; extrapolation = ExtrapolationType.Extension)
-    EoS_Yp_from_rho = QuadraticSpline(Yp, rho; extrapolation = ExtrapolationType.Extension)
+    EoS_P_from_rho = CubicSpline(press, rho; extrapolation = ExtrapolationType.Extension)
+    EoS_rho_from_P = CubicSpline(rho, press; extrapolation = ExtrapolationType.Extension)
+    EoS_nb_from_rho = CubicSpline(nb, rho; extrapolation = ExtrapolationType.Extension)
+    EoS_rhoN_from_rho = CubicSpline(rhoN, rho; extrapolation = ExtrapolationType.Extension)
+    EoS_Yp_from_rho = CubicSpline(Yp, rho; extrapolation = ExtrapolationType.Extension)
     EoS_mp_ast_from_rho =
-        QuadraticSpline(mp_ast, rho; extrapolation = ExtrapolationType.Extension)
-    EoS_kFe_from_rho =
-        QuadraticSpline(kFe, rho; extrapolation = ExtrapolationType.Extension)
-    EoS_kFn_from_rho =
-        QuadraticSpline(kFn, rho; extrapolation = ExtrapolationType.Extension)
+        CubicSpline(mp_ast, rho; extrapolation = ExtrapolationType.Extension)
+    EoS_kFe_from_rho = CubicSpline(kFe, rho; extrapolation = ExtrapolationType.Extension)
+    EoS_kFn_from_rho = CubicSpline(kFn, rho; extrapolation = ExtrapolationType.Extension)
 
     imp_zero = findall(iszero, EoS_mp_ast_from_rho.u)
     inb_cci = findlast(x->x<0.2, EoS_nb_from_rho.u[imp_zero]*1e-39)
