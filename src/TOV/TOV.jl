@@ -29,7 +29,7 @@ using DocStringExtensions: TYPEDSIGNATURES
 using OrdinaryDiffEqLowOrderRK: OrdinaryDiffEqLowOrderRK
 using SciMLBase: ContinuousCallback, terminate!, ODEProblem
 using CommonSolve: CommonSolve
-using DataInterpolations: QuadraticSpline
+using DataInterpolations: QuadraticSpline, CubicSpline
 using Roots: find_zero
 
 # Include the equations of state module as a submodule of the TOV module
@@ -86,7 +86,8 @@ Returns a function that evaluates the RHS of the TOV equations, given an equatio
 - `tov_inner!::Function`: Callable as `tov_inner!(du, u, params, r)` that evaluates the RHS of the TOV equations, writing the result to `du`.
 """
 function tov_eq!(
-    EoS_rho_from_P::Union{Function,QuadraticSpline};
+    EoS_rho_from_P::Union{Function,QuadraticSpline,CubicSpline},
+    ;
     units::Union{String} = "CGS",
     rho_ref::Float64 = 2.8e14, # nuclear saturation density in g/cm^3
 )
@@ -136,7 +137,7 @@ By default, the solver employs the DP5 method, which is a 5th order explicit Run
     - `M`: The total mass of the star, defined as the enclosed mass at the radius `R`.
 """
 function TOV_Solve(
-    EoS_inv::Union{Function,QuadraticSpline},
+    EoS_inv::Union{Function,QuadraticSpline,CubicSpline},
     u0::AbstractArray,
     dr::Float64,
     Dr::Float64,
@@ -209,8 +210,8 @@ Returns the mass and radius of a neustron star for a given equation of state and
 
 """
 function MassRadius(
-    EoS::Union{Function,QuadraticSpline},
-    EoS_inv::Union{Function,QuadraticSpline},
+    EoS::Union{Function,QuadraticSpline,CubicSpline},
+    EoS_inv::Union{Function,QuadraticSpline,CubicSpline},
     ρ_centre::Float64;
     r_beg::Float64 = 0.0,
     alg = OrdinaryDiffEqLowOrderRK.DP5(),
@@ -256,8 +257,8 @@ Returns the mass and radius of a neustron star for a given equation of state and
 
 """
 function rho_c_from_M(
-    EoS::Union{Function,QuadraticSpline},
-    EoS_inv::Union{Function,QuadraticSpline},
+    EoS::Union{Function,QuadraticSpline,CubicSpline},
+    EoS_inv::Union{Function,QuadraticSpline,CubicSpline},
     M_target::Float64;
     r_beg::Float64 = 0.0,
     alg = OrdinaryDiffEqLowOrderRK.DP5(),

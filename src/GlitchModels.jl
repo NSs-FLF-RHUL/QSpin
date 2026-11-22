@@ -213,6 +213,7 @@ function integral_moi_sph(
     ρ::AbstractArray,
     r::AbstractArray;
     r_range::Union{Tuple{Float64,Float64},AbstractArray,Nothing} = nothing,
+    mtd::Symbol = :trapezoidal,
 )
     if length(ρ) == length(r)
         if r_range == nothing
@@ -222,6 +223,14 @@ function integral_moi_sph(
         end
         dr = diff(r)
         dV = ρ .* r .^ 4 .* [dr; dr[end]]
+        if mtd == :trapezoidal
+            dV = 0.5*([dV[1]; dV[1:(end-1)]] .+ [dV[2:end]; dV[end]]) # trapezoidal method
+        elseif mtd == :riemann
+        else
+            error(
+                "Only :trapezoidal and :riemann methods are supported for the integral_moi_sph function.",
+            )
+        end
         return 8 * π * sum(@view dV[i_low:i_up]) / 3
     else
         error("Input ρ and r are not in the same size.")
@@ -246,6 +255,7 @@ function integral_moi_cyl(
     ρ::AbstractArray,
     r::AbstractArray;
     r_range::Union{Tuple{Float64,Float64},AbstractArray,Nothing} = nothing,
+    mtd::Symbol = :trapezoidal,
 )
     if length(ρ) == length(r)
         if r_range == nothing
@@ -255,6 +265,15 @@ function integral_moi_cyl(
         end
         dr = diff(r)
         dV = ρ .* r .^ 3 .* [dr; dr[end]]
+        if mtd == :trapezoidal
+            dV = 0.5*([dV[1]; dV[1:(end-1)]] .+ [dV[2:end]; dV[end]]) # trapezoidal method
+        elseif mtd == :riemann
+            dV = [dV[1]; dV[1:(end-1)]] # Riemann methods
+        else
+            error(
+                "Only :trapezoidal and :riemann methods are supported for the integral_moi_sph function.",
+            )
+        end
         return 2 * π * sum(@view dV[i_low:i_up])
     else
         error("Input ρ and r are not in the same size.")
@@ -266,6 +285,7 @@ function moment_of_inertia(
     ρ_drip::Float64 = 4e11, # cgs units
     ρ_cci::Float64 = 1e14, # cgs units
     value_check::Bool = false,
+    mtd::Symbol = :trapezoidal,
 )
     rho = Params.rho
     rhoN = Params.rhoN
@@ -298,19 +318,19 @@ function moment_of_inertia(
     r_sf = r[(i_cci+1):i_drip]
 
     # R_ccit = Chat with Will
-    I_total = integral_moi_sph(rho, r; r_range = (0.0, R_NS))
+    I_total = integral_moi_sph(rho, r; r_range = (0.0, R_NS), mtd = mtd)
 
-    I_sf = integral_moi_sph(rhoN, r; r_range = (r_sf[1], R_drip))
-    I_crust_total = integral_moi_sph(rho, r; r_range = (r_sf[1], R_NS))
-    I_core = integral_moi_sph(rho, r; r_range = (0.0, R_cci))
+    I_sf = integral_moi_sph(rhoN, r; r_range = (r_sf[1], R_drip), mtd = mtd)
+    I_crust_total = integral_moi_sph(rho, r; r_range = (r_sf[1], R_NS), mtd = mtd)
+    I_core = integral_moi_sph(rho, r; r_range = (0.0, R_cci), mtd = mtd)
     I_crust = I_total - I_core - I_sf
-    I_crust_unit = integral_moi_cyl(rho, r; r_range = (R_cci, R_NS))
+    I_crust_unit = integral_moi_cyl(rho, r; r_range = (R_cci, R_NS), mtd = mtd)
 
-    I_core_n_total = integral_moi_sph(rhoN, r; r_range = (0.0, R_cci))
+    I_core_n_total = integral_moi_sph(rhoN, r; r_range = (0.0, R_cci), mtd = mtd)
 
-    I_core_n = integral_moi_sph(rhoN, r; r_range = (0.0, R_cci))
+    I_core_n = integral_moi_sph(rhoN, r; r_range = (0.0, R_cci), mtd = mtd)
 
-    I_total_n = integral_moi_sph(rhoN, r; r_range = (0.0, R_NS))
+    I_total_n = integral_moi_sph(rhoN, r; r_range = (0.0, R_NS), mtd = mtd)
 
     I_proton = I_total - I_crust_total - I_core_n
     I_c = I_total - I_total_n  # I_charged in WN's code
