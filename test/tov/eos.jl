@@ -1,3 +1,4 @@
+
 @testset "EoS" begin
     # This begin a set of tests for the EoS
     @testset "EoS_LInterp - Matrix input" begin
@@ -20,4 +21,5 @@
         press = EoS(rho)
         @test isapprox(EoS_inv(press), rho, rtol = 0.02)
     end
+
 end
