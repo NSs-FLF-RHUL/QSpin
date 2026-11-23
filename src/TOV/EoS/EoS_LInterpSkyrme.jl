@@ -39,22 +39,15 @@ function EoS_LInterpSkyrme(
     mp_ast = input[:, i_mp_ast]
     kFe = input[:, i_kFe]
     kFn = input[:, i_kFn]
-    EoS_P_from_rho =
-        exp.(CubicSpline(log.(press), rho; extrapolation = ExtrapolationType.Extension))
-    EoS_rho_from_P =
-        exp.(CubicSpline(log.(rho), press; extrapolation = ExtrapolationType.Extension))
-    EoS_nb_from_rho =
-        exp.(CubicSpline(log.(nb), rho; extrapolation = ExtrapolationType.Extension))
-    EoS_rhoN_from_rho =
-        exp.(CubicSpline(log.(rhoN), rho; extrapolation = ExtrapolationType.Extension))
-    EoS_Yp_from_rho =
-        exp.(CubicSpline(log.(Yp), rho; extrapolation = ExtrapolationType.Extension))
+    EoS_P_from_rho = CubicSpline(press, rho; extrapolation = ExtrapolationType.Extension)
+    EoS_rho_from_P = CubicSpline(rho, press; extrapolation = ExtrapolationType.Extension)
+    EoS_nb_from_rho = CubicSpline(nb, rho; extrapolation = ExtrapolationType.Extension)
+    EoS_rhoN_from_rho = CubicSpline(rhoN, rho; extrapolation = ExtrapolationType.Extension)
+    EoS_Yp_from_rho = CubicSpline(Yp, rho; extrapolation = ExtrapolationType.Extension)
     EoS_mp_ast_from_rho =
-        exp.(CubicSpline(log.(mp_ast), rho; extrapolation = ExtrapolationType.Extension))
-    EoS_kFe_from_rho =
-        exp.(CubicSpline(log.(kFe), rho; extrapolation = ExtrapolationType.Extension))
-    EoS_kFn_from_rho =
-        exp.(CubicSpline(log.(kFn), rho; extrapolation = ExtrapolationType.Extension))
+        CubicSpline(mp_ast, rho; extrapolation = ExtrapolationType.Extension)
+    EoS_kFe_from_rho = CubicSpline(kFe, rho; extrapolation = ExtrapolationType.Extension)
+    EoS_kFn_from_rho = CubicSpline(kFn, rho; extrapolation = ExtrapolationType.Extension)
 
     imp_zero = findall(iszero, EoS_mp_ast_from_rho.u)
     inb_cci = findlast(x->x<0.2, EoS_nb_from_rho.u[imp_zero]*1e-39)
