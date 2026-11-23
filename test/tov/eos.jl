@@ -16,6 +16,7 @@
     end
     @testset "EoS_LInterp - Path input" begin
         file_name = joinpath(@__DIR__, "test.dat")
+        EOS = QSpin.TOV.EquationOfState.EoS_LInterp(file_name, (1, 2))
         a = 10.0
         b = 1e15
         N = 256
