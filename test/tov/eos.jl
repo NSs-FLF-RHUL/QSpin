@@ -16,15 +16,17 @@
     end
     @testset "EoS_LInterp - Path input" begin
         file_name = joinpath(@__DIR__, "test.dat")
-        EOS = QSpin.TOV.EquationOfState.EoS_LInterp(file_name, (1, 2))
-        rho = [1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 9.1, 8.8, 10.0]*1e12
+        a = 10.0
+        b = 1e15
+        N = 256
+        rho = exp.(range(log(a), log(b), length = N))
         press = EOS.EoS(rho)
         @test isapprox(EOS.EoS_inv(press), rho, rtol = 0.02)
     end
 
     @testset "EoS_LInterpSkyrme" begin
         file_name = joinpath(@__DIR__, "test.dat")
-        EOS = QSpin.TOV.EquationOfState.EoS_LInterp(file_name, (1, 2))
+        EOS = QSpin.TOV.EquationOfState.EoS_LInterpSkyrme(file_name)
         a = 10.0
         b = 1e15
         N = 256
