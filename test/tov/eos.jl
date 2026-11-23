@@ -13,6 +13,7 @@
         # Comparing
         @test isapprox(EOS.EoS(rho), press)
         @test isapprox(EOS.EoS_inv(press), rho)
+
     end
     @testset "EoS_LInterp - Path input" begin
         file_name = joinpath(@__DIR__, "test.dat")
@@ -23,6 +24,8 @@
         rho = exp.(range(log(a), log(b), length = N))
         press = EOS.EoS(rho)
         @test isapprox(EOS.EoS_inv(press), rho, rtol = 0.02)
+        @test minimum(press) > 0.0
+        @test maximum(EOS.EoS(rho)) > 0.0
     end
 
     @testset "EoS_LInterpSkyrme" begin
@@ -33,7 +36,31 @@
         N = 256
         rho = exp.(range(log(a), log(b), length = N))
         press = EOS.EoS(rho)
+
+        mp = EOS.EoS_mp(rho)
+        mp[mp .< 0] .= 0.0;
+        kFn = EOS.EoS_kFn(rho)
+        kFn[kFn .< 0.0] .= 0.0;
+        kFe = EOS.EoS_kFe(rho)
+        kFe[kFe .< 0.0] .= 0.0;
+        Yp = EOS.EoS_Yp(rho)
+        Yp[Yp .< 0.0] .= 0.0;
+        nb = EOS.EoS_nb(rho)
+        nb[nb .< 0.0] .= 0.0;
+
         @test isapprox(EOS.EoS_inv(press), rho, rtol = 0.02)
+        @test minimum(press) >= 0.0
+        @test maximum(EOS.EoS(rho)) >= 0.0
+
+        a = 10.0
+        b = 1e35
+        N = 256
+        press = exp.(range(log(a), log(b), length = N))
+        rho = EOS.EoS_inv(press)
+        @test isapprox(EOS.EoS(rho), press, rtol = 0.02)
+        @test minimum(rho) >= 0.0
+        @test maximum(EOS.EoS_inv(press)) >= 0.0
+
     end
 
 end
