@@ -26,6 +26,15 @@
         @test isapprox(EOS.EoS_inv(press), rho, rtol = 0.02)
         @test minimum(press) > 0.0
         @test maximum(EOS.EoS(rho)) > 0.0
+
+        a = 10.0
+        b = 1e35
+        N = 256
+        press = exp.(range(log(a), log(b), length = N))
+        rho = EOS.EoS_inv(press)
+        @test isapprox(EOS.EoS(rho), press, rtol = 0.02)
+        @test minimum(rho) >= 0.0
+        @test maximum(EOS.EoS_inv(press)) >= 0.0
     end
 
     @testset "EoS_LInterpSkyrme" begin
