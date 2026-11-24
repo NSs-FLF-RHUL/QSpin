@@ -37,7 +37,7 @@
         @test maximum(EOS.EoS_inv(press)) >= 0.0
     end
 
-    @testset "EoS_LInterpSkyrme" begin
+    @testset "EoS_LInterpSkyrme - Path input" begin
         file_name = joinpath(@__DIR__, "test.dat")
         EOS = QSpin.TOV.EquationOfState.EoS_LInterpSkyrme(file_name)
         a = 10.0

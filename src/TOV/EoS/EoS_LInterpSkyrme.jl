@@ -32,13 +32,29 @@ function EoS_LInterpSkyrme(
     input = Array(input)
     input = sortslices(input, dims = i_rho)
     rho = input[:, i_rho]
-    press = input[:, i_press]
-    nb = input[:, i_nb]
-    rhoN = input[:, i_rhoN]
-    Yp = input[:, i_Yp] # Do we really need this? It seems not used in the mutual fricition evaluations.
-    mp_ast = input[:, i_mp_ast]
-    kFe = input[:, i_kFe]
-    kFn = input[:, i_kFn]
+    if minimum(rho) > 0.0
+        @info "The minimum density in the input file is greater than zero. Adding a zero density point to the input data."
+        rho = [0; input[:, i_rho]]
+        press = [0; input[:, i_press]]
+        nb = [0; input[:, i_nb]]
+        rhoN = [0; input[:, i_rhoN]]
+        Yp = [0; input[:, i_Yp]] # Do we really need this? It seems not used in the mutual fricition evaluations.
+        mp_ast = [0; input[:, i_mp_ast]]
+        kFe = [0; input[:, i_kFe]]
+        kFn = [0; input[:, i_kFn]]
+    elseif minimum(rho) < 0.0
+        error("The density in the input file must be non-negative.")
+    else
+        press = input[:, i_press]
+        nb = input[:, i_nb]
+        rhoN = input[:, i_rhoN]
+        Yp = input[:, i_Yp] # Do we really need this? It seems not used in the mutual fricition evaluations.
+        mp_ast = input[:, i_mp_ast]
+        kFe = input[:, i_kFe]
+        kFn = input[:, i_kFn]
+    end
+
+
     EoS_P_from_rho = CubicSpline(press, rho; extrapolation = ExtrapolationType.Extension)
     EoS_rho_from_P = CubicSpline(rho, press; extrapolation = ExtrapolationType.Extension)
     EoS_nb_from_rho = CubicSpline(nb, rho; extrapolation = ExtrapolationType.Extension)
