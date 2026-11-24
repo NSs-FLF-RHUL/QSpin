@@ -148,12 +148,24 @@ function integral_moi_sph(
     ρ::AbstractArray,
     r::AbstractArray;
     r_range::Union{Tuple{Float64,Float64},AbstractArray,Nothing} = nothing,
+    mtd::Symbol = :trapezoidal,
 )
     if length(ρ) == length(r)
-        i_low, i_up = integral_range(r, r_range)
-
+        if r_range == nothing
+            i_low, i_up = (1, length(r))
+        else
+            i_low, i_up = integral_range(r, r_range)
+        end
         dr = diff(r)
         dV = ρ .* r .^ 4 .* [dr; dr[end]]
+        if mtd == :trapezoidal
+            dV = 0.5*([dV[1]; dV[1:(end-1)]] .+ [dV[2:end]; dV[end]]) # trapezoidal method
+        elseif mtd == :riemann
+        else
+            error(
+                "Only :trapezoidal and :riemann methods are supported for the integral_moi_sph function.",
+            )
+        end
         return 8 * π * sum(@view dV[i_low:i_up]) / 3
     else
         error("Input ρ and r are not in the same size.")
@@ -178,12 +190,25 @@ function integral_moi_cyl(
     ρ::AbstractArray,
     r::AbstractArray;
     r_range::Union{Tuple{Float64,Float64},AbstractArray,Nothing} = nothing,
+    mtd::Symbol = :trapezoidal,
 )
     if length(ρ) == length(r)
-        i_low, i_up = integral_range(r, r_range)
-
+        if r_range == nothing
+            i_low, i_up = (1, length(r))
+        else
+            i_low, i_up = integral_range(r, r_range)
+        end
         dr = diff(r)
         dV = ρ .* r .^ 3 .* [dr; dr[end]]
+        if mtd == :trapezoidal
+            dV = 0.5*([dV[1]; dV[1:(end-1)]] .+ [dV[2:end]; dV[end]]) # trapezoidal method
+        elseif mtd == :riemann
+            dV = [dV[1]; dV[1:(end-1)]] # Riemann methods
+        else
+            error(
+                "Only :trapezoidal and :riemann methods are supported for the integral_moi_sph function.",
+            )
+        end
         return 2 * π * sum(@view dV[i_low:i_up])
     else
         error("Input ρ and r are not in the same size.")
