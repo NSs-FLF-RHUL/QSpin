@@ -1,7 +1,7 @@
 using DocStringExtensions: TYPEDSIGNATURES
 using CSV: File
 using DataFrames: DataFrame, select!
-using DataInterpolations: ExtrapolationType, CubicSpline
+using DataInterpolations: ExtrapolationType, PCHIPInterpolation
 
 """
 $(TYPEDSIGNATURES)
@@ -22,8 +22,10 @@ function EoS_LInterp(
     i_rho, i_press = EoS_indices
     rho = sort(input[:, i_rho])
     press = sort(input[:, i_press])
-    EoS_P_from_rho = CubicSpline(press, rho; extrapolation = ExtrapolationType.Extension)
-    EoS_rho_from_P = CubicSpline(rho, press; extrapolation = ExtrapolationType.Extension)
+    EoS_P_from_rho =
+        PCHIPInterpolation(press, rho; extrapolation = ExtrapolationType.Extension)
+    EoS_rho_from_P =
+        PCHIPInterpolation(rho, press; extrapolation = ExtrapolationType.Extension)
     return (
         EoS = EoS_P_from_rho,
         EoS_inv = EoS_rho_from_P,#, rho, press
