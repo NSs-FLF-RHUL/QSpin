@@ -59,7 +59,6 @@ function EoS_GCA2018(
     P_intp = EoS_P_from_rho.(ρ_intp)
     EoS_rho_from_P_intp = PCHIPInterpolation(ρ_intp, P_intp)
 
-
     function EoS_rho_from_P(P)
         ρ = if P <= 0
             0.0
@@ -83,8 +82,6 @@ function EoS_GCA2018(
                 @show P rho_guess EoS_P_from_rho(rho_guess)
                 rethrow(eval)
             end
-
-
 
         end
         return ρ
