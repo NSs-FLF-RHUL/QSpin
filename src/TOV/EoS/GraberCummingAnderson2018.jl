@@ -1,7 +1,7 @@
 using DocStringExtensions: TYPEDSIGNATURES
 using ....PhysicalConstants: electron_volt, hbar, neutron_mass, speed_of_light_vacuum
 using DataInterpolations: PCHIPInterpolation
-using Roots: find_zero, Order2, Bisection
+using Roots: find_zero, Bisection
 """
 $(TYPEDSIGNATURES)
 
