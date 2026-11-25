@@ -1,7 +1,7 @@
 using DocStringExtensions: TYPEDSIGNATURES
 using ....PhysicalConstants: electron_volt, hbar, neutron_mass, speed_of_light_vacuum
 using DataInterpolations: PCHIPInterpolation
-using Roots: find_zero
+using Roots: find_zero, Order2, Bisection
 """
 $(TYPEDSIGNATURES)
 
@@ -48,13 +48,13 @@ function EoS_GCA2018(
             P = (nb) .* pressure_sum .* exp.(energy_sum) * 1e6 * electron_volt * 1e7 #
         end
 
-        return P
+        return @. P
     end
 
     P_drip = EoS_P_from_rho(ρ_drip)
     N_intp = 100
     ρ_beg = ρ_drip
-    ρ_end = 1e18
+    ρ_end = 1e16
     ρ_intp = exp.(range(log(ρ_beg), log(ρ_end), length = N_intp))
     P_intp = EoS_P_from_rho.(ρ_intp)
     EoS_rho_from_P_intp = PCHIPInterpolation(ρ_intp, P_intp)
@@ -69,7 +69,24 @@ function EoS_GCA2018(
             (12 * π^2 * P / ħ / c)^(3/4) * mn / (3 * π^2 * Ye)
         elseif P > P_drip
             rho_guess = EoS_rho_from_P_intp.(P)
-            find_zero(y -> EoS_P_from_rho(y) - P, rho_guess)
+            func = y -> EoS_P_from_rho(y) - P
+
+            try
+                find_zero(
+                    func,
+                    (
+                        maximum([ρ_drip, rho_guess*0.95]),
+                        maximum([1.05*ρ_drip, 1.05*rho_guess]),
+                    ),
+                    Bisection(),
+                )
+            catch eval
+                @show P rho_guess EoS_P_from_rho(rho_guess)
+                rethrow(eval)
+            end
+
+
+
         end
         return ρ
     end
