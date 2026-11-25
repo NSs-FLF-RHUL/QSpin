@@ -92,11 +92,15 @@ end
 
         # Riemann sum maximum error estimate
 
-        @test isapprox(MOI_T.I_total, 1.0e45; rtol = tol_riemann_sph(0, Rmax, Nr))
+        @test isapprox(
+            MOI_T.I_total,
+            I_anal(0, R_cci) + ρsf * I_anal(R_cci, R_drip) + ρcrust * I_anal(R_drip, Rmax);
+            atol = tol_riemann_sph(0, Rmax, Nr),
+        )
         @test isapprox(
             MOI_T.I_crust_total,
             I_anal(R_cci, R_drip)*ρsf+I_anal(R_drip, Rmax)*ρcrust;
-            rtol = tol_riemann_sph(R_cci, R_drip, MOI_T.i_drip-MOI_T.i_cci)*ρsf +
+            atol = tol_riemann_sph(R_cci, R_drip, MOI_T.i_drip-MOI_T.i_cci)*ρsf +
                    tol_riemann_sph(R_drip, Rmax, Nr-MOI_T.i_drip)*ρcrust,
         )
         @test isapprox(
@@ -107,7 +111,7 @@ end
         @test isapprox(
             MOI_T.I_sf,
             I_anal(R_cci, R_drip)*ρsf*0.9;
-            rtol = tol_riemann_sph(R_cci, R_drip, MOI_T.i_drip-MOI_T.i_cci)*ρsf,
+            atol = tol_riemann_sph(R_cci, R_drip, MOI_T.i_drip-MOI_T.i_cci)*ρsf,
         )
         @test isapprox(
             MOI_T.I_core,
