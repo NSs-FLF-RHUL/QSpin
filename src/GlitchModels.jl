@@ -148,12 +148,24 @@ function integral_moi_sph(
     ρ::AbstractArray,
     r::AbstractArray;
     r_range::Union{Tuple{Float64,Float64},AbstractArray,Nothing} = nothing,
+    mtd::Symbol = :trapezoidal,
 )
     if length(ρ) == length(r)
-        i_low, i_up = integral_range(r, r_range)
-
+        if r_range == nothing
+            i_low, i_up = (1, length(r))
+        else
+            i_low, i_up = integral_range(r, r_range)
+        end
         dr = diff(r)
         dV = ρ .* r .^ 4 .* [dr; dr[end]]
+        if mtd == :trapezoidal
+            dV = 0.5*([dV[1]; dV[1:(end-1)]] .+ [dV[2:end]; dV[end]]) # trapezoidal method
+        elseif mtd == :riemann
+        else
+            error(
+                "Only :trapezoidal and :riemann methods are supported for the integral_moi_sph function.",
+            )
+        end
         return 8 * π * sum(@view dV[i_low:i_up]) / 3
     else
         error("Input ρ and r are not in the same size.")
@@ -178,17 +190,121 @@ function integral_moi_cyl(
     ρ::AbstractArray,
     r::AbstractArray;
     r_range::Union{Tuple{Float64,Float64},AbstractArray,Nothing} = nothing,
+    mtd::Symbol = :trapezoidal,
 )
     if length(ρ) == length(r)
-        i_low, i_up = integral_range(r, r_range)
-
+        if r_range == nothing
+            i_low, i_up = (1, length(r))
+        else
+            i_low, i_up = integral_range(r, r_range)
+        end
         dr = diff(r)
         dV = ρ .* r .^ 3 .* [dr; dr[end]]
+        if mtd == :trapezoidal
+            dV = 0.5*([dV[1]; dV[1:(end-1)]] .+ [dV[2:end]; dV[end]]) # trapezoidal method
+        elseif mtd == :riemann
+            dV = [dV[1]; dV[1:(end-1)]] # Riemann methods
+        else
+            error(
+                "Only :trapezoidal and :riemann methods are supported for the integral_moi_sph function.",
+            )
+        end
         return 2 * π * sum(@view dV[i_low:i_up])
     else
         error("Input ρ and r are not in the same size.")
     end
 end
+
+function moment_of_inertia(
+    Params::ParameterType;
+    ρ_drip::Float64 = 4e11, # cgs units
+    ρ_cci::Float64 = 1e14, # cgs units
+    value_check::Bool = false,
+    mtd::Symbol = :trapezoidal,
+)
+    rho = Params.rho
+    rhoN = Params.rhoN
+    r = Params.r
+    R_NS = Params.R_NS
+    if minimum(rho) > ρ_drip
+        @warn "The minimum density is greater than the neutron drip density. Setting i_drip to the last index."
+        i_drip = length(rho)
+    elseif maximum(rho) < ρ_drip
+        @warn "The maximum density is less than the neutron drip density. Setting i_drip to the 3rd index."
+        i_drip = 3
+    else
+        i_drip = argmin(abs.(rho .- ρ_drip))
+    end
+
+    if minimum(rho) > ρ_cci
+        @warn "The minimum density is greater than the crust-core interface density. Setting i_cci to the second last index."
+        i_cci = length(rho) - 1
+    elseif maximum(rho) < ρ_cci
+        @warn "The maximum density is less than the crust-core interface density. Setting i_cci to the 2nd index."
+        i_cci = 2
+    else
+        i_cci = argmin(abs.(rho .- ρ_cci))
+    end
+
+    R_drip = r[i_drip]
+    R_cci = r[i_cci]
+
+
+    r_sf = r[(i_cci+1):i_drip]
+
+    # R_ccit = Chat with Will
+    I_total = integral_moi_sph(rho, r; r_range = (0.0, R_NS), mtd = mtd)
+
+    I_sf = integral_moi_sph(rhoN, r; r_range = (r_sf[1], R_drip), mtd = mtd)
+    I_crust_total = integral_moi_sph(rho, r; r_range = (r_sf[1], R_NS), mtd = mtd)
+    I_core = integral_moi_sph(rho, r; r_range = (0.0, R_cci), mtd = mtd)
+    I_crust = I_total - I_core - I_sf
+    I_crust_unit = integral_moi_cyl(rho, r; r_range = (R_cci, R_NS), mtd = mtd)
+
+    I_core_n_total = integral_moi_sph(rhoN, r; r_range = (0.0, R_cci), mtd = mtd)
+
+    I_core_n = integral_moi_sph(rhoN, r; r_range = (0.0, R_cci), mtd = mtd)
+
+    I_total_n = integral_moi_sph(rhoN, r; r_range = (0.0, R_NS), mtd = mtd)
+
+    I_proton = I_total - I_crust_total - I_core_n
+    I_c = I_total - I_total_n  # I_charged in WN's code
+
+    h_eff = 0.5 * I_crust_total / I_crust_unit
+    if value_check
+        @info " I_total       = $I_total"
+        @info " I_total_n     = $I_total_n"
+        @info " I_sf          = $I_sf"
+        @info " I_core        = $I_core"
+        @info " I_sf          = $I_sf , I_sf/_total = $(I_sf/I_total)"
+        @info " I_crust_total = $I_crust_total , I_crust_total/I_total = $(I_crust_total/I_total)"
+        @info " I_crust_unit  = $I_crust_unit"
+        @info " h_eff         = $h_eff"
+        @info " I_crust       = $I_crust"
+        @info " I_c           = $I_c"
+        @info " R_drip        = $R_drip"
+    end
+    return (;
+        I_c,
+        i_drip,
+        i_cci,
+        R_drip,
+        R_cci,
+        I_total,
+        I_sf,
+        I_crust_total,
+        I_core,
+        I_crust,
+        I_crust_unit,
+        I_core_n,
+        I_core_n_total,
+        I_proton,
+        I_total_n,
+        h_eff,
+    )
+
+end
+
 
 """
 $(TYPEDSIGNATURES)
