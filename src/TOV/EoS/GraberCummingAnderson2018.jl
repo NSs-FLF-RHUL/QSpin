@@ -70,7 +70,6 @@ function EoS_GCA2018(
         elseif P > P_drip
             rho_guess = EoS_rho_from_P_intp.(P)
             func = y -> EoS_P_from_rho(y) - P
-
             try
                 find_zero(
                     func,
