@@ -47,15 +47,15 @@
         press = EOS.EoS(rho)
 
         mp = EOS.EoS_mp(rho)
-        mp[mp .< 0] .= 0.0;
+        mp[mp .< 0] .= 0.0
         kFn = EOS.EoS_kFn(rho)
-        kFn[kFn .< 0.0] .= 0.0;
+        kFn[kFn .< 0.0] .= 0.0
         kFe = EOS.EoS_kFe(rho)
-        kFe[kFe .< 0.0] .= 0.0;
+        kFe[kFe .< 0.0] .= 0.0
         Yp = EOS.EoS_Yp(rho)
-        Yp[Yp .< 0.0] .= 0.0;
+        Yp[Yp .< 0.0] .= 0.0
         nb = EOS.EoS_nb(rho)
-        nb[nb .< 0.0] .= 0.0;
+        nb[nb .< 0.0] .= 0.0
 
         @test isapprox(EOS.EoS_inv(press), rho, rtol = 0.02)
         @test minimum(press) >= 0.0
