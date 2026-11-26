@@ -1,6 +1,7 @@
 using DocStringExtensions: TYPEDSIGNATURES
 using ....PhysicalConstants: electron_volt, hbar, neutron_mass, speed_of_light_vacuum
-using Roots: find_zero
+using DataInterpolations: PCHIPInterpolation
+using Roots: find_zero, Bisection
 """
 $(TYPEDSIGNATURES)
 
@@ -32,7 +33,7 @@ function EoS_GCA2018(
         P = if ρ < 0
             0.0
         elseif ρ < ρ_drip
-            ħ * c * (3 * π^2 * Ye * ρ / mn)^(4/3) / 12 / π^2
+            ħ * c * (3 * π^2 * Ye * ρ / mn) .^ (4/3) / 12 / π^2
         else
             nb = ρ / (neutron_mass * 1e3) # in the unit of g/cm^3
             nb_scaled = nb * 1e-35
@@ -47,28 +48,43 @@ function EoS_GCA2018(
             P = (nb) .* pressure_sum .* exp.(energy_sum) * 1e6 * electron_volt * 1e7 #
         end
 
-        return P
+        return @. P
     end
 
     P_drip = EoS_P_from_rho(ρ_drip)
+    N_intp = 100
+    ρ_beg = ρ_drip
+    ρ_end = 1e16
+    ρ_intp = exp.(range(log(ρ_beg), log(ρ_end), length = N_intp))
+    P_intp = EoS_P_from_rho.(ρ_intp)
+    EoS_rho_from_P_intp = PCHIPInterpolation(ρ_intp, P_intp)
 
     function EoS_rho_from_P(P)
-        ρ = if P < 0
+        ρ = if P <= 0
             0.0
         elseif isapprox(P, P_drip; rtol = 1e-12)
             ρ_drip
         elseif P < P_drip
             (12 * π^2 * P / ħ / c)^(3/4) * mn / (3 * π^2 * Ye)
-        else
-            rho_guess = if log(P) > 76.0
-                # ((log(P) - 75.06) / 4.87e-9)^(1/0.6028) # Emperical Guess from a Fitting for density up to about 4e16
-                ((log(P) - 68.3) / 2.836e-7)^(1/0.502) # Emperical Guess from a Fitting for density up to about 9e16
-            else
-                5e12
+        elseif P > P_drip
+            rho_guess = EoS_rho_from_P_intp.(P)
+            func = y -> EoS_P_from_rho(y) - P
+            try
+                find_zero(
+                    func,
+                    (
+                        maximum([ρ_drip, rho_guess*0.95]),
+                        maximum([1.05*ρ_drip, 1.05*rho_guess]),
+                    ),
+                    Bisection(),
+                )
+            catch eval
+                @show P rho_guess EoS_P_from_rho(rho_guess)
+                rethrow(eval)
             end
-            find_zero(y -> EoS_P_from_rho(y) - P, rho_guess)
+
         end
         return ρ
     end
-    return EoS_P_from_rho, EoS_rho_from_P
+    return (EoS = EoS_P_from_rho, EoS_inv = EoS_rho_from_P)
 end

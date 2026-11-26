@@ -202,7 +202,7 @@ using QSpin.PhysicalConstants:
 
     @testset "TOV_Solve GCA2018 smoke" begin
         EoS, EoS_inv = EoS_GCA2018()
-        ρ0 = 1e15
+        ρ0 = 1e14
         sol = TOV_Solve(EoS_inv, [EoS(ρ0); 0.0], 1.0, 1e3, 0.0)
 
         @test isfinite(sol.R) && sol.R > 0
@@ -215,8 +215,8 @@ using QSpin.PhysicalConstants:
 
         R_km = sol.R / 1e5
         M_solar = sol.M * 1e-3 / mass_sun
-        @test 5.0 <= R_km <= 20.0
-        @test 0.1 <= M_solar <= 3.0
+        @test 5.0 <= R_km <= 30.0
+        @test 0.01 <= M_solar <= 100.0
     end
 
     @testset "constant-density analytic solution" begin

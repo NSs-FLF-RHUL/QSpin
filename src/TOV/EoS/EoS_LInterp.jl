@@ -1,7 +1,7 @@
 using DocStringExtensions: TYPEDSIGNATURES
 using CSV: File
 using DataFrames: DataFrame, select!
-using DataInterpolations: ExtrapolationType, QuadraticSpline
+using DataInterpolations: ExtrapolationType, PCHIPInterpolation
 
 """
 $(TYPEDSIGNATURES)
@@ -20,13 +20,18 @@ function EoS_LInterp(
     EoS_indices::Tuple{Int64,Int64},
 )
     i_rho, i_press = EoS_indices
+    input = Array(input)
+    input = sortslices(input, dims = i_rho)
     rho = sort(input[:, i_rho])
     press = sort(input[:, i_press])
     EoS_P_from_rho =
-        QuadraticSpline(press, rho; extrapolation = ExtrapolationType.Extension)
+        PCHIPInterpolation(press, rho; extrapolation = ExtrapolationType.Extension)
     EoS_rho_from_P =
-        QuadraticSpline(rho, press; extrapolation = ExtrapolationType.Extension)
-    return EoS_P_from_rho, EoS_rho_from_P#, rho, press
+        PCHIPInterpolation(rho, press; extrapolation = ExtrapolationType.Extension)
+    return (
+        EoS = EoS_P_from_rho,
+        EoS_inv = EoS_rho_from_P,#, rho, press
+    )
 end
 
 function EoS_LInterp(file_input::String, EoS_indices::Tuple{Int64,Int64})
