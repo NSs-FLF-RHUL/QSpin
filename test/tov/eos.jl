@@ -1,3 +1,4 @@
+
 @testset "EoS" begin
     # This begin a set of tests for the EoS
     @testset "EoS_LInterp - Matrix input" begin
@@ -8,16 +9,67 @@
         # Making an input array for the test
         input = [rho press]
         # Creating equation of state and its inverse function
-        EoS, EoS_inv = QSpin.TOV.EquationOfState.EoS_LInterp(input, (1, 2))
+        EOS = QSpin.TOV.EquationOfState.EoS_LInterp(input, (1, 2))
         # Comparing
-        @test isapprox(EoS(rho), press)
-        @test isapprox(EoS_inv(press), rho)
+        @test isapprox(EOS.EoS(rho), press)
+        @test isapprox(EOS.EoS_inv(press), rho)
+
     end
     @testset "EoS_LInterp - Path input" begin
         file_name = joinpath(@__DIR__, "test.dat")
-        EoS, EoS_inv = QSpin.TOV.EquationOfState.EoS_LInterp(file_name, (1, 2))
-        rho = [1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 9.1, 8.8, 10.0]*1e12
-        press = EoS(rho)
-        @test isapprox(EoS_inv(press), rho, rtol = 0.02)
+        EOS = QSpin.TOV.EquationOfState.EoS_LInterp(file_name, (1, 2))
+        a = 10.0
+        b = 1e15
+        N = 256
+        rho = exp.(range(log(a), log(b), length = N))
+        press = EOS.EoS(rho)
+        @test isapprox(EOS.EoS_inv(press), rho, rtol = 0.02)
+        @test minimum(press) > 0.0
+        @test maximum(EOS.EoS(rho)) > 0.0
+
+        a = 10.0
+        b = 1e35
+        N = 256
+        press = exp.(range(log(a), log(b), length = N))
+        rho = EOS.EoS_inv(press)
+        @test isapprox(EOS.EoS(rho), press, rtol = 0.02)
+        @test minimum(rho) >= 0.0
+        @test maximum(EOS.EoS_inv(press)) >= 0.0
     end
+
+    @testset "EoS_LInterpSkyrme - Path input" begin
+        file_name = joinpath(@__DIR__, "test.dat")
+        EOS = QSpin.TOV.EquationOfState.EoS_LInterpSkyrme(file_name)
+        a = 10.0
+        b = 1e15
+        N = 256
+        rho = exp.(range(log(a), log(b), length = N))
+        press = EOS.EoS(rho)
+
+        mp = EOS.EoS_mp(rho)
+        mp[mp .< 0] .= 0.0
+        kFn = EOS.EoS_kFn(rho)
+        kFn[kFn .< 0.0] .= 0.0
+        kFe = EOS.EoS_kFe(rho)
+        kFe[kFe .< 0.0] .= 0.0
+        Yp = EOS.EoS_Yp(rho)
+        Yp[Yp .< 0.0] .= 0.0
+        nb = EOS.EoS_nb(rho)
+        nb[nb .< 0.0] .= 0.0
+
+        @test isapprox(EOS.EoS_inv(press), rho, rtol = 0.02)
+        @test minimum(press) >= 0.0
+        @test maximum(EOS.EoS(rho)) >= 0.0
+
+        a = 10.0
+        b = 1e35
+        N = 256
+        press = exp.(range(log(a), log(b), length = N))
+        rho = EOS.EoS_inv(press)
+        @test isapprox(EOS.EoS(rho), press, rtol = 0.02)
+        @test minimum(rho) >= 0.0
+        @test maximum(EOS.EoS_inv(press)) >= 0.0
+
+    end
+
 end
